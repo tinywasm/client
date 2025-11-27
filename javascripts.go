@@ -2,7 +2,6 @@ package tinywasm
 
 import (
 	_ "embed"
-	"fmt"
 	"os"
 	"os/exec"
 	"path"
@@ -102,10 +101,6 @@ func (h *TinyWasm) JavascriptForInitializing(customizations ...string) (js strin
 	var header string
 	if len(customizations) > 0 {
 		header = customizations[0]
-	} else {
-		// Default header: minimal comment with current mode for detection
-		currentModeAtGeneration := h.Value()
-		header = fmt.Sprintf("// TinyWasm: mode=%s\n", currentModeAtGeneration)
 	}
 
 	stringWasmJs = header + stringWasmJs
@@ -264,46 +259,6 @@ func (w *TinyWasm) GetWasmExecJsPathGo() (string, error) {
 	return "", Errf("go wasm_exec.js not found. Searched: GOROOT=%s, patterns=%v", goRoot, patterns)
 }
 
-// getModeFromWasmExecJsHeader extracts the mode shortcut from a wasm_exec.js
-// header comment emitted by JavascriptForInitializing. The header format is
-// expected to be: "// TinyWasm: <message>" where <message> is the success
-// message returned by getSuccessMessage. We return the matching shortcut and true
-// when a match is found.
-func (h *TinyWasm) getModeFromWasmExecJsHeader(content string) (string, bool) {
-	const prefix = "// TinyWasm: "
-
-	// Only check start of file for header
-	firstLine := content
-	if idx := strings.Index(content, "\n"); idx != -1 {
-		firstLine = content[:idx]
-	}
-
-	if !strings.HasPrefix(firstLine, prefix) {
-		return "", false
-	}
-
-	rest := strings.TrimSpace(strings.TrimPrefix(firstLine, prefix))
-
-	// look for mode=<shortcut> in rest
-	lower := strings.ToLower(rest)
-	if mIdx := strings.Index(lower, "mode="); mIdx != -1 {
-		after := rest[mIdx+len("mode="):]
-		// stop at semicolon or whitespace
-		end := strings.IndexAny(after, "; \t")
-		var modeVal string
-		if end == -1 {
-			modeVal = strings.TrimSpace(after)
-		} else {
-			modeVal = strings.TrimSpace(after[:end])
-		}
-		if modeVal != "" {
-			return modeVal, true
-		}
-	}
-
-	return "", false
-}
-
 // wasmProjectWriteOrReplaceWasmExecJsOutput writes (or overwrites) the
 // wasm_exec.js initialization file into the configured web output folder for
 // WASM projects. If the receiver is not a WASM project the function returns
@@ -354,10 +309,12 @@ func (w *TinyWasm) analyzeWasmExecJsContent(filePath string) bool {
 
 	content := string(data)
 
-	// PRIORITY 1: Extract mode from header if present
-	if mode, found := w.getModeFromWasmExecJsHeader(content); found {
-		w.currentMode = mode
-		//w.Logger("DEBUG: Restored mode from header:", mode)
+	// PRIORITY 1: Check store if available
+	if w.Store != nil {
+		if mode, err := w.Store.Get("tinywasm_mode"); err == nil && mode != "" {
+			w.currentMode = mode
+			//w.Logger("DEBUG: Restored mode from store:", mode)
+		}
 	}
 
 	// Count signatures (reuse existing logic from wasmDetectionFuncFromJsFileActive)

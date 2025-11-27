@@ -1,181 +1,84 @@
 package tinywasm
 
 import (
-	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
-	"strings"
 	"testing"
 )
 
-// TestHeaderUpdateBugReproduction reproduces the specific bug where switching
-// from mode "b" to mode "m" doesn't update the wasm_exec.js header correctly.
-// This simulates the real-world scenario where AssetMin reads the stale header.
-func TestHeaderUpdateBugReproduction(t *testing.T) {
+// TestStoreModePersistence tests that mode changes are correctly saved to the Store
+// and persist across TinyWasm instances, simulating the bug where mode updates were not persisted.
+func TestStoreModePersistence(t *testing.T) {
 	if _, err := exec.LookPath("tinygo"); err != nil {
 		t.Skip("tinygo not found in PATH")
 	}
-	// Create isolated temp workspace
-	tmp := t.TempDir()
-	webDirName := "web"
-	webDir := filepath.Join(tmp, webDirName)
-	publicDir := filepath.Join(webDir, "public")
-	jsDir := filepath.Join(webDir, "theme", "js")
-	if err := os.MkdirAll(publicDir, 0755); err != nil {
-		t.Fatalf("failed to create public dir: %v", err)
-	}
-	if err := os.MkdirAll(jsDir, 0755); err != nil {
-		t.Fatalf("failed to create js dir: %v", err)
+
+	store := &testStore{data: make(map[string]string)}
+
+	config := &Config{
+		AppRootDir: t.TempDir(),
+		Logger:     func(...any) {},
+		Store:      store,
 	}
 
-	// Write a minimal go.mod
-	goModContent := `module test
-
-go 1.21
-`
-	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goModContent), 0644); err != nil {
-		t.Fatalf("failed to write go.mod: %v", err)
+	// Step 1: Start with initial mode (should be L)
+	w1 := New(config)
+	if w1.Value() != "L" {
+		t.Errorf("Initial mode should be 'L', got '%s'", w1.Value())
 	}
 
-	// Write a minimal main.go
-	mainWasmPath := filepath.Join(webDir, "main.go")
-	wasmContent := `package main
+	// Step 2: Change to Medium mode
+	progress := make(chan string, 10)
+	w1.Change("M", progress)
+	close(progress)
+	for range progress {
+	} // drain
 
-func main() {
-    println("hello wasm")
-}
-`
-	if err := os.WriteFile(mainWasmPath, []byte(wasmContent), 0644); err != nil {
-		t.Fatalf("failed to write main.go: %v", err)
+	saved, _ := store.Get("tinywasm_mode")
+	if saved != "M" {
+		t.Errorf("After changing to 'M', store should have 'M', got '%s'", saved)
 	}
 
-	// Prepare config to match real-world setup
-	var logMessages []string
-	cfg := NewConfig()
-	cfg.AppRootDir = tmp
-	cfg.SourceDir = webDirName
-	cfg.OutputDir = filepath.Join(webDirName, "public")
-	cfg.WasmExecJsOutputDir = filepath.Join(webDirName, "theme", "js")
-	cfg.Logger = func(message ...any) {
-		logMessages = append(logMessages, fmt.Sprint(message...))
+	// Verify new instance loads the mode
+	w2 := New(config)
+	if w2.Value() != "M" {
+		t.Errorf("New instance should load 'M', got '%s'", w2.Value())
 	}
 
-	w := New(cfg)
-	w.tinyGoCompiler = true
-	w.wasmProject = true
+	// Step 3: Change to Small mode (critical test for the bug)
+	progress = make(chan string, 10)
+	w2.Change("S", progress)
+	close(progress)
+	for range progress {
+	} // drain
 
-	wasmExecPath := filepath.Join(tmp, cfg.WasmExecJsOutputDir, "wasm_exec.js")
-
-	// Step 1: Initialize with coding mode and create initial file
-	err := w.NewFileEvent("main.go", ".go", mainWasmPath, "create")
-	if err != nil {
-		t.Fatalf("NewFileEvent with create event failed: %v", err)
+	saved, _ = store.Get("tinywasm_mode")
+	if saved != "S" {
+		t.Errorf("After changing to 'S', store should have 'S', got '%s'", saved)
 	}
 
-	// Verify initial mode header
-	verifyHeader := func(expectedMode string, step string) {
-		t.Helper()
-		if data, err := os.ReadFile(wasmExecPath); err != nil {
-			t.Errorf("%s: Failed to read wasm_exec.js: %v", step, err)
-		} else {
-			content := string(data)
-			expectedHeader := fmt.Sprintf("// TinyWasm: mode=%s", expectedMode)
-			lines := strings.Split(content, "\n")
-			actualFirstLine := ""
-			if len(lines) > 0 {
-				actualFirstLine = strings.TrimSpace(lines[0])
-			}
-
-			if !strings.Contains(actualFirstLine, expectedHeader) {
-				t.Errorf("%s: Header mismatch. Expected: '%s', got: '%s'",
-					step, expectedHeader, actualFirstLine)
-			} else {
-				t.Logf("%s: Header correctly shows: %s", step, actualFirstLine)
-			}
-		}
+	w3 := New(config)
+	if w3.Value() != "S" {
+		t.Errorf("New instance should load 'S', got '%s'", w3.Value())
 	}
-
-	// Initial state should be coding mode
-	verifyHeader("L", "After initial creation")
-
-	// Step 2: Change to debugging mode
-	t.Log("=== Changing to debugging mode ===")
-	progressChan := make(chan string, 1)
-	done := make(chan bool)
-	go func() {
-		for range progressChan { // Drain all messages
-		}
-		done <- true
-	}()
-	w.Change(w.Config.BuildMediumSizeShortcut, progressChan)
-	close(progressChan) // Close channel so goroutine can finish
-	<-done
-
-	if w.Value() != "M" {
-		t.Errorf("Expected mode 'M', got '%s'", w.Value())
-	}
-	verifyHeader("M", "After changing to debugging mode")
-
-	// Step 3: THE CRITICAL TEST - Change to production mode
-	t.Log("=== Changing to production mode (THE BUG TEST) ===")
-	progressChan = make(chan string, 1)
-	done = make(chan bool)
-	go func() {
-		for range progressChan { // Drain all messages
-		}
-		done <- true
-	}()
-	w.Change(w.Config.BuildSmallSizeShortcut, progressChan)
-	close(progressChan) // Close channel so goroutine can finish
-	<-done
-
-	if w.Value() != "S" {
-		t.Errorf("Expected mode 'S', got '%s'", w.Value())
-	}
-
-	// This is where the bug should be detected
-	verifyHeader("S", "After changing to production mode (CRITICAL)")
 
 	// Step 4: Test back and forth to ensure robustness
-	t.Log("=== Testing mode switching robustness ===")
+	modes := []string{"M", "S", "L", "M", "S"}
+	for _, mode := range modes {
+		w := New(config)
+		progress = make(chan string, 10)
+		w.Change(mode, progress)
+		close(progress)
+		for range progress {
+		} // drain
 
-	// Back to debugging
-	progressChan = make(chan string, 1)
-	done = make(chan bool)
-	go func() {
-		for range progressChan { // Drain all messages
+		saved, _ := store.Get("tinywasm_mode")
+		if saved != mode {
+			t.Errorf("After changing to '%s', store should have '%s', got '%s'", mode, mode, saved)
 		}
-		done <- true
-	}()
-	w.Change(w.Config.BuildMediumSizeShortcut, progressChan)
-	close(progressChan) // Close channel so goroutine can finish
-	<-done
-	verifyHeader("M", "Back to debugging mode")
 
-	// Back to production
-	progressChan = make(chan string, 1)
-	done = make(chan bool)
-	go func() {
-		for range progressChan { // Drain all messages
+		wNew := New(config)
+		if wNew.Value() != mode {
+			t.Errorf("New instance should load '%s', got '%s'", mode, wNew.Value())
 		}
-		done <- true
-	}()
-	w.Change(w.Config.BuildSmallSizeShortcut, progressChan)
-	close(progressChan) // Close channel so goroutine can finish
-	<-done
-	verifyHeader("S", "Back to production mode (second time)")
-
-	// Back to coding
-	progressChan = make(chan string, 1)
-	done = make(chan bool)
-	go func() {
-		for range progressChan { // Drain all messages
-		}
-		done <- true
-	}()
-	w.Change(w.Config.BuildLargeSizeShortcut, progressChan)
-	close(progressChan) // Close channel so goroutine can finish
-	<-done
-	verifyHeader("L", "Back to coding mode")
+	}
 }

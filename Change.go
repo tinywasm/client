@@ -41,6 +41,11 @@ func (w *TinyWasm) Change(newValue string, progress chan<- string) {
 	// Update active builder
 	w.updateCurrentBuilder(newValue)
 
+	// Save mode to store if available
+	if w.Store != nil {
+		w.Store.Set("tinywasm_mode", newValue)
+	}
+
 	// Check if main WASM file exists
 	sourceDir := path.Join(w.AppRootDir, w.Config.SourceDir)
 	mainWasmPath := path.Join(sourceDir, w.Config.MainInputFile)
@@ -60,7 +65,14 @@ func (w *TinyWasm) Change(newValue string, progress chan<- string) {
 	}
 
 	// Ensure wasm_exec.js is available
-	w.wasmProjectWriteOrReplaceWasmExecJsOutput()
+	if !w.Config.DisableWasmExecJsOutput {
+		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
+	}
+
+	// Notify listener about change
+	if w.OnWasmExecChange != nil {
+		w.OnWasmExecChange()
+	}
 
 	// Report success
 	progress <- w.getSuccessMessage(newValue)

@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -58,6 +57,7 @@ func main() {
 	cfg.Logger = func(message ...any) {
 		logMessages = append(logMessages, fmt.Sprint(message...))
 	}
+	cfg.Store = &testStore{data: make(map[string]string)}
 
 	w := New(cfg)
 	// Allow tests to enable tinygo detection by setting the private field
@@ -161,23 +161,12 @@ func main() {
 				t.Fatalf("After Change, expected mode '%s', got '%s'", tc.mode, w.Value())
 			}
 
-			// CRITICAL: Verify that the wasm_exec.js header reflects the new mode
-			wasmExecPath := filepath.Join(tmp, cfg.WasmExecJsOutputDir, "wasm_exec.js")
-			if data, err := os.ReadFile(wasmExecPath); err != nil {
-				t.Errorf("Failed to read wasm_exec.js after mode change to %s: %v", tc.name, err)
-			} else {
-				content := string(data)
-				expectedHeader := fmt.Sprintf("// TinyWasm: mode=%s", tc.mode)
-				if !strings.Contains(content, expectedHeader) {
-					// This is the bug we're looking for
-					lines := strings.Split(content, "\n")
-					actualFirstLine := ""
-					if len(lines) > 0 {
-						actualFirstLine = lines[0]
-					}
-					t.Errorf("Mode %s: wasm_exec.js header mismatch. Expected: '%s', got first line: '%s'",
-						tc.name, expectedHeader, actualFirstLine)
-				}
+			// CRITICAL: Verify that the mode is saved in the Store
+			saved, err := cfg.Store.Get("tinywasm_mode")
+			if err != nil {
+				t.Errorf("Failed to get mode from store for %s: %v", tc.name, err)
+			} else if saved != tc.mode {
+				t.Errorf("Mode %s: Store mismatch. Expected: '%s', got: '%s'", tc.name, tc.mode, saved)
 			}
 
 			// Test JavaScript generation after mode change

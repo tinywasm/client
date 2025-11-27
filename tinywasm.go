@@ -66,6 +66,9 @@ type Config struct {
 
 	// LastOperationID tracks the last operation ID for progress reporting
 	lastOpID string
+
+	Store            Store  // Key-Value store for state persistence
+	OnWasmExecChange func() // Callback for wasm_exec.js changes
 }
 
 // NewConfig creates a TinyWasm Config with sensible defaults
@@ -148,6 +151,13 @@ func New(c *Config) *TinyWasm {
 
 	// Initialize gobuild instance with WASM-specific configuration
 	w.builderWasmInit()
+
+	// Try to restore mode from store if available
+	if w.Store != nil {
+		if val, err := w.Store.Get("tinywasm_mode"); err == nil && val != "" {
+			w.currentMode = val
+		}
+	}
 
 	// Perform one-time detection at the end
 	w.detectProjectConfiguration()

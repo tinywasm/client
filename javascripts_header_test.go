@@ -1,24 +1,23 @@
 package tinywasm
 
 import (
-	"os"
 	"os/exec"
-	"path/filepath"
 	"testing"
 )
 
-// TestJavascriptHeaderRoundtrip ensures the generated wasm_exec.js contains a
-// TinyWasm header with the getSuccessMessage text and that analyzeWasmExecJsContent
-// can read it back and restore the mode.
-func TestJavascriptHeaderRoundtrip(t *testing.T) {
+// TestStoreRoundtrip ensures the mode is saved to and loaded from the Store
+func TestStoreRoundtrip(t *testing.T) {
 	if _, err := exec.LookPath("tinygo"); err != nil {
 		t.Skip("tinygo not found in PATH")
 	}
 	tmpDir := t.TempDir()
 
+	store := &testStore{data: make(map[string]string)}
+
 	config := &Config{
 		AppRootDir: tmpDir,
 		Logger:     func(...any) {},
+		Store:      store,
 	}
 
 	w := New(config)
@@ -31,33 +30,28 @@ func TestJavascriptHeaderRoundtrip(t *testing.T) {
 		w.Config.BuildSmallSizeShortcut,
 	}
 
-	outPath := filepath.Join(tmpDir, "wasm_exec.js")
-
 	for _, mode := range shortcuts {
 		// Use a fresh TinyWasm instance per mode to avoid shared state
 		w := New(config)
 		w.wasmProject = true
-		// Set mode and ensure TinyGo installed flag is true for modes that may require it
-		w.currentMode = mode
 
-		js, err := w.JavascriptForInitializing()
+		progress := make(chan string, 10)
+		w.Change(mode, progress)
+		close(progress) // Close the channel since Change doesn't
+
+		// Check that mode is saved in store
+		saved, err := store.Get("tinywasm_mode")
 		if err != nil {
-			t.Fatalf("failed to generate js for mode %q: %v", mode, err)
+			t.Fatalf("failed to get mode from store for %q: %v", mode, err)
+		}
+		if saved != mode {
+			t.Fatalf("expected saved mode %q, got %q", mode, saved)
 		}
 
-		if err := os.WriteFile(outPath, []byte(js), 0644); err != nil {
-			t.Fatalf("failed to write temp wasm_exec.js for mode %q: %v", mode, err)
-		}
-
-		// Reset currentMode to ensure detection reads the header
-		w.currentMode = ""
-
-		if !w.analyzeWasmExecJsContent(outPath) {
-			t.Fatalf("analyzeWasmExecJsContent failed to detect header for mode %q", mode)
-		}
-
-		if w.Value() != mode {
-			t.Fatalf("expected recovered mode %q, got %q", mode, w.Value())
+		// Create new instance to test loading
+		w2 := New(config)
+		if w2.Value() != mode {
+			t.Fatalf("expected loaded mode %q, got %q", mode, w2.Value())
 		}
 	}
 }
