@@ -107,7 +107,7 @@ func (w *TinyWasm) handleTinyGoMissing() error {
 }
 ```
 
-1. **TinyString Import**: `"github.com/cdvelop/tinystring"` ✅
+1. **TinyString Import**: `"github.com/tinywasm/fmt"` ✅
 2. **Required Dictionary Terms**: Coding, Debugging, Production, Switching, Mode, Valid, Modes, Install, Installation, Implemented, Auto, Compilation, Failed ✅  
 3. **Method Signatures**:
    - `Label() string` → `"Build Mode: c, d, p"`
@@ -366,7 +366,7 @@ Add these terms to TinyString dictionary if not present:
 #### Message Implementation
 ```go
 func (w *TinyWasm) getSuccessMessage(mode string) string {
-    // Import: "github.com/cdvelop/tinystring"
+    // Import: "github.com/tinywasm/fmt"
     switch mode {
     case w.Config.BuildLargeSizeShortcut:
         return Translate(D.Switching, D.Mode, D.Coding)      // "Switching Mode Coding"

@@ -1,4 +1,4 @@
-package tinywasm
+package client
 
 type testStore struct {
 	data map[string]string

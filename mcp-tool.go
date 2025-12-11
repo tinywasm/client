@@ -1,4 +1,4 @@
-package tinywasm
+package client
 
 // ToolExecutor defines how a tool should be executed
 // Channel accepts string messages (no binary data in tinywasm)

@@ -1,11 +1,11 @@
-package tinywasm
+package client
 
 import (
 	"embed"
 	"os"
 	"path/filepath"
 
-	"github.com/cdvelop/mdgo"
+	"github.com/tinywasm/mdgo"
 )
 
 //go:embed templates/*

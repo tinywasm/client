@@ -1,4 +1,4 @@
-package tinywasm
+package client
 
 import (
 	"crypto/md5"

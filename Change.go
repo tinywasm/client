@@ -1,10 +1,10 @@
-package tinywasm
+package client
 
 import (
 	"os"
 	"path"
 
-	. "github.com/cdvelop/tinystring"
+	. "github.com/tinywasm/fmt"
 )
 
 func (w *TinyWasm) Shortcuts() []map[string]string {

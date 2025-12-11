@@ -1,11 +1,11 @@
-package tinywasm
+package client
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 
-	. "github.com/cdvelop/tinystring"
+	. "github.com/tinywasm/fmt"
 )
 
 // TinyGoCompiler returns if TinyGo compiler should be used (dynamic based on configuration)

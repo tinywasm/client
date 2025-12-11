@@ -1,4 +1,4 @@
-package tinywasm
+package client
 
 // Store defines the interface for a key-value storage system
 // used to persist the compiler state (e.g. current mode).

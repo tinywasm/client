@@ -1,4 +1,4 @@
-package tinywasm
+package client
 
 import (
 	_ "embed"
@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	. "github.com/cdvelop/tinystring"
+	. "github.com/tinywasm/fmt"
 )
 
 //go:embed assets/wasm_exec_go.js

@@ -1,4 +1,4 @@
-package tinywasm
+package client
 
 import (
 	"os/exec"

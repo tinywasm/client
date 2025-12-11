@@ -1,11 +1,11 @@
-package tinywasm
+package client
 
 import (
 	"os"
 	"path/filepath"
 
-	"github.com/cdvelop/gobuild"
-	. "github.com/cdvelop/tinystring"
+	"github.com/tinywasm/gobuild"
+	. "github.com/tinywasm/fmt"
 )
 
 // TinyWasm provides WebAssembly compilation capabilities with 3-mode compiler selection

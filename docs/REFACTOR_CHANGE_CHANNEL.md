@@ -269,7 +269,7 @@ if len(messages) > 0 {
 ⚠️ **This is a BREAKING CHANGE** - All code calling `TinyWasm.Change()` must update to use channels.
 
 **External Consumers:**
-- GoLite (will be updated separately)
+- TinyWasm (will be updated separately)
 - Any other tools using TinyWasm directly
 
 ## Success Criteria

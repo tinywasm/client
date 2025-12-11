@@ -1,4 +1,4 @@
-# Refactoring Plan for TinyWasm, AssetMin, and GoLite
+# Refactoring Plan for TinyWasm, AssetMin, and TinyWasm
 
 ## Objective
 Refactor the interaction between `tinywasm`, `assetmin`, and `golite` to improve performance, reduce file I/O, and clean up the project structure.
@@ -25,7 +25,7 @@ Refactor the interaction between `tinywasm`, `assetmin`, and `golite` to improve
 - [ ] **Direct Output**: Modify `assetmin` to generate default templates directly into the output directory (minified), avoiding intermediate files in the source directory.
 - [ ] **Public Update Method**: Expose a public method in `AssetMin` to receive notifications from `tinywasm` (or via `golite`) when `wasm_exec.js` changes, triggering a rebuild/update of the minified output.
 
-## 3. GoLite Refactor
+## 3. TinyWasm Refactor
 **Goal**: Wire everything together using the shared Store and new APIs.
 
 - [ ] **Implement Store**: Ensure `golite` has a `Store` implementation (likely wrapping its existing DB) to pass to `tinywasm`.

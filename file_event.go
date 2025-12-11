@@ -1,7 +1,7 @@
-package tinywasm
+package client
 
 import (
-	. "github.com/cdvelop/tinystring"
+	. "github.com/tinywasm/fmt"
 )
 
 func (w *TinyWasm) SupportedExtensions() []string {
@@ -32,7 +32,7 @@ func (w *TinyWasm) NewFileEvent(fileName, extension, filePath, event string) err
 		return nil
 	}
 
-	// IMPORTANT: At this point, devwatch has already called godepfind.ThisFileIsMine()
+	// IMPORTANT: At this point, devwatch has already called depfind.ThisFileIsMine()
 	// and confirmed this file belongs to this handler. We should ALWAYS compile.
 	// The old ShouldCompileToWasm() check was incorrect - it rejected dependency files.
 

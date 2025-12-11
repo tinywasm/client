@@ -1,4 +1,4 @@
-package tinywasm
+package client
 
 import (
 	"path/filepath"

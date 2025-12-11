@@ -486,7 +486,7 @@ Documentation:
 ```go
 package mypackage
 
-import "github.com/cdvelop/tinywasm"
+import "github.com/tinywasm/client"
 
 func generateWorkerFile() error {
     tw := tinywasm.New(&tinywasm.Config{

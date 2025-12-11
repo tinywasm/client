@@ -1,4 +1,4 @@
-package tinywasm
+package client
 
 import (
 	"path"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cdvelop/gobuild"
+	"github.com/tinywasm/gobuild"
 )
 
 // builderWasmInit configures 3 builders for WASM compilation modes
