@@ -1,5 +1,5 @@
-github.com/tinywasm/devflow v0.0.16 h1:YXohGcEk6pp5ovRFf2ccBmhHRwMnGPcp3WBot9UXpfQ=
-github.com/tinywasm/devflow v0.0.16/go.mod h1:LAj19lRFxaLXFhzpYJx9tWkf1D2B+A2A8yzMLTt49lw=
+github.com/tinywasm/devflow v0.0.17 h1:UkjHKdYMJMfkl0uqEO5DfmCf7UK978ODZDK6uuvT05c=
+github.com/tinywasm/devflow v0.0.17/go.mod h1:LAj19lRFxaLXFhzpYJx9tWkf1D2B+A2A8yzMLTt49lw=
 github.com/tinywasm/fmt v0.12.2 h1:WcNBLVYX/4AvWY1J/RcyTJPzOzDj2XMfjZ3vsg9U7k0=
 github.com/tinywasm/fmt v0.12.2/go.mod h1:L2GCAi6asgytPV6TVvGrRq5Ml+DkUt1Ijo5i/2J1jOY=
 github.com/tinywasm/gobuild v0.0.18 h1:VUpQY73rt9Sjx5acIQIvQ6RL5v7QZ6iGLyqshTBfK8g=
