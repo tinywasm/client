@@ -1,6 +1,6 @@
-github.com/cdvelop/gobuild v0.0.16 h1:gtexUZXgaIWKBmqNhh8W3ybDldf54lWDrhPmmtN/qFQ=
-github.com/cdvelop/gobuild v0.0.16/go.mod h1:FR1obeWgvKeZxgkkkBOANgZfu8XCVTQx8rcKSyHuOdM=
-github.com/cdvelop/mdgo v0.0.3 h1:j276BvzZ2PQJKllCsa5KwoLD2nMHPNo4Jwr4m6o1eC0=
-github.com/cdvelop/mdgo v0.0.3/go.mod h1:PSik5gSjVWrm5d1odtxhPVI0+a7k4ocsUwRUZMjUAe4=
-github.com/cdvelop/tinystring v0.10.4 h1:Vsj/2WU2I682TAGV0GMYujMhZNHgFlnc3gjKy53GqOg=
-github.com/cdvelop/tinystring v0.10.4/go.mod h1:m12IsLVkhIRv/kA7bercPtzfdZhx2WtuZUPZWZhUsgw=
+github.com/tinywasm/devflow v0.0.16 h1:YXohGcEk6pp5ovRFf2ccBmhHRwMnGPcp3WBot9UXpfQ=
+github.com/tinywasm/devflow v0.0.16/go.mod h1:LAj19lRFxaLXFhzpYJx9tWkf1D2B+A2A8yzMLTt49lw=
+github.com/tinywasm/fmt v0.12.2 h1:WcNBLVYX/4AvWY1J/RcyTJPzOzDj2XMfjZ3vsg9U7k0=
+github.com/tinywasm/fmt v0.12.2/go.mod h1:L2GCAi6asgytPV6TVvGrRq5Ml+DkUt1Ijo5i/2J1jOY=
+github.com/tinywasm/gobuild v0.0.18 h1:VUpQY73rt9Sjx5acIQIvQ6RL5v7QZ6iGLyqshTBfK8g=
+github.com/tinywasm/gobuild v0.0.18/go.mod h1:48JVlXnOy8ZBiz/vz5rWMxv4ZrQvB5Fbw22kOx6RfZY=

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tinywasm/mdgo"
+	"github.com/tinywasm/devflow"
 )
 
 //go:embed templates/*
@@ -34,7 +34,7 @@ func (t *TinyWasm) CreateDefaultWasmFileClientIfNotExist() *TinyWasm {
 		return t
 	}
 
-	// Use mdgo to extract Go code from markdown
+	// Use devflow to extract Go code from markdown
 	writer := func(name string, data []byte) error {
 		if err := os.MkdirAll(filepath.Dir(name), 0o755); err != nil {
 			return err
@@ -42,10 +42,10 @@ func (t *TinyWasm) CreateDefaultWasmFileClientIfNotExist() *TinyWasm {
 		return os.WriteFile(name, data, 0o644)
 	}
 
-	// mdgo needs the full destination path
+	// devflow needs the full destination path
 	destDir := filepath.Join(t.AppRootDir, t.SourceDir)
 
-	m := mdgo.New(t.AppRootDir, destDir, writer).
+	m := devflow.NewMarkDown(t.AppRootDir, destDir, writer).
 		InputByte(raw)
 
 	if t.Logger != nil {
