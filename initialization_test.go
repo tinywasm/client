@@ -185,7 +185,7 @@ func TestNoWasmProjectDetected(t *testing.T) {
 	}
 
 	// Verify the default file was created
-	expectedPath := filepath.Join(testDir, "web", "main.go")
+	expectedPath := filepath.Join(testDir, "web", "client.go")
 	if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
 		t.Errorf("Expected default WASM file to be created at %s", expectedPath)
 	}

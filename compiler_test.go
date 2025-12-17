@@ -33,8 +33,8 @@ func TestShouldCompileToWasm(t *testing.T) {
 		filePath string
 		expected bool
 	}{ // Main WASM file cases
-		{"Main WASM file", "main.go", filepath.Join(sourceDir, "main.go"), true}, // main.go in source root
-		{"Main WASM file in different location", "main.go", filepath.Join("project", "main.go"), true},
+		{"Main WASM file", "client.go", filepath.Join(sourceDir, "client.go"), true}, // client.go in source root
+		{"Main WASM file in different location", "client.go", filepath.Join("project", "client.go"), true},
 
 		// Module WASM files
 		// .wasm.go files anywhere should trigger compilation

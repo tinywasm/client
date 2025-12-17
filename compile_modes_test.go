@@ -36,7 +36,7 @@ go 1.21
 	}
 
 	// Write a minimal main.go
-	mainWasmPath := filepath.Join(webDir, "main.go")
+	mainWasmPath := filepath.Join(webDir, "client.go")
 	wasmContent := `package main
 
 func main() {
@@ -44,7 +44,7 @@ func main() {
 }
 `
 	if err := os.WriteFile(mainWasmPath, []byte(wasmContent), 0644); err != nil {
-		t.Fatalf("failed to write main.go: %v", err)
+		t.Fatalf("failed to write client.go: %v", err)
 	}
 
 	// Prepare config with logger to prevent nil pointer dereference
@@ -73,13 +73,13 @@ func main() {
 	tinygoPresent := err == nil
 
 	// Step 1: Simulate InitialRegistration flow - notify about existing file
-	err = w.NewFileEvent("main.go", ".go", mainWasmPath, "create")
+	err = w.NewFileEvent("client.go", ".go", mainWasmPath, "create")
 	if err != nil {
 		t.Fatalf("NewFileEvent with create event failed: %v", err)
 	}
 
 	outPath := func() string {
-		return filepath.Join(tmp, cfg.OutputDir, "main.wasm")
+		return filepath.Join(tmp, cfg.OutputDir, cfg.OutputName+".wasm")
 	}
 
 	// Initial compile in coding mode to get a baseline file size

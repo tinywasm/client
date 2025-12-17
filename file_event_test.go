@@ -45,9 +45,9 @@ go 1.21
 	}
 
 	tinyWasm := New(config)
-	t.Run("Verify main.go compilation", func(t *testing.T) {
-		mainWasmPath := filepath.Join(rootDir, sourceDirName, "main.go") // main.go in source root
-		defer os.Remove(mainWasmPath)
+	t.Run("Verify client.go compilation", func(t *testing.T) {
+		mainWasmPath := filepath.Join(rootDir, sourceDirName, "client.go") // client.go in source root
+		// defer os.Remove(mainWasmPath)  // Removed to allow subsequent tests
 
 		// Create main wasm file
 		content := `package main
@@ -57,7 +57,7 @@ go 1.21
 		}`
 		os.WriteFile(mainWasmPath, []byte(content), 0644)
 
-		err := tinyWasm.NewFileEvent("main.go", ".go", mainWasmPath, "write")
+		err := tinyWasm.NewFileEvent("client.go", ".go", mainWasmPath, "write")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -65,7 +65,7 @@ go 1.21
 		// Verify wasm file was created
 		outputPath := tinyWasm.MainOutputFileAbsolutePath()
 		if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-			t.Fatal("main.wasm file was not created")
+			t.Fatal("client.wasm file was not created")
 		}
 	})
 	t.Run("Verify module wasm compilation now goes to main.wasm", func(t *testing.T) {
@@ -92,15 +92,15 @@ go 1.21
 			t.Fatal(err)
 		}
 
-		// Verify main.wasm file was created (single output)
+		// Verify client.wasm file was created (single output)
 		outputPath := tinyWasm.MainOutputFileAbsolutePath()
 		if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-			t.Fatal("main.wasm file was not created")
+			t.Fatal("client.wasm file was not created")
 		}
 		// Individual per-module wasm outputs are deprecated; ensure main output exists
 		oldOutputPath := tinyWasm.MainOutputFileAbsolutePath()
 		if _, err := os.Stat(oldOutputPath); os.IsNotExist(err) {
-			t.Fatal("main.wasm file was not created")
+			t.Fatal("client.wasm file was not created")
 		}
 	})
 
@@ -113,7 +113,7 @@ go 1.21
 
 	t.Run("Handle non-write event", func(t *testing.T) {
 		mainWasmPath := filepath.Join(rootDir, sourceDirName, "main.wasm.go")
-		err := tinyWasm.NewFileEvent("main.wasm.go", ".go", mainWasmPath, "create")
+		err := tinyWasm.NewFileEvent("main.wasm.go", ".go", mainWasmPath, "remove")
 		if err != nil {
 			t.Fatal("Expected no error for non-write event")
 		}
@@ -187,8 +187,8 @@ func TestUnobservedFiles(t *testing.T) {
 
 	tinyWasm := New(config)
 	unobservedFiles := tinyWasm.UnobservedFiles()
-	// Should contain main.wasm and main_temp.wasm (generated files from gobuild)
-	expectedFiles := []string{"main.wasm", "main_temp.wasm"}
+	// Should contain client.wasm and client_temp.wasm (generated files from gobuild)
+	expectedFiles := []string{"client.wasm", "client_temp.wasm"}
 	if len(unobservedFiles) != len(expectedFiles) {
 		t.Logf("Actual unobserved files: %v", unobservedFiles)
 		t.Logf("Expected unobserved files: %v", expectedFiles)
@@ -201,10 +201,10 @@ func TestUnobservedFiles(t *testing.T) {
 		}
 	}
 
-	// Verify main.wasm.go is NOT in unobserved files (should be watched)
+	// Verify client.go is NOT in unobserved files (should be watched)
 	for _, file := range unobservedFiles {
-		if file == "main.wasm.go" {
-			t.Error("main.wasm.go should NOT be in unobserved files - it should be watched for changes")
+		if file == "client.go" {
+			t.Error("client.go should NOT be in unobserved files - it should be watched for changes")
 		}
 	}
 }

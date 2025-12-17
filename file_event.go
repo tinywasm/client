@@ -79,8 +79,8 @@ func (w *WasmClient) MainInputFileRelativePath() string {
 // MainOutputFileAbsolutePath returns the absolute path to the main WASM output file (e.g. "main.wasm").
 func (w *WasmClient) MainOutputFileAbsolutePath() string {
 	// The output file is created in OutputDir which is:
-	// AppRootDir/OutputDir/main.wasm
-	return PathJoin(w.Config.AppRootDir, w.Config.OutputDir, "main.wasm").String()
+	// AppRootDir/OutputDir/{OutputName}.wasm
+	return PathJoin(w.Config.AppRootDir, w.Config.OutputDir, w.Config.OutputName+".wasm").String()
 }
 
 // UnobservedFiles returns files that should not be watched for changes e.g: main.wasm

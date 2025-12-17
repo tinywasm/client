@@ -75,11 +75,11 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		AppRootDir:              ".",
-		SourceDir:               "src/cmd/webclient",
-		OutputDir:               "src/web/public",
-		WasmExecJsOutputDir:     "src/web/ui/js",
-		MainInputFile:           "main.go",
-		OutputName:              "main",
+		SourceDir:               "web",
+		OutputDir:               "web/public",
+		WasmExecJsOutputDir:     "web/js",
+		MainInputFile:           "client.go",
+		OutputName:              "client",
 		BuildLargeSizeShortcut:  "L",
 		BuildMediumSizeShortcut: "M",
 		BuildSmallSizeShortcut:  "S",
