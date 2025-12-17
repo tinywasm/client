@@ -9,6 +9,9 @@ import (
 	"github.com/tinywasm/gobuild"
 )
 
+// TinyWasm is an alias for WasmClient to maintain backward compatibility
+type TinyWasm = WasmClient
+
 // WasmClient provides WebAssembly compilation capabilities with 3-mode compiler selection
 type WasmClient struct {
 	*Config
