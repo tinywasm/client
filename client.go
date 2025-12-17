@@ -4,12 +4,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tinywasm/gobuild"
 	. "github.com/tinywasm/fmt"
+	"github.com/tinywasm/gobuild"
 )
 
-// TinyWasm provides WebAssembly compilation capabilities with 3-mode compiler selection
-type TinyWasm struct {
+// WasmClient provides WebAssembly compilation capabilities with 3-mode compiler selection
+type WasmClient struct {
 	*Config
 
 	// RENAME & ADD: 4 builders for complete mode coverage
@@ -50,7 +50,7 @@ type Config struct {
 	MainInputFile       string // main input file for WASM compilation (default: "main.wasm.go")
 	OutputName          string // output name for WASM file (default: "main")
 	Logger              func(message ...any)
-	// TinyGoCompiler removed: tinyGoCompiler (private) in TinyWasm is used instead to avoid confusion
+	// TinyGoCompiler removed: tinyGoCompiler (private) in WasmClient is used instead to avoid confusion
 
 	BuildLargeSizeShortcut  string // "L" (Large) compile with go
 	BuildMediumSizeShortcut string // "M" (Medium) compile with tinygo debug
@@ -71,7 +71,7 @@ type Config struct {
 	OnWasmExecChange func() // Callback for wasm_exec.js changes
 }
 
-// NewConfig creates a TinyWasm Config with sensible defaults
+// NewConfig creates a WasmClient Config with sensible defaults
 func NewConfig() *Config {
 	return &Config{
 		AppRootDir:              ".",
@@ -89,10 +89,10 @@ func NewConfig() *Config {
 	}
 }
 
-// New creates a new TinyWasm instance with the provided configuration
+// New creates a new WasmClient instance with the provided configuration
 // Timeout is set to 40 seconds maximum as TinyGo compilation can be slow
 // Default values: MainInputFile in Config defaults to "main.wasm.go"
-func New(c *Config) *TinyWasm {
+func New(c *Config) *WasmClient {
 	// Ensure we have a config and a default AppRootDir
 	if c == nil {
 		c = NewConfig()
@@ -128,11 +128,11 @@ func New(c *Config) *TinyWasm {
 		c.OutputName = defaults.OutputName
 	}
 
-	w := &TinyWasm{
+	w := &WasmClient{
 		Config: c,
 
 		// Initialize dynamic fields
-		tinyGoCompiler:  false, // Default to fast Go compilation; enable later via TinyWasm methods if desired
+		tinyGoCompiler:  false, // Default to fast Go compilation; enable later via WasmClient methods if desired
 		wasmProject:     false, // Auto-detected later
 		tinyGoInstalled: false, // Verified on first use
 
@@ -166,12 +166,12 @@ func New(c *Config) *TinyWasm {
 }
 
 // Name returns the name of the WASM project
-func (w *TinyWasm) Name() string {
-	return "TinyWasm"
+func (w *WasmClient) Name() string {
+	return "WasmClient"
 }
 
 // WasmProjectTinyGoJsUse returns dynamic state based on current configuration
-func (w *TinyWasm) WasmProjectTinyGoJsUse(mode ...string) (isWasmProject bool, useTinyGo bool) {
+func (w *WasmClient) WasmProjectTinyGoJsUse(mode ...string) (isWasmProject bool, useTinyGo bool) {
 	var currentMode string
 	if len(mode) > 0 {
 		currentMode = mode[0]
@@ -187,12 +187,12 @@ func (w *TinyWasm) WasmProjectTinyGoJsUse(mode ...string) (isWasmProject bool, u
 // === DevTUI FieldHandler Interface Implementation ===
 
 // Label returns the field label for DevTUI display
-func (w *TinyWasm) Label() string {
+func (w *WasmClient) Label() string {
 	return "Compiler Mode"
 }
 
 // Value returns the current compiler mode shortcut (c, d, or p)
-func (w *TinyWasm) Value() string {
+func (w *WasmClient) Value() string {
 	// Use explicit mode tracking instead of pointer comparison
 	if w.currentMode == "" {
 		return w.Config.BuildLargeSizeShortcut // Default to coding mode
@@ -201,7 +201,7 @@ func (w *TinyWasm) Value() string {
 }
 
 // detectProjectConfiguration performs one-time detection during initialization
-func (w *TinyWasm) detectProjectConfiguration() {
+func (w *WasmClient) detectProjectConfiguration() {
 	// Priority 1: Check for existing wasm_exec.js (definitive source)
 	if w.detectFromExistingWasmExecJs() {
 		//w.Logger("DEBUG: WASM project detected from existing wasm_exec.js")
@@ -223,7 +223,7 @@ func (w *TinyWasm) detectProjectConfiguration() {
 }
 
 // detectFromGoFiles checks for .wasm.go files to confirm WASM project
-func (w *TinyWasm) detectFromGoFiles() bool {
+func (w *WasmClient) detectFromGoFiles() bool {
 	// Walk the project directory to find .wasm.go files
 	wasmFilesFound := false
 

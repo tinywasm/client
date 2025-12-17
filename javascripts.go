@@ -38,13 +38,13 @@ func wasm_execTinyGoSignatures() []string {
 }
 
 // WasmExecJsOutputPath returns the output path for wasm_exec.js
-func (w *TinyWasm) WasmExecJsOutputPath() string {
+func (w *WasmClient) WasmExecJsOutputPath() string {
 	return path.Join(w.Config.AppRootDir, w.Config.WasmExecJsOutputDir, "wasm_exec.js")
 }
 
 // getWasmExecContent returns the raw wasm_exec.js content for the current compiler configuration.
 // This method returns the unmodified content from embedded assets without any headers or caching.
-// It relies on TinyWasm's internal state (via WasmProjectTinyGoJsUse) to determine which
+// It relies on WasmClient's internal state (via WasmProjectTinyGoJsUse) to determine which
 // compiler (Go vs TinyGo) to use.
 //
 // The returned content is suitable for:
@@ -54,8 +54,8 @@ func (w *TinyWasm) WasmExecJsOutputPath() string {
 //
 // Note: This method does NOT add mode headers or perform caching. Those responsibilities
 // belong to JavascriptForInitializing() which is used for the internal initialization flow.
-func (w *TinyWasm) getWasmExecContent(mode string) ([]byte, error) {
-	// Determine project type and compiler from TinyWasm state
+func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
+	// Determine project type and compiler from WasmClient state
 	isWasm, useTinyGo := w.WasmProjectTinyGoJsUse(mode)
 	if !isWasm {
 		return nil, Errf("not a WASM project")
@@ -72,7 +72,7 @@ func (w *TinyWasm) getWasmExecContent(mode string) ([]byte, error) {
 //
 // Parameters (variadic):
 //   - customizations[0]: Custom header string to prepend to wasm_exec.js content.
-//     If not provided, defaults to "// TinyWasm: mode=<current_mode>\n"
+//     If not provided, defaults to "// WasmClient: mode=<current_mode>\n"
 //   - customizations[1]: Custom footer string to append after wasm_exec.js content.
 //     If not provided, defaults to WebAssembly initialization code with fetch and instantiate.
 //
@@ -80,7 +80,7 @@ func (w *TinyWasm) getWasmExecContent(mode string) ([]byte, error) {
 //   - JavascriptForInitializing() - Uses default header and footer
 //   - JavascriptForInitializing("// Custom Header\n") - Custom header, default footer
 //   - JavascriptForInitializing("// Custom Header\n", "console.log('loaded');") - Both custom
-func (h *TinyWasm) JavascriptForInitializing(customizations ...string) (js string, err error) {
+func (h *WasmClient) JavascriptForInitializing(customizations ...string) (js string, err error) {
 	mode := h.Value()
 	isWasm, _ := h.WasmProjectTinyGoJsUse(mode)
 	if !isWasm {
@@ -166,14 +166,14 @@ func normalizeJs(s string) string {
 }
 
 // ClearJavaScriptCache clears both cached JavaScript strings to force regeneration
-func (h *TinyWasm) ClearJavaScriptCache() {
+func (h *WasmClient) ClearJavaScriptCache() {
 	h.mode_large_go_wasm_exec_cache = ""
 	h.mode_medium_tinygo_wasm_exec_cache = ""
 	h.mode_small_tinygo_wasm_exec_cache = ""
 }
 
 // GetWasmExecJsPathTinyGo returns the path to TinyGo's wasm_exec.js file
-func (w *TinyWasm) GetWasmExecJsPathTinyGo() (string, error) {
+func (w *WasmClient) GetWasmExecJsPathTinyGo() (string, error) {
 	// Method 1: Try standard lib location pattern
 	libPaths := []string{
 		"/usr/local/lib/tinygo/targets/wasm_exec.js",
@@ -215,7 +215,7 @@ func (w *TinyWasm) GetWasmExecJsPathTinyGo() (string, error) {
 }
 
 // GetWasmExecJsPathGo returns the path to Go's wasm_exec.js file
-func (w *TinyWasm) GetWasmExecJsPathGo() (string, error) {
+func (w *WasmClient) GetWasmExecJsPathGo() (string, error) {
 	// Method 1: Try GOROOT environment variable (most reliable)
 	goRoot := os.Getenv("GOROOT")
 	if goRoot != "" {
@@ -265,7 +265,7 @@ func (w *TinyWasm) GetWasmExecJsPathGo() (string, error) {
 // false immediately. On success or on any write attempt it returns true; any
 // filesystem or generation errors are logged via w.Logger and treated as
 // non-fatal so callers can continue their workflow.
-func (w *TinyWasm) wasmProjectWriteOrReplaceWasmExecJsOutput() {
+func (w *WasmClient) wasmProjectWriteOrReplaceWasmExecJsOutput() {
 	// Only perform actions for recognized WASM projects
 	if !w.wasmProject {
 		w.Logger("DEBUG: Not a WASM project, skipping wasm_exec.js write")
@@ -300,7 +300,7 @@ func (w *TinyWasm) wasmProjectWriteOrReplaceWasmExecJsOutput() {
 }
 
 // analyzeWasmExecJsContent analyzes existing wasm_exec.js to determine compiler type
-func (w *TinyWasm) analyzeWasmExecJsContent(filePath string) bool {
+func (w *WasmClient) analyzeWasmExecJsContent(filePath string) bool {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		w.Logger("Error reading wasm_exec.js for detection:", err)
@@ -356,7 +356,7 @@ func (w *TinyWasm) analyzeWasmExecJsContent(filePath string) bool {
 }
 
 // detectFromExistingWasmExecJs checks for existing wasm_exec.js file
-func (w *TinyWasm) detectFromExistingWasmExecJs() bool {
+func (w *WasmClient) detectFromExistingWasmExecJs() bool {
 	wasmExecPath := w.WasmExecJsOutputPath()
 
 	// Check if file exists

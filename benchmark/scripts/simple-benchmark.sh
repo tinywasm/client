@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TinyWasm Simple Benchmark Script  
+# WasmClient Simple Benchmark Script  
 # Compares Go standard vs TinyGo compilation using shared example
 
 set -e
@@ -14,7 +14,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}TinyWasm Simple Benchmark${NC}"
+echo -e "${BLUE}WasmClient Simple Benchmark${NC}"
 echo "========================="
 
 # Build function using shared example

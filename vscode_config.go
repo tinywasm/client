@@ -13,7 +13,7 @@ import (
 // in .vscode/settings.json file. On Windows, the .vscode directory is made hidden for a cleaner project view.
 // This configuration enables VS Code's Go extension to properly recognize WASM imports and provide
 // accurate IntelliSense, error detection, and code completion for syscall/js and other WASM-specific packages.
-func (w *TinyWasm) VisualStudioCodeWasmEnvConfig() { // Create .vscode directory if it doesn't exist
+func (w *WasmClient) VisualStudioCodeWasmEnvConfig() { // Create .vscode directory if it doesn't exist
 	// Use AppRootDir from Config (falls back to "." by default)
 	vscodeDir := filepath.Join(w.AppRootDir, ".vscode")
 	if err := os.MkdirAll(vscodeDir, 0755); err != nil {
@@ -75,7 +75,7 @@ func (w *TinyWasm) VisualStudioCodeWasmEnvConfig() { // Create .vscode directory
 // This provides a cleaner project view by hiding the .vscode configuration directory.
 // Uses the most compatible Windows command that works across all Windows versions.
 // If the command fails, it only logs a warning and continues normally since this is not critical.
-func (w *TinyWasm) makeDirectoryHiddenWindows(dirPath string) {
+func (w *WasmClient) makeDirectoryHiddenWindows(dirPath string) {
 	// Use attrib +h command - most compatible across Windows versions (Windows XP+)
 	// This command is built into all Windows versions and doesn't require PowerShell
 	cmd := exec.Command("cmd", "/c", "attrib", "+h", dirPath)

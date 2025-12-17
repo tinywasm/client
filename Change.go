@@ -7,7 +7,7 @@ import (
 	. "github.com/tinywasm/fmt"
 )
 
-func (w *TinyWasm) Shortcuts() []map[string]string {
+func (w *WasmClient) Shortcuts() []map[string]string {
 	return []map[string]string{
 		{w.BuildLargeSizeShortcut: Translate(D.Mode, "Large", "stLib").String()},
 		{w.BuildMediumSizeShortcut: Translate(D.Mode, "Medium", "tinygo").String()},
@@ -15,10 +15,10 @@ func (w *TinyWasm) Shortcuts() []map[string]string {
 	}
 }
 
-// Change updates the compiler mode for TinyWasm and reports progress via the provided channel.
+// Change updates the compiler mode for WasmClient and reports progress via the provided channel.
 // Implements the HandlerEdit interface: Change(newValue string, progress chan<- string)
 // NOTE: The caller (devtui) is responsible for closing the progress channel, NOT the handler.
-func (w *TinyWasm) Change(newValue string, progress chan<- string) {
+func (w *WasmClient) Change(newValue string, progress chan<- string) {
 	// DO NOT close the channel - devtui owns it and will close it after this method returns
 	// Normalize input: trim spaces and convert to uppercase
 	newValue = Convert(newValue).ToUpper().String()
@@ -79,7 +79,7 @@ func (w *TinyWasm) Change(newValue string, progress chan<- string) {
 }
 
 // RecompileMainWasm recompiles the main WASM file if it exists
-func (w *TinyWasm) RecompileMainWasm() error {
+func (w *WasmClient) RecompileMainWasm() error {
 	if w.activeBuilder == nil {
 		return Err("builder not initialized")
 	}
@@ -96,7 +96,7 @@ func (w *TinyWasm) RecompileMainWasm() error {
 }
 
 // validateMode validates if the provided mode is supported
-func (w *TinyWasm) validateMode(mode string) error {
+func (w *WasmClient) validateMode(mode string) error {
 	// Ensure mode is uppercase to match configured shortcuts which are
 	// expected to be single uppercase letters by default.
 	mode = Convert(mode).ToUpper().String()
@@ -117,7 +117,7 @@ func (w *TinyWasm) validateMode(mode string) error {
 }
 
 // getSuccessMessage returns appropriate success message for mode
-func (w *TinyWasm) getSuccessMessage(mode string) string {
+func (w *WasmClient) getSuccessMessage(mode string) string {
 
 	switch mode {
 	case w.Config.BuildLargeSizeShortcut:
@@ -132,5 +132,5 @@ func (w *TinyWasm) getSuccessMessage(mode string) string {
 
 }
 
-func (w *TinyWasm) GetLastOperationID() string   { return w.lastOpID }
-func (w *TinyWasm) SetLastOperationID(id string) { w.lastOpID = id }
+func (w *WasmClient) GetLastOperationID() string   { return w.lastOpID }
+func (w *WasmClient) SetLastOperationID(id string) { w.lastOpID = id }

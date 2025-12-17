@@ -1,4 +1,4 @@
-# TinyWasm Benchmark System
+# WasmClient Benchmark System
 
 This benchmark system provides automated performance comparison between Go standard compiler and TinyGo compiler for WebAssembly compilation.
 
@@ -51,7 +51,7 @@ cd benchmark/scripts
 
 **Example Output:**
 ```
-TinyWasm Simple Benchmark
+WasmClient Simple Benchmark
 =========================
 
 Testing shared example with both compilers
@@ -133,9 +133,9 @@ $COMPILER build -o output.wasm temp_main.go
 rm temp_main.go
 ```
 
-## Integration with TinyWasm
+## Integration with WasmClient
 
-The benchmark system integrates with TinyWasm's dynamic compiler selection:
+The benchmark system integrates with WasmClient's dynamic compiler selection:
 
 ```go
 // Example: Run benchmark programmatically

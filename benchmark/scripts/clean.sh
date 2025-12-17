@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# TinyWasm Benchmark Cleanup Script
+# WasmClient Benchmark Cleanup Script
 # Removes generated files and temporary build artifacts
 
-echo "TinyWasm Benchmark Cleanup"
+echo "WasmClient Benchmark Cleanup"
 echo "========================="
 
 # Change to benchmark directory

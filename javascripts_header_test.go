@@ -31,7 +31,7 @@ func TestStoreRoundtrip(t *testing.T) {
 	}
 
 	for _, mode := range shortcuts {
-		// Use a fresh TinyWasm instance per mode to avoid shared state
+		// Use a fresh WasmClient instance per mode to avoid shared state
 		w := New(config)
 		w.wasmProject = true
 

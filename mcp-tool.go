@@ -22,8 +22,8 @@ type ParameterMetadata struct {
 	Default     any
 }
 
-// GetMCPToolsMetadata returns metadata for all TinyWasm MCP tools
-func (w *TinyWasm) GetMCPToolsMetadata() []ToolMetadata {
+// GetMCPToolsMetadata returns metadata for all WasmClient MCP tools
+func (w *WasmClient) GetMCPToolsMetadata() []ToolMetadata {
 	return []ToolMetadata{
 		{
 			Name: "wasm_set_mode",
@@ -77,7 +77,7 @@ func (w *TinyWasm) GetMCPToolsMetadata() []ToolMetadata {
 			Description: "Get current WASM file size and comparison across all three modes (LARGE/MEDIUM/SMALL) to help decide optimal size/feature tradeoff for production.",
 			Parameters:  []ParameterMetadata{},
 			Execute: func(args map[string]any, progress chan<- any) {
-				// TODO: Implement size retrieval from TinyWasm
+				// TODO: Implement size retrieval from WasmClient
 				progress <- "Current WASM size: [not implemented yet]"
 			},
 		},

@@ -57,7 +57,7 @@ config := &tinywasm.Config{
 
 ## DevTUI FieldHandler Interface
 
-TinyWasm implements the DevTUI FieldHandler interface for interactive development:
+WasmClient implements the DevTUI FieldHandler interface for interactive development:
 
 ```go
 // DevTUI Integration
@@ -92,7 +92,7 @@ Auto-creates `.vscode/settings.json` with WASM environment:
 ## API
 
 **Core:**
-- `New(config *Config) *TinyWasm`
+- `New(config *Config) *WasmClient`
 - `NewConfig() *Config` - Pre-configured with sensible defaults
 - `NewFileEvent(fileName, ext, path, event string) error`
 - `ShouldCompileToWasm(fileName, path string) bool`
@@ -146,7 +146,7 @@ func NewConfig() *Config
 
 ## Dual Output Architecture
 
-TinyWasm produces **two types of outputs** that serve different purposes in the build pipeline:
+WasmClient produces **two types of outputs** that serve different purposes in the build pipeline:
 
 ### 1. **WASM Binary Output** (`OutputDir`)
 - **Location:** `src/web/public/main.wasm`
@@ -161,7 +161,7 @@ TinyWasm produces **two types of outputs** that serve different purposes in the 
   - Triggers file watchers to reload the browser when mode changes
   - Gets compiled together with other JavaScript by external asset bundlers
 - **Consumed by:** File watchers (e.g., `devwatch`) and asset bundlers (e.g., `assetmin`)
-- **Important:** TinyWasm's **only responsibility** is writing the correct `wasm_exec.js` according to the active mode. External tools handle final bundling.
+- **Important:** WasmClient's **only responsibility** is writing the correct `wasm_exec.js` according to the active mode. External tools handle final bundling.
 
 ### Why Two Separate Directories?
 

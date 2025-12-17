@@ -2,17 +2,17 @@
 
 ## Problem Description
 
-The TinyWasm package has a critical bug in the compilation mode switching mechanism. While the system is designed to support three compilation modes (coding, debugging, production), the mode switching functionality is not working correctly.
+The WasmClient package has a critical bug in the compilation mode switching mechanism. While the system is designed to support three compilation modes (coding, debugging, production), the mode switching functionality is not working correctly.
 
 ## Expected Behavior
 
-The TinyWasm package should support three distinct compilation modes:
+The WasmClient package should support three distinct compilation modes:
 
 1. **Coding Mode** (`c`): Fast compilation using Go standard compiler with `GOOS=js GOARCH=wasm`
 2. **Debugging Mode** (`d`): TinyGo compilation with debug symbols (`-opt=1`)
 3. **Production Mode** (`p`): TinyGo optimized compilation (`-opt=z -no-debug -panic=trap`)
 
-When users call `TinyWasm.Change(mode)`, the system should:
+When users call `WasmClient.Change(mode)`, the system should:
 - Switch the active builder to the appropriate mode
 - Update internal state to reflect the new mode
 - Recompile the WASM file using the new compiler settings
@@ -55,7 +55,7 @@ This shows:
 The `Value()` method compares `w.activeBuilder` with `w.builderLarge`, `w.builderMedium`, and `w.builderSmall` using reference equality (`==`). However, all builders are instances of `*gobuild.GoBuild`, so the comparison may be failing.
 
 ```go
-func (w *TinyWasm) Value() string {
+func (w *WasmClient) Value() string {
     if w.activeBuilder == w.builderLarge {
         return w.Config.BuildLargeSizeShortcut
     }
@@ -79,19 +79,19 @@ The `getSuccessMessage()` method appears to work correctly, but the progress cal
 Add an explicit `currentMode` field to track the active mode:
 
 ```go
-type TinyWasm struct {
+type WasmClient struct {
     // ... existing fields
     currentMode string // Track current mode explicitly
 }
 
-func (w *TinyWasm) Value() string {
+func (w *WasmClient) Value() string {
     if w.currentMode == "" {
         return w.Config.BuildLargeSizeShortcut // default
     }
     return w.currentMode
 }
 
-func (w *TinyWasm) updateCurrentBuilder(mode string) {
+func (w *WasmClient) updateCurrentBuilder(mode string) {
     // ... existing logic
     w.currentMode = mode // Update tracking field
 }
@@ -131,7 +131,7 @@ The `TestCompileAllModes` test successfully:
 
 ## Priority
 
-**HIGH** - This breaks a core feature of the TinyWasm package and prevents users from accessing different compilation modes.
+**HIGH** - This breaks a core feature of the WasmClient package and prevents users from accessing different compilation modes.
 
 ## Next Steps
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TinyWasm Advanced Benchmark
+# WasmClient Advanced Benchmark
 # Comprehensive benchmark comparing Go standard vs TinyGo for WASM development
 
 set -e
@@ -19,7 +19,7 @@ NC='\033[0m'
 
 # Configuration
 ITERATIONS=5
-echo -e "${BLUE}TinyWasm Advanced Benchmark${NC}"
+echo -e "${BLUE}WasmClient Advanced Benchmark${NC}"
 echo "=============================="
 echo -e "Iterations per compiler: ${CYAN}$ITERATIONS${NC}"
 echo -e "Source file: ${CYAN}$SHARED_DIR/main.go${NC}"
@@ -27,7 +27,7 @@ echo ""
 
 # Initialize results
 > "$RESULTS_FILE"
-echo "# TinyWasm Benchmark Results - $(date)" >> "$RESULTS_FILE"
+echo "# WasmClient Benchmark Results - $(date)" >> "$RESULTS_FILE"
 echo "# Format: compiler,iteration,build_time_ms,file_size_bytes,success" >> "$RESULTS_FILE"
 
 # Arrays to store results

@@ -34,7 +34,7 @@ This refactoring proposal aims to simplify and centralize WASM project detection
 ### 1. Initialization-Time Detection (Final)
 
 ```go
-func New(c *Config) *TinyWasm {
+func New(c *Config) *WasmClient {
     // ... existing initialization ...
     
     // Set default for WasmExecJsOutputDir if not configured
@@ -48,7 +48,7 @@ func New(c *Config) *TinyWasm {
     return w
 }
 
-func (w *TinyWasm) detectProjectConfiguration() {
+func (w *WasmClient) detectProjectConfiguration() {
     // Priority 1: Check for existing wasm_exec.js (definitive source)
     if w.detectFromExistingWasmExecJs() {
         w.Logger("WASM project detected from existing wasm_exec.js")
@@ -71,7 +71,7 @@ func (w *TinyWasm) detectProjectConfiguration() {
 ### 2. Simplified File Event Handling (Final)
 
 ```go
-func (w *TinyWasm) NewFileEvent(fileName, extension, filePath, event string) error {
+func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) error {
     // Only process Go files for compilation triggers
     if extension != ".go" {
         return nil
@@ -99,11 +99,11 @@ func (w *TinyWasm) NewFileEvent(fileName, extension, filePath, event string) err
 ### 3. wasm_exec.js File Management (Final)
 
 ```go
-func (w *TinyWasm) WasmExecJsOutputPath() string {
+func (w *WasmClient) WasmExecJsOutputPath() string {
     return path.Join(w.Config.AppRootDir, w.Config.WebFilesRootRelative, w.Config.WasmExecJsOutputDir, "wasm_exec.js")
 }
 
-func (w *TinyWasm) detectFromExistingWasmExecJs() bool {
+func (w *WasmClient) detectFromExistingWasmExecJs() bool {
     wasmExecPath := w.WasmExecJsOutputPath()
     
     // Check if file exists
@@ -115,7 +115,7 @@ func (w *TinyWasm) detectFromExistingWasmExecJs() bool {
     return w.analyzeWasmExecJsContent(wasmExecPath)
 }
 
-func (w *TinyWasm) analyzeWasmExecJsContent(filePath string) bool {
+func (w *WasmClient) analyzeWasmExecJsContent(filePath string) bool {
     data, err := os.ReadFile(filePath)
     if err != nil {
         w.Logger("Error reading wasm_exec.js for detection:", err)
@@ -166,7 +166,7 @@ func (w *TinyWasm) analyzeWasmExecJsContent(filePath string) bool {
 // writeOrReplaceWasmExecJsOutput writes wasm_exec.js into the output directory and ALWAYS
 // overwrites any existing file. This changes the previous "create-only" behavior to ensure
 // the generated JS initialization reflects the current compiler mode and configuration.
-func (w *TinyWasm) wasmProjectWriteOrReplaceWasmExecJsOutput() bool {
+func (w *WasmClient) wasmProjectWriteOrReplaceWasmExecJsOutput() bool {
     outputPath := w.WasmExecJsOutputPath()
     
     // Check if file already exists - do not overwrite
@@ -206,7 +206,7 @@ func (w *TinyWasm) wasmProjectWriteOrReplaceWasmExecJsOutput() bool {
     return true
 }
 
-func (w *TinyWasm) copyFile(src, dst string) error {
+func (w *WasmClient) copyFile(src, dst string) error {
     sourceData, err := os.ReadFile(src)
     if err != nil {
         return err
@@ -219,7 +219,7 @@ func (w *TinyWasm) copyFile(src, dst string) error {
 ### 4. Enhanced Change.go Integration (Final)
 
 ```go
-func (w *TinyWasm) Change(newValue string, progress func(msgs ...any)) {
+func (w *WasmClient) Change(newValue string, progress func(msgs ...any)) {
     // ... existing validation and builder update ...
     
     // Update active builder
@@ -260,7 +260,7 @@ The existing `JavascriptForInitializing()` method already works correctly:
 ## Implementation Plan (Final)
 
 ### Phase 1: Core Structure Refactoring ✅
-1. **Remove function pointer fields** from `TinyWasm` struct:
+1. **Remove function pointer fields** from `WasmClient` struct:
    - Remove `wasmDetectionFuncFromGoFile func(string, string)`
    - Remove `wasmDetectionFuncFromJsFile func(fileName, extension, filePath, event string)`
 2. **Add default configuration** in `New()`: Set `WasmExecJsOutputDir = "theme/js"` if empty
@@ -427,7 +427,7 @@ The existing `JavascriptForInitializing()` method already works correctly:
 
 **All decisions finalized, all questions resolved. Implementation can proceed immediately with:**
 
-1. Remove function pointer fields from `TinyWasm` struct
+1. Remove function pointer fields from `WasmClient` struct
 2. Add initialization-time detection using existing logic  
 3. Simplify `NewFileEvent()` to Go-only compilation
 4. Update `Change.go` for file management

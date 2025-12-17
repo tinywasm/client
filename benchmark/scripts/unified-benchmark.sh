@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TinyWasm Unified Benchmark
+# WasmClient Unified Benchmark
 # Uses shared main.go with both compilers
 
 set -e
@@ -15,7 +15,7 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${BLUE}TinyWasm Unified Benchmark${NC}"
+echo -e "${BLUE}WasmClient Unified Benchmark${NC}"
 echo "=========================="
 
 # Test function for both compilers

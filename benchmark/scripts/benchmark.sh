@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TinyWasm Benchmark Script
+# WasmClient Benchmark Script
 # Compares performance between Go standard compiler and TinyGo compiler
 
 set -e
@@ -16,7 +16,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}TinyWasm Compiler Benchmark${NC}"
+echo -e "${BLUE}WasmClient Compiler Benchmark${NC}"
 echo "=============================="
 
 # Cleanup function

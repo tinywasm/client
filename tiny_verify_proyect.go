@@ -9,34 +9,34 @@ import (
 )
 
 // TinyGoCompiler returns if TinyGo compiler should be used (dynamic based on configuration)
-func (w *TinyWasm) TinyGoCompiler() bool {
+func (w *WasmClient) TinyGoCompiler() bool {
 	return w.tinyGoCompiler && w.tinyGoInstalled
 }
 
 // requiresTinyGo checks if the mode requires TinyGo compiler
-func (w *TinyWasm) requiresTinyGo(mode string) bool {
+func (w *WasmClient) requiresTinyGo(mode string) bool {
 	return mode == w.Config.BuildMediumSizeShortcut || mode == w.Config.BuildSmallSizeShortcut
 }
 
 // installTinyGo placeholder for future TinyGo installation
-func (w *TinyWasm) installTinyGo() error {
+func (w *WasmClient) installTinyGo() error {
 	return Err("TinyGo", "installation", D.Not, "implemented")
 }
 
 // handleTinyGoMissing handles missing TinyGo installation
-func (w *TinyWasm) handleTinyGoMissing() error {
+func (w *WasmClient) handleTinyGoMissing() error {
 	// installTinyGo always returns a non-nil error (not implemented)
 	err := w.installTinyGo()
 	return Err("Error:", D.Cannot, "install TinyGo:", err.Error())
 }
 
 // verifyTinyGoInstallationStatus checks and caches TinyGo installation status
-func (w *TinyWasm) verifyTinyGoInstallationStatus() {
+func (w *WasmClient) verifyTinyGoInstallationStatus() {
 	w.tinyGoInstalled = w.VerifyTinyGoInstallation() == nil
 }
 
 // VerifyTinyGoProjectCompatibility checks if the project is compatible with TinyGo compilation
-func (w *TinyWasm) VerifyTinyGoProjectCompatibility() {
+func (w *WasmClient) VerifyTinyGoProjectCompatibility() {
 	// Verify tinystring library dependencies
 	w.Logger("=== TinyString Library TinyGo Compatibility Check ===")
 

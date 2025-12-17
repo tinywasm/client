@@ -18,7 +18,7 @@ func TestWasmExecFiles(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Create a TinyWasm instance for testing
+	// Create a WasmClient instance for testing
 	tw := New(&Config{
 		AppRootDir:    tempDir,
 		MainInputFile: "main.go",
@@ -134,7 +134,7 @@ func TestWasmExecFileVersions(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Create a TinyWasm instance
+	// Create a WasmClient instance
 	tw := New(&Config{
 		AppRootDir:    tempDir,
 		MainInputFile: "main.go",
@@ -268,7 +268,7 @@ func TestEnsureWasmExecFilesExists(t *testing.T) {
 		t.Fatalf("Failed to create assets dir: %v", err)
 	}
 
-	// Create a TinyWasm instance
+	// Create a WasmClient instance
 	tw := New(&Config{
 		AppRootDir:    assetsDir,
 		MainInputFile: "main.go",

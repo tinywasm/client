@@ -6,7 +6,7 @@ import (
 
 // Shared WASM example that works with both Go standard and TinyGo
 func main() {
-	println("TinyWasm Benchmark Example")
+	println("WasmClient Benchmark Example")
 
 	// Register functions for JavaScript interaction
 	js.Global().Set("processText", js.FuncOf(processText))

@@ -18,9 +18,9 @@ Align `tinywasm` input and output file/directory handling with the Go project st
 - The field `WebFilesSubRelativeJsOutput` creates ambiguity because it serves a different purpose than the main WASM output directory.
 - This causes confusion and breaks convention with the rest of the project, where all frontend assets are in `src/web/public/`.
 
-## Understanding TinyWasm's Dual Output Strategy
+## Understanding WasmClient's Dual Output Strategy
 
-TinyWasm produces **two types of outputs** that serve different purposes:
+WasmClient produces **two types of outputs** that serve different purposes:
 
 ### 1. **WASM Binary Output** (`OutputDir`)
 - **Location:** `src/web/public/main.wasm`
@@ -40,7 +40,7 @@ TinyWasm produces **two types of outputs** that serve different purposes:
 - **Consumed by:** 
   - File watchers (e.g., `devwatch`) for change detection
   - Asset bundlers (e.g., `assetmin`) for final compilation into `src/web/public/main.js`
-- **Important:** TinyWasm's **only responsibility** is to write the correct `wasm_exec.js` file according to the active compilation mode. External tools handle bundling and final output.
+- **Important:** WasmClient's **only responsibility** is to write the correct `wasm_exec.js` file according to the active compilation mode. External tools handle bundling and final output.
 
 ### Why Two Separate Directories?
 
@@ -54,7 +54,7 @@ TinyWasm produces **two types of outputs** that serve different purposes:
    - WASM binary stays in `OutputDir` for direct browser loading
 
 3. **No Development vs Production States:**
-   - TinyWasm operates in **compilation modes only** (fast/debug/minimal)
+   - WasmClient operates in **compilation modes only** (fast/debug/minimal)
    - All modes write to the same directories
    - External tools handle environment-specific optimizations
 
@@ -106,7 +106,7 @@ TinyWasm produces **two types of outputs** that serve different purposes:
 7. **Documentation**
    - Update all code comments, README, and usage examples to reflect the new architecture.
    - Document the dual-output strategy and why both directories are needed.
-   - Clarify that TinyWasm does not handle final JavaScript bundling.
+   - Clarify that WasmClient does not handle final JavaScript bundling.
 
 ## Benefits
 

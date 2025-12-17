@@ -20,7 +20,7 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 		t.Fatalf("Failed to create test .wasm.go file: %v", err)
 	}
 
-	// Create TinyWasm instance with verbose logging
+	// Create WasmClient instance with verbose logging
 	messages := []string{}
 	config := &Config{
 		AppRootDir:          testDir,
@@ -64,7 +64,7 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	t.Logf("Content preview (first 500 chars):\n%s", content[:min(500, len(content))])
 
 	// Debug the state
-	t.Logf("=== TinyWasm State ===")
+	t.Logf("=== WasmClient State ===")
 	t.Logf("wasmProject: %v", tinyWasm.wasmProject)
 	t.Logf("tinyGoCompiler: %v", tinyWasm.tinyGoCompiler)
 	t.Logf("tinyGoInstalled: %v", tinyWasm.tinyGoInstalled)

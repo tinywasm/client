@@ -1,9 +1,9 @@
-# Refactoring Plan for TinyWasm, AssetMin, and TinyWasm
+# Refactoring Plan for WasmClient, AssetMin, and WasmClient
 
 ## Objective
 Refactor the interaction between `tinywasm`, `assetmin`, and `golite` to improve performance, reduce file I/O, and clean up the project structure.
 
-## 1. TinyWasm Refactor
+## 1. WasmClient Refactor
 **Goal**: Remove state storage from `wasm_exec.js` headers and enable direct content generation.
 
 - [ ] **Define Store Interface**: Create a `Store` interface for key-value storage.
@@ -13,19 +13,19 @@ Refactor the interaction between `tinywasm`, `assetmin`, and `golite` to improve
       Set(key, value string) error
   }
   ```
-- [ ] **Inject Store**: Update `TinyWasm` struct to accept a `Store` implementation.
+- [ ] **Inject Store**: Update `WasmClient` struct to accept a `Store` implementation.
 - [ ] **State Management**: Modify `Change.go` to use the `Store` to save the current compilation mode (e.g., "tinygo", "go") instead of reading/writing a header in `wasm_exec.js`.
 - [ ] **Remove Header Logic**: Remove `getModeFromWasmExecJsHeader` and related logic in `javascripts.go`. `wasm_exec.js` should be generated clean.
 - [ ] **Notification**: Add a mechanism (e.g., callback or event) to notify listeners (like `assetmin`) when `wasm_exec.js` content changes or needs to be updated.
 - [ ] **Direct Content Access**: Ensure `wasm_exec.js` content can be retrieved directly as a string/byte slice without writing to disk first.
 
 ## 2. AssetMin Refactor
-**Goal**: Optimize template generation and integrate with TinyWasm updates.
+**Goal**: Optimize template generation and integrate with WasmClient updates.
 
 - [ ] **Direct Output**: Modify `assetmin` to generate default templates directly into the output directory (minified), avoiding intermediate files in the source directory.
 - [ ] **Public Update Method**: Expose a public method in `AssetMin` to receive notifications from `tinywasm` (or via `golite`) when `wasm_exec.js` changes, triggering a rebuild/update of the minified output.
 
-## 3. TinyWasm Refactor
+## 3. WasmClient Refactor
 **Goal**: Wire everything together using the shared Store and new APIs.
 
 - [ ] **Implement Store**: Ensure `golite` has a `Store` implementation (likely wrapping its existing DB) to pass to `tinywasm`.

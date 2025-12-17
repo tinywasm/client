@@ -31,7 +31,7 @@ func TestInitializationDetectionFromWasmExecJs(t *testing.T) {
 		t.Fatalf("Failed to create test wasm_exec.js: %v", err)
 	}
 
-	// Create TinyWasm instance
+	// Create WasmClient instance
 	config := &Config{
 		AppRootDir:              testDir,
 		SourceDir:               "web",
@@ -71,7 +71,7 @@ func TestInitializationDetectionFromGoFiles(t *testing.T) {
 		t.Fatalf("Failed to create test .wasm.go file: %v", err)
 	}
 
-	// Create TinyWasm instance
+	// Create WasmClient instance
 	config := &Config{
 		AppRootDir:          testDir,
 		SourceDir:           "web",
@@ -154,7 +154,7 @@ func TestNoWasmProjectDetected(t *testing.T) {
 		t.Fatalf("Failed to create test Go file: %v", err)
 	}
 
-	// Create TinyWasm instance
+	// Create WasmClient instance
 	config := &Config{
 		AppRootDir:              testDir,
 		SourceDir:               "web",
@@ -176,7 +176,7 @@ func TestNoWasmProjectDetected(t *testing.T) {
 	// Now create the default WASM file using the new optional method
 	result := tinyWasm.CreateDefaultWasmFileClientIfNotExist()
 	if result == nil {
-		t.Error("Expected CreateDefaultWasmFileClientIfNotExist to return TinyWasm instance")
+		t.Error("Expected CreateDefaultWasmFileClientIfNotExist to return WasmClient instance")
 	}
 
 	// Verify WASM project is now detected after creating default file

@@ -7,7 +7,7 @@ import (
 )
 
 // VerifyTinyGoInstallation checks if TinyGo is properly installed
-func (t *TinyWasm) VerifyTinyGoInstallation() error {
+func (t *WasmClient) VerifyTinyGoInstallation() error {
 	_, err := exec.LookPath("tinygo")
 	if err != nil {
 
@@ -18,7 +18,7 @@ func (t *TinyWasm) VerifyTinyGoInstallation() error {
 }
 
 // GetTinyGoVersion returns the installed TinyGo version
-func (t *TinyWasm) GetTinyGoVersion() (string, error) {
+func (t *WasmClient) GetTinyGoVersion() (string, error) {
 	cmd := exec.Command("tinygo", "version")
 	output, err := cmd.Output()
 	if err != nil {

@@ -12,8 +12,8 @@ import (
 var embeddedFS embed.FS
 
 // CreateDefaultWasmFileClientIfNotExist creates a default WASM main.go file from the embedded markdown template
-// It never overwrites an existing file and returns the TinyWasm instance for method chaining.
-func (t *TinyWasm) CreateDefaultWasmFileClientIfNotExist() *TinyWasm {
+// It never overwrites an existing file and returns the WasmClient instance for method chaining.
+func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 	// Build target path from Config
 	targetPath := filepath.Join(t.AppRootDir, t.SourceDir, t.MainInputFile)
 

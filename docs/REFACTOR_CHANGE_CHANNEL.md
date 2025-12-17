@@ -1,23 +1,23 @@
-# TinyWasm: Refactor Change Method to Use Channel-Based Progress
+# WasmClient: Refactor Change Method to Use Channel-Based Progress
 
 ## Objective
-Refactor the `Change` method signature in TinyWasm library from callback-based `func(msgs ...any)` to channel-based `chan<- string` to match DevTUI's new interface and enable better streaming support for MCP tools.
+Refactor the `Change` method signature in WasmClient library from callback-based `func(msgs ...any)` to channel-based `chan<- string` to match DevTUI's new interface and enable better streaming support for MCP tools.
 
 ## Current Signature
 ```go
 // Change.go
-func (w *TinyWasm) Change(newValue string, progress func(msgs ...any))
+func (w *WasmClient) Change(newValue string, progress func(msgs ...any))
 ```
 
 ## Target Signature
 ```go
 // Change.go
-func (w *TinyWasm) Change(newValue string, progress chan<- string)
+func (w *WasmClient) Change(newValue string, progress chan<- string)
 ```
 
 ## Rationale
 1. **Consistency**: DevTUI updated to use channels instead of callbacks
-2. **MCP Integration**: TinyWasm exposes tools via MCP that stream progress messages
+2. **MCP Integration**: WasmClient exposes tools via MCP that stream progress messages
 3. **Simplicity**: Single string messages instead of variadic any
 4. **Idiomatic Go**: Channels for communication between goroutines
 
@@ -27,9 +27,9 @@ func (w *TinyWasm) Change(newValue string, progress chan<- string)
 Update main Change method implementation:
 
 ```go
-// Change updates the compiler mode for TinyWasm and reports progress via the provided channel.
+// Change updates the compiler mode for WasmClient and reports progress via the provided channel.
 // Implements the HandlerEdit interface: Change(newValue string, progress chan<- string)
-func (w *TinyWasm) Change(newValue string, progress chan<- string) {
+func (w *WasmClient) Change(newValue string, progress chan<- string) {
     // Normalize input: trim spaces and convert to uppercase
     newValue = Convert(newValue).ToUpper().String()
 
@@ -266,11 +266,11 @@ if len(messages) > 0 {
 - Wait for goroutine completion with done channel
 
 ## Breaking Changes
-⚠️ **This is a BREAKING CHANGE** - All code calling `TinyWasm.Change()` must update to use channels.
+⚠️ **This is a BREAKING CHANGE** - All code calling `WasmClient.Change()` must update to use channels.
 
 **External Consumers:**
-- TinyWasm (will be updated separately)
-- Any other tools using TinyWasm directly
+- WasmClient (will be updated separately)
+- Any other tools using WasmClient directly
 
 ## Success Criteria
 - [ ] Change.go updated with new signature

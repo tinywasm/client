@@ -37,7 +37,7 @@ func TestJavascriptForInitializingSignatures(t *testing.T) {
 		Logger:     func(...any) {},
 	}
 
-	// Create TinyWasm instance with temp directory
+	// Create WasmClient instance with temp directory
 	w := New(config)
 
 	// Skip only if tinygo not present

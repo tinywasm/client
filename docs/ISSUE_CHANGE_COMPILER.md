@@ -1,8 +1,8 @@
-# TinyWasm Compiler Mode Implementation
+# WasmClient Compiler Mode Implementation
 
 ## Executive Summary
 
-**Objective**: Implement a 3-mode compiler system for TinyWasm with DevTUI integration, replacing the current boolean `TinyGoCompiler` with a comprehensive build mode system.
+**Objective**: Implement a 3-mode compiler system for WasmClient with DevTUI integration, replacing the current boolean `TinyGoCompiler` with a comprehensive build mode system.
 
 **Modes**: 
 - `"c"` (Coding/Development) - Go standard compiler for fast iteration
@@ -20,19 +20,19 @@
 
 #### FieldHandler Implementation
 ```go
-func (w *TinyWasm) Label() string {
+func (w *WasmClient) Label() string {
     return "Build Mode: c, d, p"
 }
 
-func (w *TinyWasm) Value() string {
+func (w *WasmClient) Value() string {
     return w.getCurrentMode() // Returns "c", "d", or "p" (actual value)
 }
 
-func (w *TinyWasm) Editable() bool {
+func (w *WasmClient) Editable() bool {
     return true
 }
 
-func (w *TinyWasm) Change(newValue any) (string, error) {
+func (w *WasmClient) Change(newValue any) (string, error) {
     modeStr, ok := newValue.(string)
     if !ok {
         return "", Err(D.Invalid, D.Input, D.Type)
@@ -63,14 +63,14 @@ func (w *TinyWasm) Change(newValue any) (string, error) {
     return w.getSuccessMessage(modeStr), nil
 }
 
-func (w *TinyWasm) Timeout() time.Duration {
+func (w *WasmClient) Timeout() time.Duration {
     return 60 * time.Second
 }
 ```
 
 #### Config Constructor Pattern
 ```go
-// NewConfig creates a TinyWasm Config with sensible defaults
+// NewConfig creates a WasmClient Config with sensible defaults
 func NewConfig() *Config {
     return &Config{
         BuildLargeSizeShortcut:     "c",
@@ -84,7 +84,7 @@ func NewConfig() *Config {
 
 #### Message Format for MessageType Detection
 ```go
-func (w *TinyWasm) getSuccessMessage(mode string) string {
+func (w *WasmClient) getSuccessMessage(mode string) string {
     switch mode {
     case w.Config.BuildLargeSizeShortcut:
         return Translate(D.Switching, D.Mode, D.Coding)      // "Switching Mode Coding"
@@ -98,7 +98,7 @@ func (w *TinyWasm) getSuccessMessage(mode string) string {
 }
 
 // Error messages formatted for MessageType detection
-func (w *TinyWasm) handleTinyGoMissing() error {
+func (w *WasmClient) handleTinyGoMissing() error {
     if err := w.installTinyGo(); err != nil {
         // Format: "Error: Cannot Install TinyGo: details"
         return Err("Error:", D.Cannot, D.Install, "TinyGo", err.Error())
@@ -129,12 +129,12 @@ func (w *TinyWasm) handleTinyGoMissing() error {
 ### 1. FieldHandler Interface Implementation
 
 ```go
-// TinyWasm will implement DevTUI FieldHandler interface
-func (w *TinyWasm) Label() string                       // "Build Mode: c, d, p"
-func (w *TinyWasm) Value() string                       // Current mode: "c", "d", or "p"  
-func (w *TinyWasm) Editable() bool                      // true - user can edit
-func (w *TinyWasm) Change(newValue any) (string, error) // Validates and switches mode
-func (w *TinyWasm) Timeout() time.Duration              // 1 minute for all modes
+// WasmClient will implement DevTUI FieldHandler interface
+func (w *WasmClient) Label() string                       // "Build Mode: c, d, p"
+func (w *WasmClient) Value() string                       // Current mode: "c", "d", or "p"  
+func (w *WasmClient) Editable() bool                      // true - user can edit
+func (w *WasmClient) Change(newValue any) (string, error) // Validates and switches mode
+func (w *WasmClient) Timeout() time.Duration              // 1 minute for all modes
 ```
 
 **Display Format**:
@@ -144,9 +144,9 @@ func (w *TinyWasm) Timeout() time.Duration              // 1 minute for all mode
 
 ### 2. Struct Modifications
 
-#### TinyWasm Struct Changes
+#### WasmClient Struct Changes
 ```go
-type TinyWasm struct {
+type WasmClient struct {
     *Config
     ModulesFolder string
     mainInputFile string
@@ -206,7 +206,7 @@ Based on [optimizing-binaries.md](benchmark/optimizing-binaries.md):
 #### Primary Method: Change (DevTUI FieldHandler)
 ```go
 // RENAME: SetTinyGoCompiler -> Change (implements FieldHandler interface)
-func (w *TinyWasm) Change(newValue any) (string, error) {
+func (w *WasmClient) Change(newValue any) (string, error) {
     // 1. Validate input string (only "c", "d", "p" allowed, using Config shortcuts)
     // 2. Check TinyGo installation for "d"/"p" modes
     // 3. Call updateCurrentBuilder(mode)
@@ -218,7 +218,7 @@ func (w *TinyWasm) Change(newValue any) (string, error) {
 #### Supporting Methods
 ```go
 // RENAME: updateBuilderConfig -> updateCurrentBuilder
-func (w *TinyWasm) updateCurrentBuilder(mode string) {
+func (w *WasmClient) updateCurrentBuilder(mode string) {
     // 1. Cancel any ongoing compilation
     if w.activeBuilder != nil {
         w.activeBuilder.Cancel()
@@ -238,7 +238,7 @@ func (w *TinyWasm) updateCurrentBuilder(mode string) {
 }
 
 // NEW: Installation handler (placeholder for future)
-func (w *TinyWasm) installTinyGo() error {
+func (w *WasmClient) installTinyGo() error {
     // Placeholder method - will show error for now
     // Future: implement automatic TinyGo installation
     return Err("TinyGo", D.Installation, D.Not, D.Implemented)
@@ -249,7 +249,7 @@ func (w *TinyWasm) installTinyGo() error {
 
 #### Updated builderWasmInit Method
 ```go
-func (w *TinyWasm) builderWasmInit() {
+func (w *WasmClient) builderWasmInit() {
     rootFolder := w.Config.WebFilesRootRelative
     subFolder := w.Config.WebFilesSubRelative
     mainInputFileRelativePath := path.Join(rootFolder, w.mainInputFile)
@@ -312,7 +312,7 @@ func (w *TinyWasm) builderWasmInit() {
 
 #### Default Mode Detection
 ```go
-func (w *TinyWasm) getCurrentMode() string {
+func (w *WasmClient) getCurrentMode() string {
     // Determine current mode based on activeBuilder
     switch w.activeBuilder {
     case w.builderLarge:
@@ -326,7 +326,7 @@ func (w *TinyWasm) getCurrentMode() string {
     }
 }
 
-func (w *TinyWasm) validateMode(mode string) error {
+func (w *WasmClient) validateMode(mode string) error {
     validModes := []string{
         w.Config.BuildLargeSizeShortcut,    // "c"
         w.Config.BuildMediumSizeShortcut, // "d" 
@@ -365,7 +365,7 @@ Add these terms to TinyString dictionary if not present:
 
 #### Message Implementation
 ```go
-func (w *TinyWasm) getSuccessMessage(mode string) string {
+func (w *WasmClient) getSuccessMessage(mode string) string {
     // Import: "github.com/tinywasm/fmt"
     switch mode {
     case w.Config.BuildLargeSizeShortcut:
@@ -384,11 +384,11 @@ func (w *TinyWasm) getSuccessMessage(mode string) string {
 
 #### TinyGo Installation Check
 ```go
-func (w *TinyWasm) requiresTinyGo(mode string) bool {
+func (w *WasmClient) requiresTinyGo(mode string) bool {
     return mode == w.Config.BuildMediumSizeShortcut || mode == w.Config.BuildSmallSizeShortcut
 }
 
-func (w *TinyWasm) handleTinyGoMissing(mode string) error {
+func (w *WasmClient) handleTinyGoMissing(mode string) error {
     // Try installation (placeholder for now)
     if err := w.installTinyGo(); err != nil {
         return Err(D.Cannot, D.Install, "TinyGo", err.Error())
@@ -414,7 +414,7 @@ func (w *TinyWasm) handleTinyGoMissing(mode string) error {
 ## Implementation Plan
 
 ### Phase 1: Core Structure Changes
-1. **Rename builder fields** in TinyWasm struct
+1. **Rename builder fields** in WasmClient struct
 2. **Add compilerMode field** and Config shortcuts
 3. **Update builderWasmInit()** with 3-mode configuration
 4. **Rename SetTinyGoCompiler() to Change()**
@@ -469,7 +469,7 @@ func (w *TinyWasm) handleTinyGoMissing(mode string) error {
 1. ✅ **All decisions confirmed** - ready for implementation
 2. **Add TinyString dictionary terms** for multilingual support
 3. **Implement NewConfig() constructor** with default shortcuts
-4. **Begin TinyWasm refactoring** with 3-mode system
+4. **Begin WasmClient refactoring** with 3-mode system
 5. **Update tests** for new FieldHandler interface
 6. **Message format validation** for automatic MessageType detection
 

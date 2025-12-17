@@ -20,7 +20,7 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 		t.Log(messages...)
 	}
 
-	tw := &TinyWasm{
+	tw := &WasmClient{
 		Config:      cfg,
 		wasmProject: false,
 	}
@@ -75,7 +75,7 @@ func TestCreateDefaultWasmFileClientIfNotExistDoesNotOverwrite(t *testing.T) {
 	cfg.SourceDir = sourceDir
 	cfg.MainInputFile = "main.go"
 
-	tw := &TinyWasm{
+	tw := &WasmClient{
 		Config:      cfg,
 		wasmProject: false,
 	}

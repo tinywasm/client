@@ -6,7 +6,7 @@ import (
 )
 
 // TestStoreModePersistence tests that mode changes are correctly saved to the Store
-// and persist across TinyWasm instances, simulating the bug where mode updates were not persisted.
+// and persist across WasmClient instances, simulating the bug where mode updates were not persisted.
 func TestStoreModePersistence(t *testing.T) {
 	if _, err := exec.LookPath("tinygo"); err != nil {
 		t.Skip("tinygo not found in PATH")

@@ -33,7 +33,7 @@ go 1.21
 		t.Fatalf("failed to write go.mod: %v", err)
 	}
 
-	// Configure TinyWasm handler with a logger for testing output
+	// Configure WasmClient handler with a logger for testing output
 	var logMessages []string
 	config := &Config{
 		AppRootDir: rootDir,
@@ -53,7 +53,7 @@ go 1.21
 		content := `package main
 
 		func main() {
-			println("Hello TinyWasm!")
+			println("Hello WasmClient!")
 		}`
 		os.WriteFile(mainWasmPath, []byte(content), 0644)
 
@@ -83,7 +83,7 @@ go 1.21
 		content := `package main
 
 		func main() {
-			println("Hello Users Module with TinyWasm!")
+			println("Hello Users Module with WasmClient!")
 		}`
 		os.WriteFile(moduleWasmPath, []byte(content), 0644)
 

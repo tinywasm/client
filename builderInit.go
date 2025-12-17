@@ -10,7 +10,7 @@ import (
 )
 
 // builderWasmInit configures 3 builders for WASM compilation modes
-func (w *TinyWasm) builderWasmInit() {
+func (w *WasmClient) builderWasmInit() {
 	sourceDir := path.Join(w.AppRootDir, w.Config.SourceDir)
 	outputDir := path.Join(w.AppRootDir, w.Config.OutputDir)
 	mainInputFileRelativePath := path.Join(sourceDir, w.Config.MainInputFile)
@@ -68,7 +68,7 @@ func (w *TinyWasm) builderWasmInit() {
 }
 
 // updateCurrentBuilder sets the activeBuilder based on mode and cancels ongoing operations
-func (w *TinyWasm) updateCurrentBuilder(mode string) {
+func (w *WasmClient) updateCurrentBuilder(mode string) {
 	// 1. Cancel any ongoing compilation
 	if w.activeBuilder != nil {
 		w.activeBuilder.Cancel()
@@ -94,7 +94,7 @@ func (w *TinyWasm) updateCurrentBuilder(mode string) {
 // eg: "deploy/edgeworker/app.wasm" (relative to AppRootDir)
 // This is used by file watchers to identify output files that should be ignored.
 // The returned path always uses forward slashes (/) for consistency across platforms.
-func (w *TinyWasm) OutputRelativePath() string {
+func (w *WasmClient) OutputRelativePath() string {
 	// FinalOutputPath() returns absolute path like: /tmp/test/deploy/edgeworker/app.wasm
 	// We need to extract the relative portion: deploy/edgeworker/app.wasm
 	fullPath := w.activeBuilder.FinalOutputPath()

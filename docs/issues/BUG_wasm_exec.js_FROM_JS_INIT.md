@@ -16,14 +16,14 @@ This happens when the `.wasm` expects Go's import (e.g. `runtime.scheduleTimeout
 
 ## Reproduction (typical)
 
-1. Configure `AssetMin` with `GetRuntimeInitializerJS` pointing to `TinyWasm.JavascriptForInitializing`.
+1. Configure `AssetMin` with `GetRuntimeInitializerJS` pointing to `WasmClient.JavascriptForInitializing`.
 2. Build or change JS files so the pipeline regenerates `public/main.js` (this file includes the `wasm_exec.js` content returned by `GetRuntimeInitializerJS`).
 3. Serve `main.wasm` compiled with one toolchain (Go or TinyGo) but `main.js` contains the other toolchain's `wasm_exec.js`.
 4. Load the page in a browser and observe import/link errors as above.
 
 ## Root cause
 
-`TinyWasm.JavascriptForInitializing()` chooses which `wasm_exec.js` content to load (Go vs TinyGo) based on configuration flags and caches the result. The file caching + selection logic can become out-of-sync with the actual compiler used to produce the `.wasm` artifact. Specifically:
+`WasmClient.JavascriptForInitializing()` chooses which `wasm_exec.js` content to load (Go vs TinyGo) based on configuration flags and caches the result. The file caching + selection logic can become out-of-sync with the actual compiler used to produce the `.wasm` artifact. Specifically:
 
 - The `.wasm` binary may require Go's runtime imports (e.g. `runtime.scheduleTimeoutEvent`) but `JavascriptForInitializing()` injected TinyGo's `wasm_exec.js` (which implements different imports such as `runtime.sleepTicks`).
 - Because the import names differ, WebAssembly instantiation fails in the browser with the shown import error.
@@ -47,7 +47,7 @@ The codebase diverged from the original full proposal: instead of a new, separat
 
 Summary of the actual changes made in the codebase:
 
-- `TinyWasm` now exposes `SupportedExtensions()` returning `[]string{".js", ".go"}` and `DevWatch`/`godev` call `NewFileEvent` with JS events during initial registration.
+- `WasmClient` now exposes `SupportedExtensions()` returning `[]string{".js", ".go"}` and `DevWatch`/`godev` call `NewFileEvent` with JS events during initial registration.
 - `NewFileEvent(...)` in `tinywasm` calls two detection handlers now:
     - `wasmDetectionFuncFromJsFile(fileName, extension, filePath, event)` — active by default
     - `wasmDetectionFuncFromGoFile(fileName, filePath)` — active by default
