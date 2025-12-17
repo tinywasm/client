@@ -36,15 +36,15 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 	// and confirmed this file belongs to this handler. We should ALWAYS compile.
 	// The old ShouldCompileToWasm() check was incorrect - it rejected dependency files.
 
-	// Compile using current active builder
-	if w.activeBuilder == nil {
-		return Err("builder not initialized")
+	// Compile using current strategy (In-Memory or External)
+	if w.strategy == nil {
+		return Err("strategy not initialized")
 	}
 
 	w.Logger("Compiling WASM due to", filePath, "change...")
 
-	// Compile using gobuild
-	if err := w.activeBuilder.CompileProgram(); err != nil {
+	// Compile using strategy
+	if err := w.strategy.Compile(); err != nil {
 		return Err("compiling to WebAssembly error: ", err)
 	}
 

@@ -60,6 +60,8 @@ func main() {
 	cfg.Store = &testStore{data: make(map[string]string)}
 
 	w := New(cfg)
+	// Force External strategy for this test as it verifies disk artifacts
+	w.strategy = &externalStrategy{client: w}
 	// Allow tests to enable tinygo detection by setting the private field
 	w.tinyGoCompiler = true
 

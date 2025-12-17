@@ -1,6 +1,7 @@
 package client
 
 import (
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -29,6 +30,8 @@ type WasmClient struct {
 	mode_large_go_wasm_exec_cache      string // cache wasm_exec.js file content per mode large
 	mode_medium_tinygo_wasm_exec_cache string // cache wasm_exec.js file content per mode medium
 	mode_small_tinygo_wasm_exec_cache  string // cache wasm_exec.js file content per mode small
+
+	strategy ClientStrategy // Strategy for compilation and serving (In-Memory vs External)
 }
 
 // Config holds configuration for WASM compilation
@@ -39,16 +42,21 @@ type Config struct {
 	AppRootDir string
 
 	// SourceDir specifies the directory containing the Go source for the webclient (relative to AppRootDir).
-	// e.g., "src/cmd/webclient"
+	// e.g., "web"
 	SourceDir string
 
 	// OutputDir specifies the directory for WASM and related assets (relative to AppRootDir).
-	// e.g., "src/web/public"
+	// e.g., "web/public"
 	OutputDir string
 
-	WasmExecJsOutputDir string // output dir for wasm_exec.js file (relative) eg: "src/web/ui/js", "theme/js"
-	MainInputFile       string // main input file for WASM compilation (default: "main.wasm.go")
-	OutputName          string // output name for WASM file (default: "main")
+	// AssetsURLPrefix is an optional URL prefix/folder for serving the WASM file.
+	// e.g. "assets" -> serves at "/assets/client.wasm"
+	// default: "" -> serves at "/client.wasm"
+	AssetsURLPrefix string
+
+	WasmExecJsOutputDir string // output dir for wasm_exec.js file (relative) eg: "web/js", "theme/js"
+	MainInputFile       string // main input file for WASM compilation (default: "client.go")
+	OutputName          string // output name for WASM file (default: "client")
 	Logger              func(message ...any)
 	// TinyGoCompiler removed: tinyGoCompiler (private) in WasmClient is used instead to avoid confusion
 
@@ -159,10 +167,47 @@ func New(c *Config) *WasmClient {
 		}
 	}
 
+	// Determine initial strategy
+	// If the external WASM file already exists, use External strategy.
+	// Otherwise, default to In-Memory strategy.
+	outputFile := filepath.Join(w.Config.OutputDir, w.Config.OutputName+".wasm")
+	absOutputFile := filepath.Join(w.Config.AppRootDir, outputFile)
+
+	if _, err := os.Stat(absOutputFile); err == nil {
+		w.strategy = &externalStrategy{client: w}
+		//w.Logger("WASM Client initialized in External Mode (file found)")
+	} else {
+		w.strategy = &inMemoryStrategy{client: w}
+		//w.Logger("WASM Client initialized in In-Memory Mode (default)")
+	}
+
 	// Perform one-time detection at the end
 	w.detectProjectConfiguration()
 
 	return w
+}
+
+// RegisterRoutes registers the WASM client file route on the provided mux.
+// It delegates to the active strategy.
+func (w *WasmClient) RegisterRoutes(mux *http.ServeMux) {
+	w.strategy.RegisterRoutes(mux)
+}
+
+// wasmRoutePath calculates the URL path for the WASM file
+func (w *WasmClient) wasmRoutePath() string {
+	prefix := w.Config.AssetsURLPrefix
+	// Ensure safe joining of URL paths
+	if prefix != "" {
+		// Clean the prefix
+		if prefix[0] == '/' {
+			prefix = prefix[1:]
+		}
+		if prefix[len(prefix)-1] == '/' {
+			prefix = prefix[:len(prefix)-1]
+		}
+		return "/" + prefix + "/" + w.Config.OutputName + ".wasm"
+	}
+	return "/" + w.Config.OutputName + ".wasm"
 }
 
 // Name returns the name of the WASM project
