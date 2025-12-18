@@ -215,7 +215,7 @@ func (w *WasmClient) wasmRoutePath() string {
 
 // Name returns the name of the WASM project
 func (w *WasmClient) Name() string {
-	return "WasmClient"
+	return "CLIENT"
 }
 
 // WasmProjectTinyGoJsUse returns dynamic state based on current configuration
