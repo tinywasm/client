@@ -53,13 +53,13 @@ func main() {
 	cfg.AppRootDir = tmp
 	cfg.SourceDir = webDirName
 	cfg.OutputDir = filepath.Join(webDirName, "public")
-	cfg.WasmExecJsOutputDir = filepath.Join(webDirName, "theme", "js")
 	cfg.Logger = func(message ...any) {
 		logMessages = append(logMessages, fmt.Sprint(message...))
 	}
 	cfg.Store = &testStore{data: make(map[string]string)}
 
 	w := New(cfg)
+	w.SetWasmExecJsOutputDir(filepath.Join(webDirName, "theme", "js"))
 	// Force External strategy for this test as it verifies disk artifacts
 	w.strategy = &externalStrategy{client: w}
 	// Allow tests to enable tinygo detection by setting the private field

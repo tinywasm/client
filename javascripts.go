@@ -39,7 +39,7 @@ func wasm_execTinyGoSignatures() []string {
 
 // WasmExecJsOutputPath returns the output path for wasm_exec.js
 func (w *WasmClient) WasmExecJsOutputPath() string {
-	return path.Join(w.Config.AppRootDir, w.Config.WasmExecJsOutputDir, "wasm_exec.js")
+	return path.Join(w.Config.AppRootDir, w.wasmExecJsOutputDir, "wasm_exec.js")
 }
 
 // getWasmExecContent returns the raw wasm_exec.js content for the current compiler configuration.
@@ -310,12 +310,7 @@ func (w *WasmClient) analyzeWasmExecJsContent(filePath string) bool {
 	content := string(data)
 
 	// PRIORITY 1: Check store if available
-	if w.Store != nil {
-		if mode, err := w.Store.Get("tinywasm_mode"); err == nil && mode != "" {
-			w.currentMode = mode
-			//w.Logger("DEBUG: Restored mode from store:", mode)
-		}
-	}
+	w.loadMode()
 
 	// Count signatures (reuse existing logic from wasmDetectionFuncFromJsFileActive)
 	goCount := 0

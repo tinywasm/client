@@ -23,10 +23,9 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	// Create WasmClient instance with verbose logging
 	messages := []string{}
 	config := &Config{
-		AppRootDir:          testDir,
-		SourceDir:           "web",
-		OutputDir:           "theme/js",
-		WasmExecJsOutputDir: "theme/js",
+		AppRootDir: testDir,
+		SourceDir:  "web",
+		OutputDir:  "theme/js",
 		Logger: func(message ...any) {
 			msg := fmt.Sprint(message...)
 			messages = append(messages, msg)
@@ -35,6 +34,7 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetWasmExecJsOutputDir("theme/js")
 
 	// Print all debug messages
 	t.Log("=== All debug messages ===")

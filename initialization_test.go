@@ -36,7 +36,6 @@ func TestInitializationDetectionFromWasmExecJs(t *testing.T) {
 		AppRootDir:              testDir,
 		SourceDir:               "web",
 		OutputDir:               "web/public",
-		WasmExecJsOutputDir:     "web/theme/js",
 		BuildLargeSizeShortcut:  "L",
 		BuildMediumSizeShortcut: "M",
 		BuildSmallSizeShortcut:  "S",
@@ -44,6 +43,7 @@ func TestInitializationDetectionFromWasmExecJs(t *testing.T) {
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetWasmExecJsOutputDir("web/theme/js")
 
 	// Verify detection worked
 	if !tinyWasm.wasmProject {
@@ -73,14 +73,14 @@ func TestInitializationDetectionFromGoFiles(t *testing.T) {
 
 	// Create WasmClient instance
 	config := &Config{
-		AppRootDir:          testDir,
-		SourceDir:           "web",
-		OutputDir:           "theme/js",
-		WasmExecJsOutputDir: "theme/js",
-		Logger:              func(message ...any) {},
+		AppRootDir: testDir,
+		SourceDir:  "web",
+		OutputDir:  "theme/js",
+		Logger:     func(message ...any) {},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetWasmExecJsOutputDir("theme/js")
 
 	// Verify detection worked
 	if !tinyWasm.wasmProject {
@@ -136,9 +136,13 @@ func TestDefaultConfiguration(t *testing.T) {
 
 	tinyWasm := New(config)
 
-	expected := "src/web/ui/js"
-	if tinyWasm.WasmExecJsOutputDir != expected {
-		t.Errorf("Expected WasmExecJsOutputDir to default to %s, got %s", expected, tinyWasm.WasmExecJsOutputDir)
+	expected := "web/js"
+	// Note: We don't check a default anymore because wasmExecJsOutputDir is private and defaults to empty.
+	// But we can verify the setter works.
+	tinyWasm.SetWasmExecJsOutputDir(expected)
+	// We check indirect path via WasmExecJsOutputPath (unexported field access in tests is OK but let's use the public API)
+	if !strings.Contains(tinyWasm.WasmExecJsOutputPath(), expected) {
+		t.Errorf("Expected WasmExecJsOutputPath to contain %s, got %s", expected, tinyWasm.WasmExecJsOutputPath())
 	}
 }
 
@@ -159,7 +163,6 @@ func TestNoWasmProjectDetected(t *testing.T) {
 		AppRootDir:              testDir,
 		SourceDir:               "web",
 		OutputDir:               "theme/js",
-		WasmExecJsOutputDir:     "theme/js",
 		BuildLargeSizeShortcut:  "L",
 		BuildMediumSizeShortcut: "M",
 		BuildSmallSizeShortcut:  "S",
@@ -167,6 +170,7 @@ func TestNoWasmProjectDetected(t *testing.T) {
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetWasmExecJsOutputDir("theme/js")
 
 	// Initially, no WASM project should be detected
 	if tinyWasm.wasmProject {

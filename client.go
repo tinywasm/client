@@ -12,6 +12,9 @@ import (
 // TinyWasm is an alias for WasmClient to maintain backward compatibility
 type TinyWasm = WasmClient
 
+// StoreKeyMode is the key used to store the current compiler mode in the Store
+const StoreKeyMode = "tinywasm_mode"
+
 // WasmClient provides WebAssembly compilation capabilities with 3-mode compiler selection
 type WasmClient struct {
 	*Config
@@ -35,69 +38,8 @@ type WasmClient struct {
 	mode_small_tinygo_wasm_exec_cache  string // cache wasm_exec.js file content per mode small
 
 	strategy ClientStrategy // Strategy for compilation and serving (In-Memory vs External)
-}
 
-// Config holds configuration for WASM compilation
-type Config struct {
-
-	// AppRootDir specifies the application root directory (absolute).
-	// e.g., "/home/user/project". If empty, defaults to "." to preserve existing behavior.
-	AppRootDir string
-
-	// SourceDir specifies the directory containing the Go source for the webclient (relative to AppRootDir).
-	// e.g., "web"
-	SourceDir string
-
-	// OutputDir specifies the directory for WASM and related assets (relative to AppRootDir).
-	// e.g., "web/public"
-	OutputDir string
-
-	// AssetsURLPrefix is an optional URL prefix/folder for serving the WASM file.
-	// e.g. "assets" -> serves at "/assets/client.wasm"
-	// default: "" -> serves at "/client.wasm"
-	AssetsURLPrefix string
-
-	WasmExecJsOutputDir string // output dir for wasm_exec.js file (relative) eg: "web/js", "theme/js"
-	MainInputFile       string // main input file for WASM compilation (default: "client.go")
-	OutputName          string // output name for WASM file (default: "client")
-	Logger              func(message ...any)
-	// TinyGoCompiler removed: tinyGoCompiler (private) in WasmClient is used instead to avoid confusion
-
-	BuildLargeSizeShortcut  string // "L" (Large) compile with go
-	BuildMediumSizeShortcut string // "M" (Medium) compile with tinygo debug
-	BuildSmallSizeShortcut  string // "S" (Small) compile with tinygo minimal binary size
-
-	// gobuild integration fields
-	Callback           func(error)     // Optional callback for async compilation
-	CompilingArguments func() []string // Build arguments for compilation (e.g., ldflags)
-
-	// DisableWasmExecJsOutput prevents automatic creation of wasm_exec.js file
-	// Useful when embedding wasm_exec.js content inline (e.g., Cloudflare Pages Advanced Mode)
-	DisableWasmExecJsOutput bool
-
-	// LastOperationID tracks the last operation ID for progress reporting
-	lastOpID string
-
-	Store            Store  // Key-Value store for state persistence
-	OnWasmExecChange func() // Callback for wasm_exec.js changes
-}
-
-// NewConfig creates a WasmClient Config with sensible defaults
-func NewConfig() *Config {
-	return &Config{
-		AppRootDir:              ".",
-		SourceDir:               "web",
-		OutputDir:               "web/public",
-		WasmExecJsOutputDir:     "web/js",
-		MainInputFile:           "client.go",
-		OutputName:              "client",
-		BuildLargeSizeShortcut:  "L",
-		BuildMediumSizeShortcut: "M",
-		BuildSmallSizeShortcut:  "S",
-		Logger: func(message ...any) {
-			// Default logger: do nothing (silent operation)
-		},
-	}
+	wasmExecJsOutputDir string // output dir for wasm_exec.js file (relative) eg: "web/js", "theme/js"
 }
 
 // New creates a new WasmClient instance with the provided configuration
@@ -105,8 +47,9 @@ func NewConfig() *Config {
 // Default values: MainInputFile in Config defaults to "main.wasm.go"
 func New(c *Config) *WasmClient {
 	// Ensure we have a config and a default AppRootDir
+	defaults := NewConfig()
 	if c == nil {
-		c = NewConfig()
+		c = defaults
 	}
 	if c.AppRootDir == "" {
 		c.AppRootDir = "."
@@ -119,10 +62,7 @@ func New(c *Config) *WasmClient {
 		}
 	}
 
-	// Ensure shortcut defaults are set even when a partial config is passed
-	// Use NewConfig() as the authoritative source of defaults and copy any
 	// missing shortcut values from it.
-	defaults := NewConfig()
 	if c.BuildLargeSizeShortcut == "" {
 		c.BuildLargeSizeShortcut = defaults.BuildLargeSizeShortcut
 	}
@@ -155,20 +95,11 @@ func New(c *Config) *WasmClient {
 		w.currentMode = w.Config.BuildLargeSizeShortcut
 	}
 
-	// Set default for WasmExecJsOutputDir if not configured
-	if w.Config.WasmExecJsOutputDir == "" {
-		w.Config.WasmExecJsOutputDir = "src/web/ui/js"
-	}
-
 	// Initialize gobuild instance with WASM-specific configuration
 	w.builderWasmInit()
 
 	// Try to restore mode from store if available
-	if w.Store != nil {
-		if val, err := w.Store.Get("tinywasm_mode"); err == nil && val != "" {
-			w.currentMode = val
-		}
-	}
+	w.loadMode()
 
 	// Determine initial strategy
 	// If the external WASM file already exists, use External strategy.
@@ -241,11 +172,35 @@ func (w *WasmClient) Label() string {
 
 // Value returns the current compiler mode shortcut (c, d, or p)
 func (w *WasmClient) Value() string {
+	// Sync with store if available
+	w.loadMode()
+
 	// Use explicit mode tracking instead of pointer comparison
 	if w.currentMode == "" {
 		return w.Config.BuildLargeSizeShortcut // Default to coding mode
 	}
 	return w.currentMode
+}
+
+// loadMode updates currentMode from the store if available
+func (w *WasmClient) loadMode() {
+	if w.Store != nil {
+		if val, err := w.Store.Get(StoreKeyMode); err == nil && val != "" {
+			w.currentMode = val
+		}
+	}
+}
+
+// SetWasmExecJsOutputDir sets the output directory for wasm_exec.js.
+// This is primarily intended for tests/debug where physical file output is required.
+// Setting a non-empty path will trigger a project detection and, if detected,
+// write/update the wasm_exec.js file to that directory.
+func (w *WasmClient) SetWasmExecJsOutputDir(path string) {
+	w.wasmExecJsOutputDir = path
+	w.detectProjectConfiguration()
+	if w.wasmProject && !w.Config.DisableWasmExecJsOutput && path != "" {
+		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
+	}
 }
 
 // detectProjectConfiguration performs one-time detection during initialization
@@ -259,11 +214,6 @@ func (w *WasmClient) detectProjectConfiguration() {
 	// Priority 2: Check for .go files (confirms WASM project)
 	if w.detectFromGoFiles() {
 		w.wasmProject = true
-		// If a project is detected from .go files, it means there's no wasm_exec.js,
-		// so we should create it.
-		if !w.Config.DisableWasmExecJsOutput {
-			w.wasmProjectWriteOrReplaceWasmExecJsOutput()
-		}
 		return
 	}
 
