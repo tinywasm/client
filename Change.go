@@ -43,7 +43,7 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 
 	// Save mode to store if available
 	if w.Store != nil {
-		w.Store.Set("tinywasm_mode", newValue)
+		w.Store.Set(StoreKeyBuildMode, newValue)
 	}
 
 	// Check if main WASM file exists

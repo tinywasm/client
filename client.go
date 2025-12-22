@@ -9,8 +9,8 @@ import (
 	"github.com/tinywasm/gobuild"
 )
 
-// StoreKeyMode is the key used to store the current compiler mode in the Store
-const StoreKeyMode = "tinywasm_mode"
+// StoreKeyBuildMode is the key used to store the current compiler mode in the Store
+const StoreKeyBuildMode = "wasmbuild_mode"
 
 // WasmClient provides WebAssembly compilation capabilities with 3-mode compiler selection
 type WasmClient struct {
@@ -174,7 +174,7 @@ func (w *WasmClient) Value() string {
 // loadMode updates currentMode from the store if available
 func (w *WasmClient) loadMode() {
 	if w.Store != nil {
-		if val, err := w.Store.Get(StoreKeyMode); err == nil && val != "" {
+		if val, err := w.Store.Get(StoreKeyBuildMode); err == nil && val != "" {
 			w.currentMode = val
 		}
 	}

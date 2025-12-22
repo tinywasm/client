@@ -169,7 +169,7 @@ func main() {
 			}
 
 			// CRITICAL: Verify that the mode is saved in the Store
-			saved, err := cfg.Store.Get("tinywasm_mode")
+			saved, err := cfg.Store.Get(StoreKeyBuildMode)
 			if err != nil {
 				t.Errorf("Failed to get mode from store for %s: %v", tc.name, err)
 			} else if saved != tc.mode {

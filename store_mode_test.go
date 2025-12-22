@@ -28,7 +28,7 @@ func TestJavascriptForInitializing_RespectsStoreValue(t *testing.T) {
 	// 1. Setup Store with a specific mode "S" (TinyGo)
 	// Default is "L" (Go)
 	store := NewMockStore()
-	store.Set("tinywasm_mode", "S")
+	store.Set(StoreKeyBuildMode, "S")
 
 	// 2. Initialize WasmClient
 	cfg := NewConfig()
@@ -53,7 +53,7 @@ func TestJavascriptForInitializing_RespectsStoreValue(t *testing.T) {
 	// Now, let's simulate the store changing externally (or just being different from what the client thinks if it wasn't refreshed)
 	// Or maybe the user means: I have a client, I change the store via some other means, and report back.
 
-	store.Set("tinywasm_mode", "L") // Change back to L in store
+	store.Set(StoreKeyBuildMode, "L") // Change back to L in store
 
 	// Client.Value() currently caches the value in w.currentMode.
 	// If Value() doesn't check the store, it will still return "S" (from initialization).

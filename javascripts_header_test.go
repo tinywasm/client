@@ -34,7 +34,7 @@ func TestStoreRoundtrip(t *testing.T) {
 		close(progress) // Close the channel since Change doesn't
 
 		// Check that mode is saved in store
-		saved, err := store.Get("tinywasm_mode")
+		saved, err := store.Get(StoreKeyBuildMode)
 		if err != nil {
 			t.Fatalf("failed to get mode from store for %q: %v", mode, err)
 		}
