@@ -9,32 +9,32 @@ import (
 	"github.com/tinywasm/gobuild"
 )
 
-// StoreKeyBuildMode is the key used to store the current compiler mode in the Store
-const StoreKeyBuildMode = "wasmbuild_mode"
+// StoreKeySizeMode is the key used to store the current compiler mode in the Store
+const StoreKeySizeMode = "wasmsize_mode"
 
 // WasmClient provides WebAssembly compilation capabilities with 3-mode compiler selection
 type WasmClient struct {
 	*Config
 
 	// RENAME & ADD: 4 builders for complete mode coverage
-	builderLarge  *gobuild.GoBuild // Go standard - fast compilation
-	builderMedium *gobuild.GoBuild // TinyGo debug - easier debugging
-	builderSmall  *gobuild.GoBuild // TinyGo production - smallest size
-	activeBuilder *gobuild.GoBuild // Current active builder
+	builderSizeLarge  *gobuild.GoBuild // Go standard - fast compilation
+	builderSizeMedium *gobuild.GoBuild // TinyGo debug - easier debugging
+	builderSizeSmall  *gobuild.GoBuild // TinyGo production - smallest size
+	activeSizeBuilder *gobuild.GoBuild // Current active builder
 
-	// EXISTING: Keep for installation detection (no compilerMode needed - activeBuilder handles state)
+	// EXISTING: Keep for installation detection (no compilerMode needed - activeSizeBuilder handles state)
 	tinyGoCompiler  bool // Enable TinyGo compiler (default: false for faster development)
 	wasmProject     bool // Automatically detected based on file structure
 	tinyGoInstalled bool // Cached TinyGo installation status
 
 	// NEW: Explicit mode tracking to fix Value() method
-	currentMode string // Track current mode explicitly ("L", "M", "S")
+	currenSizeMode string // Track current mode explicitly ("L", "M", "S")
 
 	mode_large_go_wasm_exec_cache      string // cache wasm_exec.js file content per mode large
 	mode_medium_tinygo_wasm_exec_cache string // cache wasm_exec.js file content per mode medium
 	mode_small_tinygo_wasm_exec_cache  string // cache wasm_exec.js file content per mode small
 
-	strategy ClientStrategy // Strategy for compilation and serving (In-Memory vs External)
+	storage BuildStorage // Storage for compilation and serving (In-Memory vs External)
 
 	wasmExecJsOutputDir string // output dir for wasm_exec.js file (relative) eg: "web/js", "theme/js"
 
@@ -81,7 +81,7 @@ func New(c *Config) *WasmClient {
 		enableWasmExecJsOutput:  false,
 
 		// Initialize with default mode
-		currentMode: "L", // Start with coding mode
+		currenSizeMode: "L", // Start with coding mode
 	}
 
 	// Initialize gobuild instance with WASM-specific configuration
@@ -90,19 +90,8 @@ func New(c *Config) *WasmClient {
 	// Try to restore mode from store if available
 	w.loadMode()
 
-	// Determine initial strategy
-	// If the external WASM file already exists, use External strategy.
-	// Otherwise, default to In-Memory strategy.
-	outputFile := filepath.Join(w.Config.OutputDir, w.outputName+".wasm")
-	absOutputFile := filepath.Join(w.appRootDir, outputFile)
-
-	if _, err := os.Stat(absOutputFile); err == nil {
-		w.strategy = &externalStrategy{client: w}
-		//w.Logger("WASM Client initialized in External Mode (file found)")
-	} else {
-		w.strategy = &inMemoryStrategy{client: w}
-		//w.Logger("WASM Client initialized in In-Memory Mode (default)")
-	}
+	// Default to In-Memory storage
+	w.storage = &memoryStorage{client: w}
 
 	// Perform one-time detection at the end
 	w.detectProjectConfiguration()
@@ -111,9 +100,9 @@ func New(c *Config) *WasmClient {
 }
 
 // RegisterRoutes registers the WASM client file route on the provided mux.
-// It delegates to the active strategy.
+// It delegates to the active storage.
 func (w *WasmClient) RegisterRoutes(mux *http.ServeMux) {
-	w.strategy.RegisterRoutes(mux)
+	w.storage.RegisterRoutes(mux)
 }
 
 // wasmRoutePath calculates the URL path for the WASM file
@@ -140,14 +129,14 @@ func (w *WasmClient) Name() string {
 
 // WasmProjectTinyGoJsUse returns dynamic state based on current configuration
 func (w *WasmClient) WasmProjectTinyGoJsUse(mode ...string) (isWasmProject bool, useTinyGo bool) {
-	var currentMode string
+	var currenSizeMode string
 	if len(mode) > 0 {
-		currentMode = mode[0]
+		currenSizeMode = mode[0]
 	} else {
-		currentMode = w.Value()
+		currenSizeMode = w.Value()
 	}
 
-	useTinyGo = w.requiresTinyGo(currentMode)
+	useTinyGo = w.requiresTinyGo(currenSizeMode)
 
 	return w.wasmProject, useTinyGo
 }
@@ -165,17 +154,36 @@ func (w *WasmClient) Value() string {
 	w.loadMode()
 
 	// Use explicit mode tracking instead of pointer comparison
-	if w.currentMode == "" {
+	if w.currenSizeMode == "" {
 		return w.buildLargeSizeShortcut // Default to coding mode
 	}
-	return w.currentMode
+	return w.currenSizeMode
 }
 
-// loadMode updates currentMode from the store if available
+// SetBuildOnDisk switches between In-Memory and External (Disk) storage.
+func (w *WasmClient) SetBuildOnDisk(onDisk bool) {
+	if onDisk {
+		if _, ok := w.storage.(*diskStorage); !ok {
+			w.storage = &diskStorage{client: w}
+			w.Logger("WASM Client switched to External (Disk) Mode")
+		}
+	} else {
+		if _, ok := w.storage.(*memoryStorage); !ok {
+			w.storage = &memoryStorage{client: w}
+			w.Logger("WASM Client switched to In-Memory Mode")
+		}
+	}
+	// Trigger immediate compilation to ensure the new storage has fresh content
+	if err := w.storage.Compile(); err != nil {
+		w.Logger("Compilation failed after mode switch:", err)
+	}
+}
+
+// loadMode updates currenSizeMode from the store if available
 func (w *WasmClient) loadMode() {
 	if w.Store != nil {
-		if val, err := w.Store.Get(StoreKeyBuildMode); err == nil && val != "" {
-			w.currentMode = val
+		if val, err := w.Store.Get(StoreKeySizeMode); err == nil && val != "" {
+			w.currenSizeMode = val
 		}
 	}
 }
@@ -227,7 +235,7 @@ func (w *WasmClient) SetBuildShortcuts(large, medium, small string) {
 	}
 
 	// Update current mode if it was one of the shortcuts and we changed it?
-	// actually currentMode is just a string, it might need update if we changed the shortcut it currently uses.
+	// actually currenSizeMode is just a string, it might need update if we changed the shortcut it currently uses.
 	// But usually this is called once during init.
 }
 

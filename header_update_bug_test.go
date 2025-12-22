@@ -33,7 +33,7 @@ func TestStoreModePersistence(t *testing.T) {
 	for range progress {
 	} // drain
 
-	saved, _ := store.Get(StoreKeyBuildMode)
+	saved, _ := store.Get(StoreKeySizeMode)
 	if saved != "M" {
 		t.Errorf("After changing to 'M', store should have 'M', got '%s'", saved)
 	}
@@ -51,7 +51,7 @@ func TestStoreModePersistence(t *testing.T) {
 	for range progress {
 	} // drain
 
-	saved, _ = store.Get(StoreKeyBuildMode)
+	saved, _ = store.Get(StoreKeySizeMode)
 	if saved != "S" {
 		t.Errorf("After changing to 'S', store should have 'S', got '%s'", saved)
 	}
@@ -71,7 +71,7 @@ func TestStoreModePersistence(t *testing.T) {
 		for range progress {
 		} // drain
 
-		saved, _ := store.Get(StoreKeyBuildMode)
+		saved, _ := store.Get(StoreKeySizeMode)
 		if saved != mode {
 			t.Errorf("After changing to '%s', store should have '%s', got '%s'", mode, mode, saved)
 		}

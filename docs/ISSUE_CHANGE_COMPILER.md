@@ -116,7 +116,7 @@ func (w *WasmClient) handleTinyGoMissing() error {
    - `Change(newValue any) (string, error)` → Validates, switches, recompiles
    - `Timeout() time.Duration` → `60 * time.Second`
 
-4. **Builder Architecture**: 3 builders + 1 activeBuilder pointer for state management ✅
+4. **Builder Architecture**: 3 builders + 1 activeSizeBuilder pointer for state management ✅
 5. **No Backward Compatibility**: Complete refactor of `SetTinyGoCompiler` ✅yGo with debug-friendly optimizations  
 - `"p"` (Production) - TinyGo with maximum size optimization
 
@@ -152,12 +152,12 @@ type WasmClient struct {
     mainInputFile string
 
     // RENAME & ADD: 4 builders for complete mode coverage
-    builderLarge     *gobuild.GoBuild // Go standard - fast compilation
-    builderMedium      *gobuild.GoBuild // TinyGo debug - easier debugging  
-    builderSmall *gobuild.GoBuild // TinyGo production - smallest size
-    activeBuilder     *gobuild.GoBuild // Current active builder
+    builderSizeLarge     *gobuild.GoBuild // Go standard - fast compilation
+    builderSizeMedium      *gobuild.GoBuild // TinyGo debug - easier debugging  
+    builderSizeSmall *gobuild.GoBuild // TinyGo production - smallest size
+    activeSizeBuilder     *gobuild.GoBuild // Current active builder
 
-    // EXISTING: Keep for installation detection (no compilerMode needed - activeBuilder handles state)
+    // EXISTING: Keep for installation detection (no compilerMode needed - activeSizeBuilder handles state)
     tinyGoCompiler  bool // Enable TinyGo compiler
     wasmProject     bool
     tinyGoInstalled bool
@@ -220,20 +220,20 @@ func (w *WasmClient) Change(newValue any) (string, error) {
 // RENAME: updateBuilderConfig -> updateCurrentBuilder
 func (w *WasmClient) updateCurrentBuilder(mode string) {
     // 1. Cancel any ongoing compilation
-    if w.activeBuilder != nil {
-        w.activeBuilder.Cancel()
+    if w.activeSizeBuilder != nil {
+        w.activeSizeBuilder.Cancel()
     }
 
-    // 2. Set activeBuilder based on mode
+    // 2. Set activeSizeBuilder based on mode
     switch mode {
     case w.Config.BuildLargeSizeShortcut:     // "c"
-        w.activeBuilder = w.builderLarge
+        w.activeSizeBuilder = w.builderSizeLarge
     case w.Config.BuildMediumSizeShortcut:  // "d" 
-        w.activeBuilder = w.builderMedium
+        w.activeSizeBuilder = w.builderSizeMedium
     case w.Config.BuildSmallSizeShortcut: // "p"
-        w.activeBuilder = w.builderSmall
+        w.activeSizeBuilder = w.builderSizeSmall
     default:
-        w.activeBuilder = w.builderLarge // fallback to coding mode
+        w.activeSizeBuilder = w.builderSizeLarge // fallback to coding mode
     }
 }
 
@@ -277,7 +277,7 @@ func (w *WasmClient) builderWasmInit() {
         }
         return args
     }
-    w.builderLarge = gobuild.New(&codingConfig)
+    w.builderSizeLarge = gobuild.New(&codingConfig)
 
     // Configure Debug builder (TinyGo debug-friendly)
     debugConfig := baseConfig
@@ -289,7 +289,7 @@ func (w *WasmClient) builderWasmInit() {
         }
         return args
     }
-    w.builderMedium = gobuild.New(&debugConfig)
+    w.builderSizeMedium = gobuild.New(&debugConfig)
 
     // Configure Production builder (TinyGo optimized)
     prodConfig := baseConfig
@@ -301,10 +301,10 @@ func (w *WasmClient) builderWasmInit() {
         }
         return args
     }
-    w.builderSmall = gobuild.New(&prodConfig)
+    w.builderSizeSmall = gobuild.New(&prodConfig)
 
     // Set initial mode and active builder (default to coding mode)
-    w.activeBuilder = w.builderLarge // Default: fast development
+    w.activeSizeBuilder = w.builderSizeLarge // Default: fast development
 }
 ```
 
@@ -313,13 +313,13 @@ func (w *WasmClient) builderWasmInit() {
 #### Default Mode Detection
 ```go
 func (w *WasmClient) getCurrentMode() string {
-    // Determine current mode based on activeBuilder
-    switch w.activeBuilder {
-    case w.builderLarge:
+    // Determine current mode based on activeSizeBuilder
+    switch w.activeSizeBuilder {
+    case w.builderSizeLarge:
         return w.Config.BuildLargeSizeShortcut     // "c"
-    case w.builderMedium:
+    case w.builderSizeMedium:
         return w.Config.BuildMediumSizeShortcut  // "d"
-    case w.builderSmall:
+    case w.builderSizeSmall:
         return w.Config.BuildSmallSizeShortcut // "p"
     default:
         return w.Config.BuildLargeSizeShortcut     // fallback

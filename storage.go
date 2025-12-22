@@ -9,22 +9,22 @@ import (
 	"time"
 )
 
-// ClientStrategy defines the behavior for compiling and serving the WASM client.
-type ClientStrategy interface {
+// BuildStorage defines the behavior for compiling and serving the WASM client.
+type BuildStorage interface {
 	// Compile performs the compilation.
-	// For InMemory: compiles to buffer.
-	// For External: compiles to disk.
+	// For Memory: compiles to buffer.
+	// For Disk: compiles to disk.
 	Compile() error
 
 	// RegisterRoutes registers the WASM file handler on the mux.
 	RegisterRoutes(mux *http.ServeMux)
 
-	// Name returns the strategy name for logging/debugging
+	// Name returns the storage name for logging/debugging
 	Name() string
 }
 
-// inMemoryStrategy compiles WASM to memory and serves it directly.
-type inMemoryStrategy struct {
+// memoryStorage compiles WASM to memory and serves it directly.
+type memoryStorage struct {
 	client *WasmClient // Access to config and logger
 
 	mu          sync.RWMutex
@@ -32,16 +32,16 @@ type inMemoryStrategy struct {
 	lastCompile time.Time
 }
 
-func (s *inMemoryStrategy) Name() string {
+func (s *memoryStorage) Name() string {
 	return "In-Memory"
 }
 
-func (s *inMemoryStrategy) Compile() error {
+func (s *memoryStorage) Compile() error {
 	s.client.Logger("Compiling WASM Client (In-Memory)...")
 
 	// Delegate to active builder's CompileToMemory
-	// Note: activeBuilder is in WasmClient
-	content, err := s.client.activeBuilder.CompileToMemory()
+	// Note: activeSizeBuilder is in WasmClient
+	content, err := s.client.activeSizeBuilder.CompileToMemory()
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (s *inMemoryStrategy) Compile() error {
 	return nil
 }
 
-func (s *inMemoryStrategy) RegisterRoutes(mux *http.ServeMux) {
+func (s *memoryStorage) RegisterRoutes(mux *http.ServeMux) {
 	routePath := s.client.wasmRoutePath()
 
 	mux.HandleFunc(routePath, func(w http.ResponseWriter, r *http.Request) {
@@ -77,16 +77,16 @@ func (s *inMemoryStrategy) RegisterRoutes(mux *http.ServeMux) {
 	s.client.Logger("Registered In-Memory route:", routePath)
 }
 
-// externalStrategy compiles WASM to disk and serves the static file.
-type externalStrategy struct {
+// diskStorage compiles WASM to disk and serves the static file.
+type diskStorage struct {
 	client *WasmClient
 }
 
-func (s *externalStrategy) Name() string {
+func (s *diskStorage) Name() string {
 	return "External"
 }
 
-func (s *externalStrategy) Compile() error {
+func (s *diskStorage) Compile() error {
 	s.client.Logger("Compiling WASM Client (External/Disk)...")
 
 	// Ensure directory exists
@@ -96,10 +96,10 @@ func (s *externalStrategy) Compile() error {
 	}
 
 	// Use existing CompileProgram which writes to config.OutputDir
-	return s.client.activeBuilder.CompileProgram()
+	return s.client.activeSizeBuilder.CompileProgram()
 }
 
-func (s *externalStrategy) RegisterRoutes(mux *http.ServeMux) {
+func (s *diskStorage) RegisterRoutes(mux *http.ServeMux) {
 	routePath := s.client.wasmRoutePath()
 	fsPath := filepath.Join(s.client.Config.OutputDir, s.client.outputName+".wasm")
 	// Note: Config.OutputDir is relative to AppRootDir usually, but ServeFile needs OS path.

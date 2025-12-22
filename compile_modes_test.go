@@ -65,8 +65,8 @@ func main() {
 	w := New(cfg)
 	w.SetAppRootDir(tmp)
 	w.SetWasmExecJsOutputDir(filepath.Join(webDirName, "theme", "js"))
-	// Force External strategy for this test as it verifies disk artifacts
-	w.strategy = &externalStrategy{client: w}
+	// Force External storage for this test as it verifies disk artifacts
+	w.storage = &diskStorage{client: w}
 	// Allow tests to enable tinygo detection by setting the private field
 	w.tinyGoCompiler = true
 
@@ -169,7 +169,7 @@ func main() {
 			}
 
 			// CRITICAL: Verify that the mode is saved in the Store
-			saved, err := cfg.Store.Get(StoreKeyBuildMode)
+			saved, err := cfg.Store.Get(StoreKeySizeMode)
 			if err != nil {
 				t.Errorf("Failed to get mode from store for %s: %v", tc.name, err)
 			} else if saved != tc.mode {

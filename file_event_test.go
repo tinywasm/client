@@ -45,8 +45,8 @@ go 1.21
 
 	tinyWasm := New(config)
 	tinyWasm.SetAppRootDir(tmp)
-	// Force External strategy for tests that expect files on disk
-	tinyWasm.strategy = &externalStrategy{client: tinyWasm}
+	// Force External storage for tests that expect files on disk
+	tinyWasm.storage = &diskStorage{client: tinyWasm}
 	t.Run("Verify client.go compilation", func(t *testing.T) {
 		mainWasmPath := filepath.Join(tmp, sourceDirName, "client.go") // client.go in source root
 		// defer os.Remove(mainWasmPath)  // Removed to allow subsequent tests

@@ -60,7 +60,7 @@ func (w *WasmClient) detectProjectConfiguration() {
         w.Logger("WASM project detected from .wasm.go files, defaulting to Go compiler")
         w.wasmProject = true
         w.tinyGoCompiler = false
-        w.currentMode = w.Config.BuildLargeSizeShortcut
+        w.currenSizeMode = w.Config.BuildLargeSizeShortcut
         return
     }
     
@@ -88,11 +88,11 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
     }
     
     // Compile using current active builder
-    if w.activeBuilder == nil {
+    if w.activeSizeBuilder == nil {
         return Err("builder not initialized")
     }
     
-    return w.activeBuilder.CompileProgram()
+    return w.activeSizeBuilder.CompileProgram()
 }
 ```
 

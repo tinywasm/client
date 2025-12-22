@@ -45,18 +45,18 @@ After Change to debugging mode - Current mode: , Active builder: *gobuild.GoBuil
 
 This shows:
 - `Value()` returns empty string (should return "c", "d", or "p")
-- `activeBuilder` doesn't change type (should be different instances)
+- `activeSizeBuilder` doesn't change type (should be different instances)
 - Progress message is wrong (should reflect actual mode)
 
 ## Root Cause Analysis
 
 ### 1. Value() Method Issue
 
-The `Value()` method compares `w.activeBuilder` with `w.builderLarge`, `w.builderMedium`, and `w.builderSmall` using reference equality (`==`). However, all builders are instances of `*gobuild.GoBuild`, so the comparison may be failing.
+The `Value()` method compares `w.activeSizeBuilder` with `w.builderSizeLarge`, `w.builderSizeMedium`, and `w.builderSizeSmall` using reference equality (`==`). However, all builders are instances of `*gobuild.GoBuild`, so the comparison may be failing.
 
 ```go
 func (w *WasmClient) Value() string {
-    if w.activeBuilder == w.builderLarge {
+    if w.activeSizeBuilder == w.builderSizeLarge {
         return w.Config.BuildLargeSizeShortcut
     }
     // ... other comparisons
@@ -76,24 +76,24 @@ The `getSuccessMessage()` method appears to work correctly, but the progress cal
 
 ### Solution 1: Add Mode Tracking Field
 
-Add an explicit `currentMode` field to track the active mode:
+Add an explicit `currenSizeMode` field to track the active mode:
 
 ```go
 type WasmClient struct {
     // ... existing fields
-    currentMode string // Track current mode explicitly
+    currenSizeMode string // Track current mode explicitly
 }
 
 func (w *WasmClient) Value() string {
-    if w.currentMode == "" {
+    if w.currenSizeMode == "" {
         return w.Config.BuildLargeSizeShortcut // default
     }
-    return w.currentMode
+    return w.currenSizeMode
 }
 
 func (w *WasmClient) updateCurrentBuilder(mode string) {
     // ... existing logic
-    w.currentMode = mode // Update tracking field
+    w.currenSizeMode = mode // Update tracking field
 }
 ```
 

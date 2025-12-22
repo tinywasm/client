@@ -36,19 +36,23 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 	// and confirmed this file belongs to this handler. We should ALWAYS compile.
 	// The old ShouldCompileToWasm() check was incorrect - it rejected dependency files.
 
-	// Compile using current strategy (In-Memory or External)
-	if w.strategy == nil {
-		return Err("strategy not initialized")
+	// Compile using current storage (In-Memory or External)
+	if w.storage == nil {
+		return Err("storage not initialized")
 	}
 
 	w.Logger("Compiling WASM due to", filePath, "change...")
 
-	// Compile using strategy
-	if err := w.strategy.Compile(); err != nil {
+	// Compile using storage
+	if err := w.storage.Compile(); err != nil {
 		return Err("compiling to WebAssembly error: ", err)
 	}
 
 	w.Logger("✓ WASM compilation successful")
+
+	if w.OnWasmExecChange != nil {
+		w.OnWasmExecChange()
+	}
 
 	return nil
 }
@@ -85,5 +89,5 @@ func (w *WasmClient) MainOutputFileAbsolutePath() string {
 
 // UnobservedFiles returns files that should not be watched for changes e.g: main.wasm
 func (w *WasmClient) UnobservedFiles() []string {
-	return w.activeBuilder.UnobservedFiles()
+	return w.activeSizeBuilder.UnobservedFiles()
 }

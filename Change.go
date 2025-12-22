@@ -1,9 +1,6 @@
 package client
 
 import (
-	"os"
-	"path"
-
 	. "github.com/tinywasm/fmt"
 )
 
@@ -43,15 +40,7 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 
 	// Save mode to store if available
 	if w.Store != nil {
-		w.Store.Set(StoreKeyBuildMode, newValue)
-	}
-
-	// Check if main WASM file exists
-	sourceDir := path.Join(w.appRootDir, w.Config.SourceDir)
-	mainWasmPath := path.Join(sourceDir, w.mainInputFile)
-	if _, err := os.Stat(mainWasmPath); err != nil {
-		progress <- w.getSuccessMessage(newValue) // Changed from progress(...)
-		return
+		w.Store.Set(StoreKeySizeMode, newValue)
 	}
 
 	// Auto-recompile
@@ -78,21 +67,14 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 	progress <- w.getSuccessMessage(newValue)
 }
 
-// RecompileMainWasm recompiles the main WASM file if it exists
+// RecompileMainWasm recompiles the main WASM file.
 func (w *WasmClient) RecompileMainWasm() error {
-	if w.activeBuilder == nil {
+	if w.activeSizeBuilder == nil {
 		return Err("builder not initialized")
-	}
-	sourceDir := path.Join(w.appRootDir, w.Config.SourceDir)
-	mainWasmPath := path.Join(sourceDir, w.mainInputFile)
-
-	// Check if main.wasm.go exists
-	if _, err := os.Stat(mainWasmPath); err != nil {
-		return Err("main WASM file not found:", mainWasmPath)
 	}
 
 	// Use gobuild to compile
-	return w.activeBuilder.CompileProgram()
+	return w.activeSizeBuilder.CompileProgram()
 }
 
 // validateMode validates if the provided mode is supported

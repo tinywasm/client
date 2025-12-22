@@ -105,9 +105,9 @@ func (h *WasmClient) JavascriptForInitializing(customizations ...string) (js str
 
 	stringWasmJs = header + stringWasmJs
 
-	// Verify activeBuilder is initialized before accessing it
-	if h.activeBuilder == nil {
-		return "", Errf("activeBuilder not initialized")
+	// Verify activeSizeBuilder is initialized before accessing it
+	if h.activeSizeBuilder == nil {
+		return "", Errf("activeSizeBuilder not initialized")
 	}
 
 	// Determine footer: use custom if provided, otherwise default
@@ -118,7 +118,7 @@ func (h *WasmClient) JavascriptForInitializing(customizations ...string) (js str
 		// Default footer: WebAssembly initialization code
 		footer = `
 		const go = new Go();
-		WebAssembly.instantiateStreaming(fetch("` + h.activeBuilder.MainOutputFileNameWithExtension() + `"), go.importObject).then((result) => {
+		WebAssembly.instantiateStreaming(fetch("` + h.activeSizeBuilder.MainOutputFileNameWithExtension() + `"), go.importObject).then((result) => {
 			go.run(result.instance);
 		});
 	`

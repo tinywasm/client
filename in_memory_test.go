@@ -40,8 +40,8 @@ func main() { fmt.Println("WASM") }`), 0644)
 	c.SetMainInputFile("client.go")
 	c.SetOutputName("test-client")
 
-	if c.strategy.Name() != "In-Memory" {
-		t.Errorf("Expected In-Memory strategy, got %s", c.strategy.Name())
+	if c.storage.Name() != "In-Memory" {
+		t.Errorf("Expected In-Memory storage, got %s", c.storage.Name())
 	}
 
 	// 2. Trigger Event -> Compile to Memory
@@ -80,12 +80,13 @@ func main() { fmt.Println("WASM") }`), 0644)
 	}
 
 	// 4. Switch to External Mode
-	// CreateDefaultWasmFileClientIfNotExist should switch mode and compile to disk
-	// (Note: source already exists, so it skips generation but should switch)
+	// CreateDefaultWasmFileClientIfNotExist used to switch mode, but now we must be explicit
+	// (Note: source already exists, so it skips generation)
 	c.CreateDefaultWasmFileClientIfNotExist()
+	c.SetBuildOnDisk(true)
 
-	if c.strategy.Name() != "External" {
-		t.Errorf("Expected External strategy after switch, got %s", c.strategy.Name())
+	if c.storage.Name() != "External" {
+		t.Errorf("Expected External storage after switch, got %s", c.storage.Name())
 	}
 
 	// Verify file WAS written to disk
@@ -94,12 +95,12 @@ func main() { fmt.Println("WASM") }`), 0644)
 	}
 
 	// 5. Verify serving in External Mode
-	// Note: We need to re-register routes if the strategy instance changed?
-	// WasmClient.RegisterRoutes delegates to w.strategy.RegisterRoutes.
-	// But previously registered handlers on 'mux' are bound to the OLD strategy instance (closure).
+	// Note: We need to re-register routes if the storage instance changed?
+	// WasmClient.RegisterRoutes delegates to w.storage.RegisterRoutes.
+	// But previously registered handlers on 'mux' are bound to the OLD storage instance (closure).
 	// Ideally, the app re-registers or the handler delegates dynamically.
 	// In our implementation, `RegisterRoutes` calls `mux.HandleFunc`.
-	// For this test, we create a new mux to verify the NEW strategy.
+	// For this test, we create a new mux to verify the NEW storage.
 	mux2 := http.NewServeMux()
 	c.RegisterRoutes(mux2)
 	ts2 := httptest.NewServer(mux2)

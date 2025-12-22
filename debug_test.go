@@ -69,15 +69,15 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	t.Logf("wasmProject: %v", tinyWasm.wasmProject)
 	t.Logf("tinyGoCompiler: %v", tinyWasm.tinyGoCompiler)
 	t.Logf("tinyGoInstalled: %v", tinyWasm.tinyGoInstalled)
-	t.Logf("currentMode: %s", tinyWasm.currentMode)
+	t.Logf("currenSizeMode: %s", tinyWasm.currenSizeMode)
 
 	// Check WasmProjectTinyGoJsUse
 	isWasm, useTinyGo := tinyWasm.WasmProjectTinyGoJsUse()
 	t.Logf("WasmProjectTinyGoJsUse: wasmProject=%v, useTinyGo=%v", isWasm, useTinyGo)
 
 	// Check requiresTinyGo for current mode
-	requiresTiny := tinyWasm.requiresTinyGo(tinyWasm.currentMode)
-	t.Logf("requiresTinyGo(%s): %v", tinyWasm.currentMode, requiresTiny)
+	requiresTiny := tinyWasm.requiresTinyGo(tinyWasm.currenSizeMode)
+	t.Logf("requiresTinyGo(%s): %v", tinyWasm.currenSizeMode, requiresTiny)
 
 	// Check for Go signatures
 	goSignatures := wasm_execGoSignatures()

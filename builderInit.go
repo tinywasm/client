@@ -36,7 +36,7 @@ func (w *WasmClient) builderWasmInit() {
 		}
 		return args
 	}
-	w.builderLarge = gobuild.New(&codingConfig)
+	w.builderSizeLarge = gobuild.New(&codingConfig)
 
 	// Configure Debug builder (TinyGo debug-friendly)
 	debugConfig := baseConfig
@@ -48,7 +48,7 @@ func (w *WasmClient) builderWasmInit() {
 		}
 		return args
 	}
-	w.builderMedium = gobuild.New(&debugConfig)
+	w.builderSizeMedium = gobuild.New(&debugConfig)
 
 	// Configure Production builder (TinyGo optimized)
 	prodConfig := baseConfig
@@ -60,32 +60,32 @@ func (w *WasmClient) builderWasmInit() {
 		}
 		return args
 	}
-	w.builderSmall = gobuild.New(&prodConfig)
+	w.builderSizeSmall = gobuild.New(&prodConfig)
 
 	// Set initial mode and active builder (default to coding mode)
-	w.activeBuilder = w.builderLarge // Default: fast development
+	w.activeSizeBuilder = w.builderSizeLarge // Default: fast development
 }
 
-// updateCurrentBuilder sets the activeBuilder based on mode and cancels ongoing operations
+// updateCurrentBuilder sets the activeSizeBuilder based on mode and cancels ongoing operations
 func (w *WasmClient) updateCurrentBuilder(mode string) {
 	// 1. Cancel any ongoing compilation
-	if w.activeBuilder != nil {
-		w.activeBuilder.Cancel()
+	if w.activeSizeBuilder != nil {
+		w.activeSizeBuilder.Cancel()
 	}
 
 	// 2. Update current mode tracking
-	w.currentMode = mode
+	w.currenSizeMode = mode
 
-	// 3. Set activeBuilder based on mode
+	// 3. Set activeSizeBuilder based on mode
 	switch mode {
 	case w.buildLargeSizeShortcut: // "L"
-		w.activeBuilder = w.builderLarge
+		w.activeSizeBuilder = w.builderSizeLarge
 	case w.buildMediumSizeShortcut: // "M"
-		w.activeBuilder = w.builderMedium
+		w.activeSizeBuilder = w.builderSizeMedium
 	case w.buildSmallSizeShortcut: // "S"
-		w.activeBuilder = w.builderSmall
+		w.activeSizeBuilder = w.builderSizeSmall
 	default:
-		w.activeBuilder = w.builderLarge // fallback to coding mode
+		w.activeSizeBuilder = w.builderSizeLarge // fallback to coding mode
 	}
 }
 
@@ -96,7 +96,7 @@ func (w *WasmClient) updateCurrentBuilder(mode string) {
 func (w *WasmClient) OutputRelativePath() string {
 	// FinalOutputPath() returns absolute path like: /tmp/test/deploy/edgeworker/app.wasm
 	// We need to extract the relative portion: deploy/edgeworker/app.wasm
-	fullPath := w.activeBuilder.FinalOutputPath()
+	fullPath := w.activeSizeBuilder.FinalOutputPath()
 
 	// Remove AppRootDir prefix to get relative path
 	if strings.HasPrefix(fullPath, w.appRootDir) {

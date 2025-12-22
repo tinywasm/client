@@ -50,8 +50,8 @@ func TestInitializationDetectionFromWasmExecJs(t *testing.T) {
 	if tinyWasm.tinyGoCompiler {
 		t.Error("Expected tinyGoCompiler to be false (Go detected)")
 	}
-	if tinyWasm.currentMode != "L" {
-		t.Errorf("Expected currentMode to be L, got %s", tinyWasm.currentMode)
+	if tinyWasm.currenSizeMode != "L" {
+		t.Errorf("Expected currenSizeMode to be L, got %s", tinyWasm.currenSizeMode)
 	}
 }
 
@@ -87,8 +87,8 @@ func TestInitializationDetectionFromGoFiles(t *testing.T) {
 	if tinyWasm.tinyGoCompiler {
 		t.Error("Expected tinyGoCompiler to be false (default to Go)")
 	}
-	if tinyWasm.currentMode != "L" {
-		t.Errorf("Expected currentMode to be L, got %s", tinyWasm.currentMode)
+	if tinyWasm.currenSizeMode != "L" {
+		t.Errorf("Expected currenSizeMode to be L, got %s", tinyWasm.currenSizeMode)
 	}
 
 	// Ensure wasm_exec.js was created in the output path and is non-empty

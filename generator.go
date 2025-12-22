@@ -77,14 +77,9 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 		t.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 
-	// Switch to External Mode (Persistent)
-	// This ensures subsequent compilations write to disk
-	t.strategy = &externalStrategy{client: t}
-	//t.Logger("Switched to External Mode (Disk)")
-
-	// Trigger initial compilation to disk
-	if err := t.strategy.Compile(); err != nil {
-		t.Logger("Initial compilation failed:", err)
+	// Ensure wasm_exec.js is present in output (create/overwrite as needed)
+	if t.enableWasmExecJsOutput {
+		t.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 
 	return t
