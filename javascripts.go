@@ -260,18 +260,11 @@ func (w *WasmClient) GetWasmExecJsPathGo() (string, error) {
 }
 
 // wasmProjectWriteOrReplaceWasmExecJsOutput writes (or overwrites) the
-// wasm_exec.js initialization file into the configured web output folder for
-// WASM projects. If the receiver is not a WASM project the function returns
-// false immediately. On success or on any write attempt it returns true; any
+// wasm_exec.js initialization file into the configured web output folder.
+// On success or on any write attempt it returns true; any
 // filesystem or generation errors are logged via w.Logger and treated as
 // non-fatal so callers can continue their workflow.
 func (w *WasmClient) wasmProjectWriteOrReplaceWasmExecJsOutput() {
-	// Only perform actions for recognized WASM projects
-	if !w.wasmProject {
-		w.Logger("DEBUG: Not a WASM project, skipping wasm_exec.js write")
-		return
-	}
-
 	outputPath := w.WasmExecJsOutputPath()
 
 	w.Logger("DEBUG: Writing/overwriting wasm_exec.js to output path:", outputPath)
@@ -297,68 +290,4 @@ func (w *WasmClient) wasmProjectWriteOrReplaceWasmExecJsOutput() {
 	}
 
 	w.Logger("DEBUG: Wrote/overwrote JavaScript initialization file in output directory")
-}
-
-// analyzeWasmExecJsContent analyzes existing wasm_exec.js to determine compiler type
-func (w *WasmClient) analyzeWasmExecJsContent(filePath string) bool {
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		w.Logger("Error reading wasm_exec.js for detection:", err)
-		return false
-	}
-
-	content := string(data)
-
-	// PRIORITY 1: Check store if available
-	w.loadMode()
-
-	// Count signatures (reuse existing logic from wasmDetectionFuncFromJsFileActive)
-	goCount := 0
-	for _, s := range wasm_execGoSignatures() {
-		if Contains(content, s) {
-			goCount++
-		}
-	}
-
-	tinyCount := 0
-	for _, s := range wasm_execTinyGoSignatures() {
-		if Contains(content, s) {
-			tinyCount++
-		}
-	}
-
-	// Determine configuration based on signatures
-	if tinyCount > goCount && tinyCount > 0 {
-		w.tinyGoCompiler = true
-		w.wasmProject = true
-		//w.Logger("DEBUG: Detected TinyGo compiler from wasm_exec.js")
-	} else if goCount > tinyCount && goCount > 0 {
-		w.tinyGoCompiler = false
-		w.wasmProject = true
-		//w.Logger("DEBUG: Detected Go compiler from wasm_exec.js")
-	} else if tinyCount > 0 || goCount > 0 {
-		// Single-sided detection
-		w.tinyGoCompiler = tinyCount > 0
-		w.wasmProject = true
-		//compiler := map[bool]string{true: "TinyGo", false: "Go"}[w.tinyGoCompiler]
-		//w.Logger("DEBUG: Detected WASM project, compiler:", compiler)
-	} else {
-		//w.Logger("DEBUG: No valid WASM signatures found in wasm_exec.js")
-		return false
-	}
-
-	return true
-}
-
-// detectFromExistingWasmExecJs checks for existing wasm_exec.js file
-func (w *WasmClient) detectFromExistingWasmExecJs() bool {
-	wasmExecPath := w.WasmExecJsOutputPath()
-
-	// Check if file exists
-	if _, err := os.Stat(wasmExecPath); err != nil {
-		return false
-	}
-
-	// Analyze content to determine compiler type
-	return w.analyzeWasmExecJsContent(wasmExecPath)
 }

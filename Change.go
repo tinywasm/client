@@ -39,8 +39,8 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 	w.updateCurrentBuilder(newValue)
 
 	// Save mode to store if available
-	if w.Store != nil {
-		w.Store.Set(StoreKeySizeMode, newValue)
+	if w.Database != nil {
+		w.Database.Set(StoreKeySizeMode, newValue)
 	}
 
 	// Auto-recompile

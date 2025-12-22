@@ -2,14 +2,11 @@ package client
 
 import (
 	"net/http"
-	"os"
-	"path/filepath"
 
-	. "github.com/tinywasm/fmt"
 	"github.com/tinywasm/gobuild"
 )
 
-// StoreKeySizeMode is the key used to store the current compiler mode in the Store
+// StoreKeySizeMode is the key used to store the current compiler mode in the Database
 const StoreKeySizeMode = "wasmsize_mode"
 
 // WasmClient provides WebAssembly compilation capabilities with 3-mode compiler selection
@@ -23,8 +20,8 @@ type WasmClient struct {
 	activeSizeBuilder *gobuild.GoBuild // Current active builder
 
 	// EXISTING: Keep for installation detection (no compilerMode needed - activeSizeBuilder handles state)
+	// EXISTING: Keep for installation detection (no compilerMode needed - activeSizeBuilder handles state)
 	tinyGoCompiler  bool // Enable TinyGo compiler (default: false for faster development)
-	wasmProject     bool // Automatically detected based on file structure
 	tinyGoInstalled bool // Cached TinyGo installation status
 
 	// NEW: Explicit mode tracking to fix Value() method
@@ -68,7 +65,6 @@ func New(c *Config) *WasmClient {
 
 		// Initialize dynamic fields
 		tinyGoCompiler:  false, // Default to fast Go compilation; enable later via WasmClient methods if desired
-		wasmProject:     false, // Auto-detected later
 		tinyGoInstalled: false, // Verified on first use
 
 		// Initialize with proper defaults (not from Config anymore)
@@ -92,9 +88,6 @@ func New(c *Config) *WasmClient {
 
 	// Default to In-Memory storage
 	w.storage = &memoryStorage{client: w}
-
-	// Perform one-time detection at the end
-	w.detectProjectConfiguration()
 
 	return w
 }
@@ -138,7 +131,7 @@ func (w *WasmClient) WasmProjectTinyGoJsUse(mode ...string) (isWasmProject bool,
 
 	useTinyGo = w.requiresTinyGo(currenSizeMode)
 
-	return w.wasmProject, useTinyGo
+	return true, useTinyGo
 }
 
 // === DevTUI FieldHandler Interface Implementation ===
@@ -181,8 +174,8 @@ func (w *WasmClient) SetBuildOnDisk(onDisk bool) {
 
 // loadMode updates currenSizeMode from the store if available
 func (w *WasmClient) loadMode() {
-	if w.Store != nil {
-		if val, err := w.Store.Get(StoreKeySizeMode); err == nil && val != "" {
+	if w.Database != nil {
+		if val, err := w.Database.Get(StoreKeySizeMode); err == nil && val != "" {
 			w.currenSizeMode = val
 		}
 	}
@@ -190,12 +183,10 @@ func (w *WasmClient) loadMode() {
 
 // SetWasmExecJsOutputDir sets the output directory for wasm_exec.js.
 // This is primarily intended for tests/debug where physical file output is required.
-// Setting a non-empty path will trigger a project detection and, if detected,
-// write/update the wasm_exec.js file to that directory.
+// Setting a non-empty path will trigger a write/update of the wasm_exec.js file to that directory.
 func (w *WasmClient) SetWasmExecJsOutputDir(path string) {
 	w.wasmExecJsOutputDir = path
-	w.detectProjectConfiguration()
-	if w.wasmProject && w.enableWasmExecJsOutput && path != "" {
+	if w.enableWasmExecJsOutput && path != "" {
 		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 }
@@ -204,21 +195,18 @@ func (w *WasmClient) SetWasmExecJsOutputDir(path string) {
 func (w *WasmClient) SetAppRootDir(path string) {
 	w.appRootDir = path
 	w.builderWasmInit()
-	w.detectProjectConfiguration()
 }
 
 // SetMainInputFile sets the main input file for WASM compilation (default: "client.go").
 func (w *WasmClient) SetMainInputFile(file string) {
 	w.mainInputFile = file
 	w.builderWasmInit()
-	w.detectProjectConfiguration()
 }
 
 // SetOutputName sets the output name for WASM file (default: "client").
 func (w *WasmClient) SetOutputName(name string) {
 	w.outputName = name
 	w.builderWasmInit()
-	w.detectProjectConfiguration()
 }
 
 // SetBuildShortcuts sets the shortcuts for the three compilation modes.
@@ -242,67 +230,4 @@ func (w *WasmClient) SetBuildShortcuts(large, medium, small string) {
 // SetEnableWasmExecJsOutput enables automatic creation of wasm_exec.js file.
 func (w *WasmClient) SetEnableWasmExecJsOutput(enable bool) {
 	w.enableWasmExecJsOutput = enable
-}
-
-// detectProjectConfiguration performs one-time detection during initialization
-func (w *WasmClient) detectProjectConfiguration() {
-	// Priority 1: Check for existing wasm_exec.js (definitive source)
-	if w.detectFromExistingWasmExecJs() {
-		//w.Logger("DEBUG: WASM project detected from existing wasm_exec.js")
-		return
-	}
-
-	// Priority 2: Check for .go files (confirms WASM project)
-	if w.detectFromGoFiles() {
-		w.wasmProject = true
-		return
-	}
-
-	w.Logger("No WASM project detected")
-}
-
-// detectFromGoFiles checks for .wasm.go files to confirm WASM project
-func (w *WasmClient) detectFromGoFiles() bool {
-	// Walk the project directory to find .wasm.go files
-	wasmFilesFound := false
-
-	err := filepath.Walk(w.appRootDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return nil // Continue walking even if there's an error
-		}
-
-		if info.IsDir() {
-			return nil // Continue walking directories
-		}
-
-		// Get relative path from AppRootDir for comparison
-		relPath, err := filepath.Rel(w.appRootDir, path)
-		if err != nil {
-			relPath = path // Fallback to absolute path if relative fails
-		}
-
-		fileName := info.Name()
-
-		// Check for main input file in the source directory (strong indicator of WASM project)
-		expectedPath := filepath.Join(w.Config.SourceDir, w.mainInputFile)
-		if relPath == expectedPath {
-			wasmFilesFound = true
-			return filepath.SkipAll // Found main file, can stop walking
-		}
-
-		// Check for .wasm.go files in modules (another strong indicator)
-		if HasSuffix(fileName, ".wasm.go") {
-			wasmFilesFound = true
-			return filepath.SkipAll // Found wasm file, can stop walking
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		w.Logger("Error walking directory for WASM file detection:", err)
-		return false
-	}
-
-	return wasmFilesFound
 }

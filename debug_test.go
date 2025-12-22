@@ -64,9 +64,7 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	t.Logf("Content length: %d", len(content))
 	t.Logf("Content preview (first 500 chars):\n%s", content[:min(500, len(content))])
 
-	// Debug the state
 	t.Logf("=== WasmClient State ===")
-	t.Logf("wasmProject: %v", tinyWasm.wasmProject)
 	t.Logf("tinyGoCompiler: %v", tinyWasm.tinyGoCompiler)
 	t.Logf("tinyGoInstalled: %v", tinyWasm.tinyGoInstalled)
 	t.Logf("currenSizeMode: %s", tinyWasm.currenSizeMode)

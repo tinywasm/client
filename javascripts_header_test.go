@@ -11,15 +11,14 @@ func TestStoreRoundtrip(t *testing.T) {
 		t.Skip("tinygo not found in PATH")
 	}
 
-	store := &testStore{data: make(map[string]string)}
+	store := &testDatabase{data: make(map[string]string)}
 
 	config := &Config{
-		Logger: func(...any) {},
-		Store:  store,
+		Logger:   func(...any) {},
+		Database: store,
 	}
 
-	w := New(config)
-	w.wasmProject = true
+	New(config)
 
 	// Test all three supported shortcuts: coding, debugging, production
 	shortcuts := []string{"L", "M", "S"}
@@ -27,7 +26,6 @@ func TestStoreRoundtrip(t *testing.T) {
 	for _, mode := range shortcuts {
 		// Use a fresh WasmClient instance per mode to avoid shared state
 		w := New(config)
-		w.wasmProject = true
 
 		progress := make(chan string, 10)
 		w.Change(mode, progress)

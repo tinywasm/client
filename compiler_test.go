@@ -171,11 +171,6 @@ func TestCompilerComparison(t *testing.T) {
 				}
 			}
 
-			// Check that the WASM project was detected (this confirms the system is working)
-			if !tinyWasm.wasmProject {
-				t.Errorf("Expected WASM project to be detected for %s", tc.name)
-			}
-
 			// We expect compilation to fail in test environment, that's ok
 			t.Logf("Compilation test completed for %s (error expected in test env): %v", tc.name, err)
 		})

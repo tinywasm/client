@@ -4,35 +4,35 @@ import (
 	"testing"
 )
 
-// MockStore implements Store interface for testing
-type MockStore struct {
+// MockDatabase implements KeyValueDataBase interface for testing
+type MockDatabase struct {
 	data map[string]string
 }
 
-func NewMockStore() *MockStore {
-	return &MockStore{
+func NewMockDatabase() *MockDatabase {
+	return &MockDatabase{
 		data: make(map[string]string),
 	}
 }
 
-func (m *MockStore) Get(key string) (string, error) {
+func (m *MockDatabase) Get(key string) (string, error) {
 	return m.data[key], nil
 }
 
-func (m *MockStore) Set(key, value string) error {
+func (m *MockDatabase) Set(key, value string) error {
 	m.data[key] = value
 	return nil
 }
 
 func TestJavascriptForInitializing_RespectsStoreValue(t *testing.T) {
-	// 1. Setup Store with a specific mode "S" (TinyGo)
+	// 1. Setup Database with a specific mode "S" (TinyGo)
 	// Default is "L" (Go)
-	store := NewMockStore()
-	store.Set(StoreKeySizeMode, "S")
+	db := NewMockDatabase()
+	db.Set(StoreKeySizeMode, "S")
 
 	// 2. Initialize WasmClient
 	cfg := NewConfig()
-	cfg.Store = store
+	cfg.Database = db
 	// We deliberately don't set currenSizeMode here to simulate it starting with default
 	// creating a fresh client that SHOULD read from store
 
@@ -50,16 +50,16 @@ func TestJavascriptForInitializing_RespectsStoreValue(t *testing.T) {
 		t.Fatalf("Expected initial mode 'S', got '%s'", client.Value())
 	}
 
-	// Now, let's simulate the store changing externally (or just being different from what the client thinks if it wasn't refreshed)
-	// Or maybe the user means: I have a client, I change the store via some other means, and report back.
+	// Now, let's simulate the database changing externally (or just being different from what the client thinks if it wasn't refreshed)
+	// Or maybe the user means: I have a client, I change the database via some other means, and report back.
 
-	store.Set(StoreKeySizeMode, "L") // Change back to L in store
+	db.Set(StoreKeySizeMode, "L") // Change back to L in database
 
 	// Client.Value() currently caches the value in w.currenSizeMode.
-	// If Value() doesn't check the store, it will still return "S" (from initialization).
+	// If Value() doesn't check the database, it will still return "S" (from initialization).
 
 	mode := client.Value()
 	if mode != "L" {
-		t.Fatalf("Bug replicated: Expected mode 'L' from store, but got cached '%s'", mode)
+		t.Fatalf("Bug replicated: Expected mode 'L' from database, but got cached '%s'", mode)
 	}
 }

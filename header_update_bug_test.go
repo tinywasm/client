@@ -12,11 +12,11 @@ func TestStoreModePersistence(t *testing.T) {
 		t.Skip("tinygo not found in PATH")
 	}
 
-	store := &testStore{data: make(map[string]string)}
+	store := &testDatabase{data: make(map[string]string)}
 
 	config := &Config{
-		Logger: func(...any) {},
-		Store:  store,
+		Logger:   func(...any) {},
+		Database: store,
 	}
 
 	// Step 1: Start with initial mode (should be L)

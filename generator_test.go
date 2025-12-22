@@ -21,7 +21,6 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 	tw := New(cfg)
 	tw.SetAppRootDir(tmp)
 	tw.SetMainInputFile("main.go")
-	tw.wasmProject = false
 
 	// Ensure no existing file
 	target := filepath.Join(fullSourcePath, "main.go")
@@ -74,7 +73,6 @@ func TestCreateDefaultWasmFileClientIfNotExistDoesNotOverwrite(t *testing.T) {
 	tw := New(cfg)
 	tw.SetAppRootDir(tmp)
 	tw.SetMainInputFile("main.go")
-	tw.wasmProject = false
 
 	target := filepath.Join(fullSourcePath, "main.go")
 

@@ -60,7 +60,7 @@ func main() {
 	cfg.Logger = func(message ...any) {
 		logMessages = append(logMessages, fmt.Sprint(message...))
 	}
-	cfg.Store = &testStore{data: make(map[string]string)}
+	cfg.Database = &testDatabase{data: make(map[string]string)}
 
 	w := New(cfg)
 	w.SetAppRootDir(tmp)
@@ -168,8 +168,8 @@ func main() {
 				t.Fatalf("After Change, expected mode '%s', got '%s'", tc.mode, w.Value())
 			}
 
-			// CRITICAL: Verify that the mode is saved in the Store
-			saved, err := cfg.Store.Get(StoreKeySizeMode)
+			// CRITICAL: Verify that the mode is saved in the Database
+			saved, err := cfg.Database.Get(StoreKeySizeMode)
 			if err != nil {
 				t.Errorf("Failed to get mode from store for %s: %v", tc.name, err)
 			} else if saved != tc.mode {

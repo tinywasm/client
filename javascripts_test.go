@@ -45,9 +45,6 @@ func TestJavascriptForInitializingSignatures(t *testing.T) {
 		t.Skipf("skipping test: tinygo not available: %v", err)
 	}
 
-	// Ensure we treat this project as a wasm project for the test
-	w.wasmProject = true
-
 	// --- TinyGo case ---
 	// Set mode to debug (requires TinyGo)
 	w.currenSizeMode = "M"
