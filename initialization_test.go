@@ -42,6 +42,7 @@ func TestInitializationDetectionFromWasmExecJs(t *testing.T) {
 	tinyWasm.SetAppRootDir(testDir)
 	tinyWasm.SetBuildShortcuts("L", "M", "S")
 	tinyWasm.SetWasmExecJsOutputDir("web/theme/js")
+	tinyWasm.SetEnableWasmExecJsOutput(true)
 
 	if !tinyWasm.wasmProject {
 		t.Error("Expected wasmProject to be true after detecting wasm_exec.js")
@@ -77,6 +78,7 @@ func TestInitializationDetectionFromGoFiles(t *testing.T) {
 
 	tinyWasm := New(config)
 	tinyWasm.SetAppRootDir(testDir)
+	tinyWasm.SetEnableWasmExecJsOutput(true)
 	tinyWasm.SetWasmExecJsOutputDir("theme/js")
 
 	if !tinyWasm.wasmProject {
@@ -162,6 +164,7 @@ func TestNoWasmProjectDetected(t *testing.T) {
 	tinyWasm := New(config)
 	tinyWasm.SetAppRootDir(testDir)
 	tinyWasm.SetBuildShortcuts("L", "M", "S")
+	tinyWasm.SetEnableWasmExecJsOutput(true)
 	tinyWasm.SetWasmExecJsOutputDir("theme/js")
 
 	// Initially, no WASM project should be detected

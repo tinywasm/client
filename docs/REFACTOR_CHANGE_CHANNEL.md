@@ -291,7 +291,7 @@ go test ./... -v
 
 # Run specific test files
 go test -v -run TestCompileAllModes
-go test -v -run TestTinyWasmNewFileEvent
+go test -v -run TestNewFileEvent
 go test -v -run TestTinyStringMessages
 go test -v -run TestCompilerComparison
 ```

@@ -9,9 +9,6 @@ import (
 	"github.com/tinywasm/gobuild"
 )
 
-// TinyWasm is an alias for WasmClient to maintain backward compatibility
-type TinyWasm = WasmClient
-
 // StoreKeyMode is the key used to store the current compiler mode in the Store
 const StoreKeyMode = "tinywasm_mode"
 
@@ -48,7 +45,7 @@ type WasmClient struct {
 	buildLargeSizeShortcut  string
 	buildMediumSizeShortcut string
 	buildSmallSizeShortcut  string
-	disableWasmExecJsOutput bool
+	enableWasmExecJsOutput  bool // Default: false (disabled)
 	lastOpID                string
 }
 
@@ -81,7 +78,7 @@ func New(c *Config) *WasmClient {
 		buildLargeSizeShortcut:  "L",
 		buildMediumSizeShortcut: "M",
 		buildSmallSizeShortcut:  "S",
-		disableWasmExecJsOutput: false,
+		enableWasmExecJsOutput:  false,
 
 		// Initialize with default mode
 		currentMode: "L", // Start with coding mode
@@ -190,7 +187,7 @@ func (w *WasmClient) loadMode() {
 func (w *WasmClient) SetWasmExecJsOutputDir(path string) {
 	w.wasmExecJsOutputDir = path
 	w.detectProjectConfiguration()
-	if w.wasmProject && !w.disableWasmExecJsOutput && path != "" {
+	if w.wasmProject && w.enableWasmExecJsOutput && path != "" {
 		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 }
@@ -234,9 +231,9 @@ func (w *WasmClient) SetBuildShortcuts(large, medium, small string) {
 	// But usually this is called once during init.
 }
 
-// SetDisableWasmExecJsOutput prevents automatic creation of wasm_exec.js file.
-func (w *WasmClient) SetDisableWasmExecJsOutput(disable bool) {
-	w.disableWasmExecJsOutput = disable
+// SetEnableWasmExecJsOutput enables automatic creation of wasm_exec.js file.
+func (w *WasmClient) SetEnableWasmExecJsOutput(enable bool) {
+	w.enableWasmExecJsOutput = enable
 }
 
 // detectProjectConfiguration performs one-time detection during initialization

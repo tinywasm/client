@@ -65,7 +65,7 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 	}
 
 	// Ensure wasm_exec.js is available
-	if !w.disableWasmExecJsOutput {
+	if w.enableWasmExecJsOutput {
 		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 

@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestTinyWasmNewFileEvent(t *testing.T) {
+func TestNewFileEvent(t *testing.T) {
 	// Setup test environment with an isolated temporary directory
 	tmp := t.TempDir()
 	// SourceDir should be the subfolder name under AppRootDir
