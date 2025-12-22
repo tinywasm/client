@@ -39,7 +39,7 @@ func wasm_execTinyGoSignatures() []string {
 
 // WasmExecJsOutputPath returns the output path for wasm_exec.js
 func (w *WasmClient) WasmExecJsOutputPath() string {
-	return path.Join(w.Config.AppRootDir, w.wasmExecJsOutputDir, "wasm_exec.js")
+	return path.Join(w.appRootDir, w.wasmExecJsOutputDir, "wasm_exec.js")
 }
 
 // getWasmExecContent returns the raw wasm_exec.js content for the current compiler configuration.
@@ -131,11 +131,11 @@ func (h *WasmClient) JavascriptForInitializing(customizations ...string) (js str
 
 	// Store in appropriate cache based on mode
 	switch mode {
-	case h.Config.BuildLargeSizeShortcut:
+	case h.buildLargeSizeShortcut:
 		h.mode_large_go_wasm_exec_cache = normalized
-	case h.Config.BuildMediumSizeShortcut:
+	case h.buildMediumSizeShortcut:
 		h.mode_medium_tinygo_wasm_exec_cache = normalized
-	case h.Config.BuildSmallSizeShortcut:
+	case h.buildSmallSizeShortcut:
 		h.mode_small_tinygo_wasm_exec_cache = normalized
 	default:
 		// Fallback: if TinyGo compiler in use write to tinyGo cache, otherwise go cache

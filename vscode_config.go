@@ -15,7 +15,7 @@ import (
 // accurate IntelliSense, error detection, and code completion for syscall/js and other WASM-specific packages.
 func (w *WasmClient) VisualStudioCodeWasmEnvConfig() { // Create .vscode directory if it doesn't exist
 	// Use AppRootDir from Config (falls back to "." by default)
-	vscodeDir := filepath.Join(w.AppRootDir, ".vscode")
+	vscodeDir := filepath.Join(w.appRootDir, ".vscode")
 	if err := os.MkdirAll(vscodeDir, 0755); err != nil {
 		if w.Logger != nil {
 			w.Logger("Warning: Error creating .vscode directory:", err)

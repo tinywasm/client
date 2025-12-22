@@ -10,12 +10,12 @@ import (
 
 func TestTinyWasmNewFileEvent(t *testing.T) {
 	// Setup test environment with an isolated temporary directory
-	rootDir := t.TempDir()
+	tmp := t.TempDir()
 	// SourceDir should be the subfolder name under AppRootDir
 	sourceDirName := "wasmTest"
-	sourceDir := filepath.Join(rootDir, sourceDirName)
+	sourceDir := filepath.Join(tmp, sourceDirName)
 
-	outputDir := filepath.Join(rootDir, "output")
+	outputDir := filepath.Join(tmp, "output")
 	// Create directories
 	for _, dir := range []string{sourceDir, outputDir} {
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -24,7 +24,7 @@ func TestTinyWasmNewFileEvent(t *testing.T) {
 	}
 
 	// Write a minimal go.mod
-	goModPath := filepath.Join(rootDir, "go.mod")
+	goModPath := filepath.Join(tmp, "go.mod")
 	goModContent := `module test
 
 go 1.21
@@ -36,19 +36,19 @@ go 1.21
 	// Configure WasmClient handler with a logger for testing output
 	var logMessages []string
 	config := &Config{
-		AppRootDir: rootDir,
-		SourceDir:  sourceDirName,
-		OutputDir:  "output",
+		SourceDir: sourceDirName,
+		OutputDir: "output",
 		Logger: func(message ...any) {
 			logMessages = append(logMessages, fmt.Sprint(message...))
 		},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetAppRootDir(tmp)
 	// Force External strategy for tests that expect files on disk
 	tinyWasm.strategy = &externalStrategy{client: tinyWasm}
 	t.Run("Verify client.go compilation", func(t *testing.T) {
-		mainWasmPath := filepath.Join(rootDir, sourceDirName, "client.go") // client.go in source root
+		mainWasmPath := filepath.Join(tmp, sourceDirName, "client.go") // client.go in source root
 		// defer os.Remove(mainWasmPath)  // Removed to allow subsequent tests
 
 		// Create main wasm file
@@ -72,7 +72,7 @@ go 1.21
 	})
 	t.Run("Verify module wasm compilation now goes to main.wasm", func(t *testing.T) {
 		// Create main.go in the web root first
-		mainWasmPath := filepath.Join(rootDir, sourceDirName, "main.go") // main.go in source root
+		mainWasmPath := filepath.Join(tmp, sourceDirName, "main.go") // main.go in source root
 		mainContent := `package main
 
 		func main() {
@@ -81,7 +81,7 @@ go 1.21
 		os.WriteFile(mainWasmPath, []byte(mainContent), 0644)
 
 		// Create another .wasm.go file in sourceDir to simulate additional WASM entry
-		moduleWasmPath := filepath.Join(rootDir, sourceDirName, "users.wasm.go")
+		moduleWasmPath := filepath.Join(tmp, sourceDirName, "users.wasm.go")
 		content := `package main
 
 		func main() {
@@ -114,7 +114,7 @@ go 1.21
 	})
 
 	t.Run("Handle non-write event", func(t *testing.T) {
-		mainWasmPath := filepath.Join(rootDir, sourceDirName, "main.wasm.go")
+		mainWasmPath := filepath.Join(tmp, sourceDirName, "main.wasm.go")
 		err := tinyWasm.NewFileEvent("main.wasm.go", ".go", mainWasmPath, "remove")
 		if err != nil {
 			t.Fatal("Expected no error for non-write event")
@@ -124,7 +124,6 @@ go 1.21
 		// Test initial configuration
 		var logMessages []string
 		config := NewConfig()
-		config.AppRootDir = rootDir
 		config.SourceDir = sourceDirName
 		config.OutputDir = "output"
 		config.Logger = func(message ...any) {
@@ -132,6 +131,7 @@ go 1.21
 		}
 
 		tinyWasm := New(config)
+		tinyWasm.SetAppRootDir(tmp)
 		// Tests run inside the package; set private tinyGoCompiler explicitly
 		tinyWasm.tinyGoCompiler = false // Start with Go standard compiler
 
@@ -179,15 +179,15 @@ func TestUnobservedFiles(t *testing.T) {
 	tmp := t.TempDir()
 	var logMessages []string
 	config := &Config{
-		AppRootDir: tmp,
-		SourceDir:  "web",
-		OutputDir:  "public",
+		SourceDir: "web",
+		OutputDir: "public",
 		Logger: func(message ...any) {
 			logMessages = append(logMessages, fmt.Sprint(message...))
 		},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetAppRootDir(tmp)
 	unobservedFiles := tinyWasm.UnobservedFiles()
 	// Should contain client.wasm and client_temp.wasm (generated files from gobuild)
 	expectedFiles := []string{"client.wasm", "client_temp.wasm"}

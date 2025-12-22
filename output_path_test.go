@@ -46,14 +46,14 @@ func TestOutputRelativePath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := &Config{
-				AppRootDir: tempBase,
-				SourceDir:  "src",
-				OutputDir:  tt.outputDir,
-				OutputName: tt.outputName,
-				Logger:     func(...any) {}, // Silent logger
+				SourceDir: "src",
+				OutputDir: tt.outputDir,
+				Logger:    func(...any) {}, // Silent logger
 			}
 
 			tw := New(config)
+			tw.SetAppRootDir(tempBase)
+			tw.SetOutputName(tt.outputName)
 			result := tw.OutputRelativePath()
 
 			t.Logf("AppRootDir: %s", tempBase)
@@ -88,14 +88,14 @@ func TestOutputRelativePathConsistency(t *testing.T) {
 	tempDir := t.TempDir()
 
 	config := &Config{
-		AppRootDir: tempDir,
-		SourceDir:  "src/cmd/webclient",
-		OutputDir:  "src/web/public",
-		OutputName: "main",
-		Logger:     func(...any) {},
+		SourceDir: "src/cmd/webclient",
+		OutputDir: "src/web/public",
+		Logger:    func(...any) {},
 	}
 
 	tw := New(config)
+	tw.SetAppRootDir(tempDir)
+	tw.SetOutputName("main")
 	expected := "src/web/public/main.wasm"
 
 	// Test in coding mode (default)

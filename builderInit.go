@@ -1,7 +1,6 @@
 package client
 
 import (
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -11,14 +10,14 @@ import (
 
 // builderWasmInit configures 3 builders for WASM compilation modes
 func (w *WasmClient) builderWasmInit() {
-	sourceDir := path.Join(w.AppRootDir, w.Config.SourceDir)
-	outputDir := path.Join(w.AppRootDir, w.Config.OutputDir)
-	mainInputFileRelativePath := path.Join(sourceDir, w.Config.MainInputFile)
+	sourceDir := filepath.Join(w.appRootDir, w.Config.SourceDir)
+	outputDir := filepath.Join(w.appRootDir, w.Config.OutputDir)
+	mainInputFileRelativePath := filepath.Join(sourceDir, w.mainInputFile)
 
 	// Base configuration shared by all builders
 	baseConfig := gobuild.Config{
 		MainInputFileRelativePath: mainInputFileRelativePath,
-		OutName:                   w.Config.OutputName, // Output will be {OutputName}.wasm
+		OutName:                   w.outputName, // Output will be {OutputName}.wasm
 		Extension:                 ".wasm",
 		OutFolderRelativePath:     outputDir,
 		Logger:                    w.Logger,
@@ -79,11 +78,11 @@ func (w *WasmClient) updateCurrentBuilder(mode string) {
 
 	// 3. Set activeBuilder based on mode
 	switch mode {
-	case w.Config.BuildLargeSizeShortcut: // "L"
+	case w.buildLargeSizeShortcut: // "L"
 		w.activeBuilder = w.builderLarge
-	case w.Config.BuildMediumSizeShortcut: // "M"
+	case w.buildMediumSizeShortcut: // "M"
 		w.activeBuilder = w.builderMedium
-	case w.Config.BuildSmallSizeShortcut: // "S"
+	case w.buildSmallSizeShortcut: // "S"
 		w.activeBuilder = w.builderSmall
 	default:
 		w.activeBuilder = w.builderLarge // fallback to coding mode
@@ -100,8 +99,8 @@ func (w *WasmClient) OutputRelativePath() string {
 	fullPath := w.activeBuilder.FinalOutputPath()
 
 	// Remove AppRootDir prefix to get relative path
-	if strings.HasPrefix(fullPath, w.Config.AppRootDir) {
-		relPath := strings.TrimPrefix(fullPath, w.Config.AppRootDir)
+	if strings.HasPrefix(fullPath, w.appRootDir) {
+		relPath := strings.TrimPrefix(fullPath, w.appRootDir)
 		// Remove leading separator (/ or \)
 		relPath = strings.TrimPrefix(relPath, string(filepath.Separator))
 		relPath = strings.TrimPrefix(relPath, "/")  // Handle Unix paths
@@ -112,6 +111,6 @@ func (w *WasmClient) OutputRelativePath() string {
 
 	// Fallback: construct from config values (which are already relative)
 	// Normalize to forward slashes for consistency
-	result := filepath.Join(w.Config.OutputDir, w.Config.OutputName+".wasm")
+	result := filepath.Join(w.Config.OutputDir, w.outputName+".wasm")
 	return strings.ReplaceAll(result, "\\", "/")
 }

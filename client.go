@@ -40,43 +40,30 @@ type WasmClient struct {
 	strategy ClientStrategy // Strategy for compilation and serving (In-Memory vs External)
 
 	wasmExecJsOutputDir string // output dir for wasm_exec.js file (relative) eg: "web/js", "theme/js"
+
+	// Configuration fields moved from Config
+	appRootDir              string
+	mainInputFile           string
+	outputName              string
+	buildLargeSizeShortcut  string
+	buildMediumSizeShortcut string
+	buildSmallSizeShortcut  string
+	disableWasmExecJsOutput bool
+	lastOpID                string
 }
 
 // New creates a new WasmClient instance with the provided configuration
 // Timeout is set to 40 seconds maximum as TinyGo compilation can be slow
 // Default values: MainInputFile in Config defaults to "main.wasm.go"
 func New(c *Config) *WasmClient {
-	// Ensure we have a config and a default AppRootDir
+	// Ensure we have a config
 	defaults := NewConfig()
 	if c == nil {
 		c = defaults
 	}
-	if c.AppRootDir == "" {
-		c.AppRootDir = "."
-	}
 
-	// Set default logger if not provided
 	if c.Logger == nil {
-		c.Logger = func(message ...any) {
-			// Default logger: do nothing (silent operation)
-		}
-	}
-
-	// missing shortcut values from it.
-	if c.BuildLargeSizeShortcut == "" {
-		c.BuildLargeSizeShortcut = defaults.BuildLargeSizeShortcut
-	}
-	if c.BuildMediumSizeShortcut == "" {
-		c.BuildMediumSizeShortcut = defaults.BuildMediumSizeShortcut
-	}
-	if c.BuildSmallSizeShortcut == "" {
-		c.BuildSmallSizeShortcut = defaults.BuildSmallSizeShortcut
-	}
-	if c.MainInputFile == "" {
-		c.MainInputFile = defaults.MainInputFile
-	}
-	if c.OutputName == "" {
-		c.OutputName = defaults.OutputName
+		c.Logger = defaults.Logger
 	}
 
 	w := &WasmClient{
@@ -87,12 +74,17 @@ func New(c *Config) *WasmClient {
 		wasmProject:     false, // Auto-detected later
 		tinyGoInstalled: false, // Verified on first use
 
-		// Initialize with default mode
-		currentMode: c.BuildLargeSizeShortcut, // Start with coding mode
-	}
+		// Initialize with proper defaults (not from Config anymore)
+		appRootDir:              ".",
+		mainInputFile:           "client.go",
+		outputName:              "client",
+		buildLargeSizeShortcut:  "L",
+		buildMediumSizeShortcut: "M",
+		buildSmallSizeShortcut:  "S",
+		disableWasmExecJsOutput: false,
 
-	if w.currentMode == "" {
-		w.currentMode = w.Config.BuildLargeSizeShortcut
+		// Initialize with default mode
+		currentMode: "L", // Start with coding mode
 	}
 
 	// Initialize gobuild instance with WASM-specific configuration
@@ -104,8 +96,8 @@ func New(c *Config) *WasmClient {
 	// Determine initial strategy
 	// If the external WASM file already exists, use External strategy.
 	// Otherwise, default to In-Memory strategy.
-	outputFile := filepath.Join(w.Config.OutputDir, w.Config.OutputName+".wasm")
-	absOutputFile := filepath.Join(w.Config.AppRootDir, outputFile)
+	outputFile := filepath.Join(w.Config.OutputDir, w.outputName+".wasm")
+	absOutputFile := filepath.Join(w.appRootDir, outputFile)
 
 	if _, err := os.Stat(absOutputFile); err == nil {
 		w.strategy = &externalStrategy{client: w}
@@ -139,9 +131,9 @@ func (w *WasmClient) wasmRoutePath() string {
 		if prefix[len(prefix)-1] == '/' {
 			prefix = prefix[:len(prefix)-1]
 		}
-		return "/" + prefix + "/" + w.Config.OutputName + ".wasm"
+		return "/" + prefix + "/" + w.outputName + ".wasm"
 	}
-	return "/" + w.Config.OutputName + ".wasm"
+	return "/" + w.outputName + ".wasm"
 }
 
 // Name returns the name of the WASM project
@@ -177,7 +169,7 @@ func (w *WasmClient) Value() string {
 
 	// Use explicit mode tracking instead of pointer comparison
 	if w.currentMode == "" {
-		return w.Config.BuildLargeSizeShortcut // Default to coding mode
+		return w.buildLargeSizeShortcut // Default to coding mode
 	}
 	return w.currentMode
 }
@@ -198,9 +190,53 @@ func (w *WasmClient) loadMode() {
 func (w *WasmClient) SetWasmExecJsOutputDir(path string) {
 	w.wasmExecJsOutputDir = path
 	w.detectProjectConfiguration()
-	if w.wasmProject && !w.Config.DisableWasmExecJsOutput && path != "" {
+	if w.wasmProject && !w.disableWasmExecJsOutput && path != "" {
 		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
+}
+
+// SetAppRootDir sets the application root directory (absolute).
+func (w *WasmClient) SetAppRootDir(path string) {
+	w.appRootDir = path
+	w.builderWasmInit()
+	w.detectProjectConfiguration()
+}
+
+// SetMainInputFile sets the main input file for WASM compilation (default: "client.go").
+func (w *WasmClient) SetMainInputFile(file string) {
+	w.mainInputFile = file
+	w.builderWasmInit()
+	w.detectProjectConfiguration()
+}
+
+// SetOutputName sets the output name for WASM file (default: "client").
+func (w *WasmClient) SetOutputName(name string) {
+	w.outputName = name
+	w.builderWasmInit()
+	w.detectProjectConfiguration()
+}
+
+// SetBuildShortcuts sets the shortcuts for the three compilation modes.
+// If an empty string is provided for a shortcut, it remains unchanged.
+func (w *WasmClient) SetBuildShortcuts(large, medium, small string) {
+	if large != "" {
+		w.buildLargeSizeShortcut = large
+	}
+	if medium != "" {
+		w.buildMediumSizeShortcut = medium
+	}
+	if small != "" {
+		w.buildSmallSizeShortcut = small
+	}
+
+	// Update current mode if it was one of the shortcuts and we changed it?
+	// actually currentMode is just a string, it might need update if we changed the shortcut it currently uses.
+	// But usually this is called once during init.
+}
+
+// SetDisableWasmExecJsOutput prevents automatic creation of wasm_exec.js file.
+func (w *WasmClient) SetDisableWasmExecJsOutput(disable bool) {
+	w.disableWasmExecJsOutput = disable
 }
 
 // detectProjectConfiguration performs one-time detection during initialization
@@ -225,7 +261,7 @@ func (w *WasmClient) detectFromGoFiles() bool {
 	// Walk the project directory to find .wasm.go files
 	wasmFilesFound := false
 
-	err := filepath.Walk(w.Config.AppRootDir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(w.appRootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil // Continue walking even if there's an error
 		}
@@ -235,7 +271,7 @@ func (w *WasmClient) detectFromGoFiles() bool {
 		}
 
 		// Get relative path from AppRootDir for comparison
-		relPath, err := filepath.Rel(w.Config.AppRootDir, path)
+		relPath, err := filepath.Rel(w.appRootDir, path)
 		if err != nil {
 			relPath = path // Fallback to absolute path if relative fails
 		}
@@ -243,7 +279,7 @@ func (w *WasmClient) detectFromGoFiles() bool {
 		fileName := info.Name()
 
 		// Check for main input file in the source directory (strong indicator of WASM project)
-		expectedPath := filepath.Join(w.Config.SourceDir, w.Config.MainInputFile)
+		expectedPath := filepath.Join(w.Config.SourceDir, w.mainInputFile)
 		if relPath == expectedPath {
 			wasmFilesFound = true
 			return filepath.SkipAll // Found main file, can stop walking

@@ -33,12 +33,12 @@ func TestJavascriptForInitializingSignatures(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	config := &Config{
-		AppRootDir: tmpDir,
 		Logger:     func(...any) {},
 	}
 
 	// Create WasmClient instance with temp directory
 	w := New(config)
+	w.SetAppRootDir(tmpDir)
 
 	// Skip only if tinygo not present
 	if err := w.VerifyTinyGoInstallation(); err != nil {
@@ -50,7 +50,7 @@ func TestJavascriptForInitializingSignatures(t *testing.T) {
 
 	// --- TinyGo case ---
 	// Set mode to debug (requires TinyGo)
-	w.currentMode = w.Config.BuildMediumSizeShortcut
+	w.currentMode = "M"
 	// ensure installer flag
 	w.tinyGoInstalled = true
 
@@ -79,7 +79,7 @@ func TestJavascriptForInitializingSignatures(t *testing.T) {
 
 	// --- Go case ---
 	// Set mode to coding (Go standard)
-	w.currentMode = w.Config.BuildLargeSizeShortcut
+	w.currentMode = "L"
 
 	_, tinyUsedAfter := w.WasmProjectTinyGoJsUse()
 	if tinyUsedAfter {

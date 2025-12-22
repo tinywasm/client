@@ -26,11 +26,8 @@ func main() { fmt.Println("WASM") }`), 0644)
 	}
 
 	cfg := &Config{
-		AppRootDir:      tmpDir,
 		SourceDir:       "web",
 		OutputDir:       "web/public",
-		MainInputFile:   "client.go",
-		OutputName:      "test-client",
 		AssetsURLPrefix: "assets",
 		Logger: func(msg ...any) {
 			t.Log(msg...)
@@ -39,6 +36,9 @@ func main() { fmt.Println("WASM") }`), 0644)
 
 	// 1. Initialize - Should be In-Memory (no .wasm file yet)
 	c := New(cfg)
+	c.SetAppRootDir(tmpDir)
+	c.SetMainInputFile("client.go")
+	c.SetOutputName("test-client")
 
 	if c.strategy.Name() != "In-Memory" {
 		t.Errorf("Expected In-Memory strategy, got %s", c.strategy.Name())

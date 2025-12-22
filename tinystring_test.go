@@ -8,10 +8,10 @@ import (
 func TestTinyStringMessages(t *testing.T) {
 	t.Run("Test success messages with TinyString", func(t *testing.T) {
 		config := NewConfig()
-		config.AppRootDir = t.TempDir()
 		config.SourceDir = "test"
 		config.OutputDir = "public"
 		tw := New(config)
+		tw.SetAppRootDir(t.TempDir())
 
 		// Test each mode message
 		tests := []struct {
@@ -41,10 +41,10 @@ func TestTinyStringMessages(t *testing.T) {
 
 	t.Run("Test error messages with TinyString", func(t *testing.T) {
 		config := NewConfig()
-		config.AppRootDir = t.TempDir()
 		config.SourceDir = "test"
 		config.OutputDir = "public"
 		tw := New(config)
+		tw.SetAppRootDir(t.TempDir())
 
 		// Test validation error
 		err := tw.validateMode("invalid")
@@ -60,10 +60,10 @@ func TestTinyStringMessages(t *testing.T) {
 
 	t.Run("Test Change method with TinyString messages", func(t *testing.T) {
 		config := NewConfig()
-		config.AppRootDir = t.TempDir()
 		config.SourceDir = "test"
 		config.OutputDir = "public"
 		tw := New(config)
+		tw.SetAppRootDir(t.TempDir())
 
 		// Test valid mode change using progress channel
 		progressChan := make(chan string, 1)

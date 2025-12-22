@@ -20,16 +20,25 @@ Intelligent WebAssembly compilation manager for Go with automatic project detect
 
 ### Basic Initialization
 
-```go
-// Create configuration with sensible defaults
-config := tinywasm.NewConfig()
-config.SourceDir = "web"
-config.OutputDir = "web/public"
+`tinywasm` uses a combination of a `Config` struct for core paths and public setter methods for advanced configuration.
 
-tw := tinywasm.New(config)
+```go
+// 1. Create base configuration
+cfg := tinywasm.NewConfig()
+cfg.SourceDir = "web"
+cfg.OutputDir = "web/public"
+
+// 2. Initialize client
+tw := tinywasm.New(cfg)
+
+// 3. Fine-tune configuration via setters
+tw.SetAppRootDir("/path/to/project")
+tw.SetMainInputFile("app.go")      // default: "client.go"
+tw.SetOutputName("app")            // default: "client"
+tw.SetBuildShortcuts("L", "M", "S") // customize mode triggers
 
 // (Optional) Enable physical wasm_exec.js output for file watchers/debug
-tw.SetWasmExecJsOutputDir("web/js")
+tw.SetWasmExecJsOutputDir("web/theme/js")
 ```
 
 ### Mode Switching (DevTUI Integration)
@@ -76,7 +85,9 @@ On initialization, `tinywasm` can auto-create `.vscode/settings.json` to ensure 
 
 ## ⚙️ Configuration
 
-Detailed configuration options and defaults can be found in [config.go](config.go).
+`tinywasm` follows a hybrid configuration approach:
+- **`Config` Struct**: Used for shared dependencies (`Store`, `Logger`) and relative directory structures (`SourceDir`, `OutputDir`). See [config.go](config.go).
+- **Public Setters**: Used for project-specific overrides (`AppRootDir`, `MainInputFile`, `OutputName`) and build behavioral changes. These setters are reactive and re-initialize internal state automatically.
 
 ## 📋 Requirements
 

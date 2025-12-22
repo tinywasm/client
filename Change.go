@@ -9,9 +9,9 @@ import (
 
 func (w *WasmClient) Shortcuts() []map[string]string {
 	return []map[string]string{
-		{w.BuildLargeSizeShortcut: Translate(D.Mode, "Large", "stLib").String()},
-		{w.BuildMediumSizeShortcut: Translate(D.Mode, "Medium", "tinygo").String()},
-		{w.BuildSmallSizeShortcut: Translate(D.Mode, "Small", "tinygo").String()},
+		{w.buildLargeSizeShortcut: Translate(D.Mode, "Large", "stLib").String()},
+		{w.buildMediumSizeShortcut: Translate(D.Mode, "Medium", "tinygo").String()},
+		{w.buildSmallSizeShortcut: Translate(D.Mode, "Small", "tinygo").String()},
 	}
 }
 
@@ -47,8 +47,8 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 	}
 
 	// Check if main WASM file exists
-	sourceDir := path.Join(w.AppRootDir, w.Config.SourceDir)
-	mainWasmPath := path.Join(sourceDir, w.Config.MainInputFile)
+	sourceDir := path.Join(w.appRootDir, w.Config.SourceDir)
+	mainWasmPath := path.Join(sourceDir, w.mainInputFile)
 	if _, err := os.Stat(mainWasmPath); err != nil {
 		progress <- w.getSuccessMessage(newValue) // Changed from progress(...)
 		return
@@ -65,7 +65,7 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 	}
 
 	// Ensure wasm_exec.js is available
-	if !w.Config.DisableWasmExecJsOutput {
+	if !w.disableWasmExecJsOutput {
 		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 
@@ -83,8 +83,8 @@ func (w *WasmClient) RecompileMainWasm() error {
 	if w.activeBuilder == nil {
 		return Err("builder not initialized")
 	}
-	sourceDir := path.Join(w.AppRootDir, w.Config.SourceDir)
-	mainWasmPath := path.Join(sourceDir, w.Config.MainInputFile)
+	sourceDir := path.Join(w.appRootDir, w.Config.SourceDir)
+	mainWasmPath := path.Join(sourceDir, w.mainInputFile)
 
 	// Check if main.wasm.go exists
 	if _, err := os.Stat(mainWasmPath); err != nil {
@@ -102,9 +102,9 @@ func (w *WasmClient) validateMode(mode string) error {
 	mode = Convert(mode).ToUpper().String()
 
 	validModes := []string{
-		Convert(w.Config.BuildLargeSizeShortcut).ToUpper().String(),
-		Convert(w.Config.BuildMediumSizeShortcut).ToUpper().String(),
-		Convert(w.Config.BuildSmallSizeShortcut).ToUpper().String(),
+		Convert(w.buildLargeSizeShortcut).ToUpper().String(),
+		Convert(w.buildMediumSizeShortcut).ToUpper().String(),
+		Convert(w.buildSmallSizeShortcut).ToUpper().String(),
 	}
 
 	for _, valid := range validModes {
@@ -120,11 +120,11 @@ func (w *WasmClient) validateMode(mode string) error {
 func (w *WasmClient) getSuccessMessage(mode string) string {
 
 	switch mode {
-	case w.Config.BuildLargeSizeShortcut:
+	case w.buildLargeSizeShortcut:
 		return Translate(D.Changed, D.To, D.Mode, "Large").String()
-	case w.Config.BuildMediumSizeShortcut:
+	case w.buildMediumSizeShortcut:
 		return Translate(D.Changed, D.To, D.Mode, "Medium").String()
-	case w.Config.BuildSmallSizeShortcut:
+	case w.buildSmallSizeShortcut:
 		return Translate(D.Changed, D.To, D.Mode, "Small").String()
 	default:
 		return Translate(D.Mode, ":", mode, D.Invalid).String()
@@ -132,5 +132,4 @@ func (w *WasmClient) getSuccessMessage(mode string) string {
 
 }
 
-func (w *WasmClient) GetLastOperationID() string   { return w.lastOpID }
-func (w *WasmClient) SetLastOperationID(id string) { w.lastOpID = id }
+func (w *WasmClient) GetLastOperationID() string { return w.lastOpID }

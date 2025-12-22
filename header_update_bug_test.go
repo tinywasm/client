@@ -15,13 +15,13 @@ func TestStoreModePersistence(t *testing.T) {
 	store := &testStore{data: make(map[string]string)}
 
 	config := &Config{
-		AppRootDir: t.TempDir(),
-		Logger:     func(...any) {},
-		Store:      store,
+		Logger: func(...any) {},
+		Store:  store,
 	}
 
 	// Step 1: Start with initial mode (should be L)
 	w1 := New(config)
+	w1.SetAppRootDir(t.TempDir())
 	if w1.Value() != "L" {
 		t.Errorf("Initial mode should be 'L', got '%s'", w1.Value())
 	}

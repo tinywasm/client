@@ -13,18 +13,18 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 	fullSourcePath := filepath.Join(tmp, sourceDir)
 
 	cfg := NewConfig()
-	cfg.AppRootDir = tmp
 	cfg.SourceDir = sourceDir
-	cfg.MainInputFile = "main.go"
 	cfg.Logger = func(messages ...any) {
 		t.Log(messages...)
 	}
 
 	tw := New(cfg)
+	tw.SetAppRootDir(tmp)
+	tw.SetMainInputFile("main.go")
 	tw.wasmProject = false
 
 	// Ensure no existing file
-	target := filepath.Join(fullSourcePath, cfg.MainInputFile)
+	target := filepath.Join(fullSourcePath, "main.go")
 	if _, err := os.Stat(target); err == nil {
 		t.Fatalf("expected no existing file at %s", target)
 	}
@@ -69,14 +69,14 @@ func TestCreateDefaultWasmFileClientIfNotExistDoesNotOverwrite(t *testing.T) {
 	}
 
 	cfg := NewConfig()
-	cfg.AppRootDir = tmp
 	cfg.SourceDir = sourceDir
-	cfg.MainInputFile = "main.go"
 
 	tw := New(cfg)
+	tw.SetAppRootDir(tmp)
+	tw.SetMainInputFile("main.go")
 	tw.wasmProject = false
 
-	target := filepath.Join(fullSourcePath, cfg.MainInputFile)
+	target := filepath.Join(fullSourcePath, "main.go")
 
 	// Create existing file with different content
 	original := "// ORIGINAL CONTENT DO NOT OVERWRITE"

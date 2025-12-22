@@ -23,7 +23,6 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	// Create WasmClient instance with verbose logging
 	messages := []string{}
 	config := &Config{
-		AppRootDir: testDir,
 		SourceDir:  "web",
 		OutputDir:  "theme/js",
 		Logger: func(message ...any) {
@@ -34,6 +33,7 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetAppRootDir(testDir)
 	tinyWasm.SetWasmExecJsOutputDir("theme/js")
 
 	// Print all debug messages

@@ -56,7 +56,7 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 // ShouldCompileToWasm determines if a file should trigger WASM compilation
 func (w *WasmClient) ShouldCompileToWasm(fileName, filePath string) bool {
 	// Always compile main.wasm.go
-	if fileName == w.Config.MainInputFile {
+	if fileName == w.mainInputFile {
 		return true
 	}
 
@@ -73,14 +73,14 @@ func (w *WasmClient) ShouldCompileToWasm(fileName, filePath string) bool {
 func (w *WasmClient) MainInputFileRelativePath() string {
 	// The input lives under the source directory by convention.
 	// Return full path including AppRootDir for callers that expect absolute paths
-	return PathJoin(w.Config.SourceDir, w.Config.MainInputFile).String()
+	return PathJoin(w.Config.SourceDir, w.mainInputFile).String()
 }
 
 // MainOutputFileAbsolutePath returns the absolute path to the main WASM output file (e.g. "main.wasm").
 func (w *WasmClient) MainOutputFileAbsolutePath() string {
 	// The output file is created in OutputDir which is:
 	// AppRootDir/OutputDir/{OutputName}.wasm
-	return PathJoin(w.Config.AppRootDir, w.Config.OutputDir, w.Config.OutputName+".wasm").String()
+	return PathJoin(w.appRootDir, w.Config.OutputDir, w.outputName+".wasm").String()
 }
 
 // UnobservedFiles returns files that should not be watched for changes e.g: main.wasm

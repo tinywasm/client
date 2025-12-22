@@ -47,10 +47,14 @@ func main() {
 		t.Fatalf("failed to write client.go: %v", err)
 	}
 
+	// Create OutputDir to avoid chdir errors
+	if err := os.MkdirAll(filepath.Join(tmp, webDirName, "public"), 0755); err != nil {
+		t.Fatalf("failed to create output dir: %v", err)
+	}
+
 	// Prepare config with logger to prevent nil pointer dereference
 	var logMessages []string
 	cfg := NewConfig()
-	cfg.AppRootDir = tmp
 	cfg.SourceDir = webDirName
 	cfg.OutputDir = filepath.Join(webDirName, "public")
 	cfg.Logger = func(message ...any) {
@@ -59,6 +63,7 @@ func main() {
 	cfg.Store = &testStore{data: make(map[string]string)}
 
 	w := New(cfg)
+	w.SetAppRootDir(tmp)
 	w.SetWasmExecJsOutputDir(filepath.Join(webDirName, "theme", "js"))
 	// Force External strategy for this test as it verifies disk artifacts
 	w.strategy = &externalStrategy{client: w}
@@ -66,8 +71,8 @@ func main() {
 	w.tinyGoCompiler = true
 
 	// Debug: Check initial state
-	if w.Value() != w.Config.BuildLargeSizeShortcut {
-		t.Fatalf("Initial mode should be '%s', got '%s'", w.Config.BuildLargeSizeShortcut, w.Value())
+	if w.Value() != "L" {
+		t.Fatalf("Initial mode should be 'L', got '%s'", w.Value())
 	}
 
 	// Check tinygo availability
@@ -81,7 +86,7 @@ func main() {
 	}
 
 	outPath := func() string {
-		return filepath.Join(tmp, cfg.OutputDir, cfg.OutputName+".wasm")
+		return filepath.Join(tmp, cfg.OutputDir, "client.wasm")
 	}
 
 	// Initial compile in coding mode to get a baseline file size
@@ -112,7 +117,7 @@ func main() {
 		assertSize   func(t *testing.T, size int64)
 	}{
 		{
-			mode: w.Config.BuildMediumSizeShortcut, name: "debugging", requiresTiny: true,
+			mode: "M", name: "debugging", requiresTiny: true,
 			assertSize: func(t *testing.T, size int64) {
 				if size == codingModeFileSize {
 					t.Errorf("debugging mode file size (%d) should be different from coding mode size (%d)", size, codingModeFileSize)
@@ -120,7 +125,7 @@ func main() {
 			},
 		},
 		{
-			mode: w.Config.BuildSmallSizeShortcut, name: "production", requiresTiny: true,
+			mode: "S", name: "production", requiresTiny: true,
 			assertSize: func(t *testing.T, size int64) {
 				if size == codingModeFileSize {
 					t.Errorf("production mode file size (%d) should be different from coding mode size (%d)", size, codingModeFileSize)
@@ -222,7 +227,7 @@ func main() {
 			}
 			done <- true
 		}()
-		w.Change(w.Config.BuildMediumSizeShortcut, progressChan)
+		w.Change("M", progressChan)
 		close(progressChan) // Close channel so goroutine can finish
 		<-done
 

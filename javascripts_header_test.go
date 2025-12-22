@@ -10,25 +10,19 @@ func TestStoreRoundtrip(t *testing.T) {
 	if _, err := exec.LookPath("tinygo"); err != nil {
 		t.Skip("tinygo not found in PATH")
 	}
-	tmpDir := t.TempDir()
 
 	store := &testStore{data: make(map[string]string)}
 
 	config := &Config{
-		AppRootDir: tmpDir,
-		Logger:     func(...any) {},
-		Store:      store,
+		Logger: func(...any) {},
+		Store:  store,
 	}
 
 	w := New(config)
 	w.wasmProject = true
 
 	// Test all three supported shortcuts: coding, debugging, production
-	shortcuts := []string{
-		w.Config.BuildLargeSizeShortcut,
-		w.Config.BuildMediumSizeShortcut,
-		w.Config.BuildSmallSizeShortcut,
-	}
+	shortcuts := []string{"L", "M", "S"}
 
 	for _, mode := range shortcuts {
 		// Use a fresh WasmClient instance per mode to avoid shared state

@@ -72,7 +72,7 @@ func (s *inMemoryStrategy) RegisterRoutes(mux *http.ServeMux) {
 		}
 
 		w.Header().Set("Content-Type", "application/wasm")
-		http.ServeContent(w, r, s.client.OutputName+".wasm", lastMod, bytes.NewReader(content))
+		http.ServeContent(w, r, s.client.outputName+".wasm", lastMod, bytes.NewReader(content))
 	})
 	s.client.Logger("Registered In-Memory route:", routePath)
 }
@@ -90,7 +90,7 @@ func (s *externalStrategy) Compile() error {
 	s.client.Logger("Compiling WASM Client (External/Disk)...")
 
 	// Ensure directory exists
-	outDir := filepath.Join(s.client.AppRootDir, s.client.OutputDir)
+	outDir := filepath.Join(s.client.appRootDir, s.client.Config.OutputDir)
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		return err
 	}
@@ -101,10 +101,10 @@ func (s *externalStrategy) Compile() error {
 
 func (s *externalStrategy) RegisterRoutes(mux *http.ServeMux) {
 	routePath := s.client.wasmRoutePath()
-	fsPath := filepath.Join(s.client.OutputDir, s.client.OutputName+".wasm")
-	// Note: OutputDir is relative to AppRootDir usually, but ServeFile needs OS path.
+	fsPath := filepath.Join(s.client.Config.OutputDir, s.client.outputName+".wasm")
+	// Note: Config.OutputDir is relative to AppRootDir usually, but ServeFile needs OS path.
 	// We need absolute path.
-	absPath := filepath.Join(s.client.AppRootDir, fsPath)
+	absPath := filepath.Join(s.client.appRootDir, fsPath)
 
 	mux.HandleFunc(routePath, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/wasm")

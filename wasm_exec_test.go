@@ -19,10 +19,9 @@ func TestWasmExecFiles(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	// Create a WasmClient instance for testing
-	tw := New(&Config{
-		AppRootDir:    tempDir,
-		MainInputFile: "main.go",
-	})
+	tw := New(&Config{})
+	tw.SetAppRootDir(tempDir)
+	tw.SetMainInputFile("main.go")
 
 	// Test data
 	tests := []struct {
@@ -93,18 +92,11 @@ func TestWasmExecFiles(t *testing.T) {
 			}
 
 			// Test 4: Test file update when source changes
-			// Create a temporary source file for testing updates
-			tempSourcePath := filepath.Join(tempDir, "temp_"+tt.expectedFile)
-			err = os.WriteFile(tempSourcePath, sourceContent, 0644)
-			if err != nil {
-				t.Fatalf("Failed to create temp source file: %v", err)
-			}
-
-			// Modify temp source file
 			modifiedContent := string(sourceContent) + "\n// Modified for test"
+			tempSourcePath := filepath.Join(tempDir, "temp_"+tt.expectedFile)
 			err = os.WriteFile(tempSourcePath, []byte(modifiedContent), 0644)
 			if err != nil {
-				t.Fatalf("Failed to modify temp source file: %v", err)
+				t.Fatalf("Failed to create modified temp source file: %v", err)
 			}
 
 			// Copy again - should update
@@ -135,10 +127,9 @@ func TestWasmExecFileVersions(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	// Create a WasmClient instance
-	tw := New(&Config{
-		AppRootDir:    tempDir,
-		MainInputFile: "main.go",
-	})
+	tw := New(&Config{})
+	tw.SetAppRootDir(tempDir)
+	tw.SetMainInputFile("main.go")
 
 	// Test version checking
 	tests := []struct {
@@ -254,10 +245,6 @@ func getFileHash(filePath string) (string, error) {
 	return fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
 
-// TestEnsureWasmExecFilesExists tests the main functionality:
-// - Check if wasm_exec files exist in assets directory
-// - Create them if they don't exist
-// - Update them if versions have changed
 func TestEnsureWasmExecFilesExists(t *testing.T) {
 	// Use a temporary directory for assets
 	tempDir := t.TempDir()
@@ -269,10 +256,9 @@ func TestEnsureWasmExecFilesExists(t *testing.T) {
 	}
 
 	// Create a WasmClient instance
-	tw := New(&Config{
-		AppRootDir:    assetsDir,
-		MainInputFile: "main.go",
-	})
+	tw := New(&Config{})
+	tw.SetAppRootDir(assetsDir)
+	tw.SetMainInputFile("main.go")
 
 	// Test data
 	tests := []struct {
@@ -359,7 +345,6 @@ func TestEnsureWasmExecFilesExists(t *testing.T) {
 }
 
 // ensureWasmExecFile ensures a wasm_exec file exists and is up to date
-// This implements the main functionality requested by the user
 func ensureWasmExecFile(getPathFunc func() (string, error), destPath string) error {
 	// Get source path
 	sourcePath, err := getPathFunc()

@@ -33,27 +33,24 @@ func TestInitializationDetectionFromWasmExecJs(t *testing.T) {
 
 	// Create WasmClient instance
 	config := &Config{
-		AppRootDir:              testDir,
-		SourceDir:               "web",
-		OutputDir:               "web/public",
-		BuildLargeSizeShortcut:  "L",
-		BuildMediumSizeShortcut: "M",
-		BuildSmallSizeShortcut:  "S",
-		Logger:                  func(message ...any) {},
+		SourceDir: "web",
+		OutputDir: "web/public",
+		Logger:    func(message ...any) {},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetAppRootDir(testDir)
+	tinyWasm.SetBuildShortcuts("L", "M", "S")
 	tinyWasm.SetWasmExecJsOutputDir("web/theme/js")
 
-	// Verify detection worked
 	if !tinyWasm.wasmProject {
 		t.Error("Expected wasmProject to be true after detecting wasm_exec.js")
 	}
 	if tinyWasm.tinyGoCompiler {
 		t.Error("Expected tinyGoCompiler to be false (Go detected)")
 	}
-	if tinyWasm.currentMode != config.BuildLargeSizeShortcut {
-		t.Errorf("Expected currentMode to be %s, got %s", config.BuildLargeSizeShortcut, tinyWasm.currentMode)
+	if tinyWasm.currentMode != "L" {
+		t.Errorf("Expected currentMode to be L, got %s", tinyWasm.currentMode)
 	}
 }
 
@@ -73,24 +70,23 @@ func TestInitializationDetectionFromGoFiles(t *testing.T) {
 
 	// Create WasmClient instance
 	config := &Config{
-		AppRootDir: testDir,
-		SourceDir:  "web",
-		OutputDir:  "theme/js",
-		Logger:     func(message ...any) {},
+		SourceDir: "web",
+		OutputDir: "theme/js",
+		Logger:    func(message ...any) {},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetAppRootDir(testDir)
 	tinyWasm.SetWasmExecJsOutputDir("theme/js")
 
-	// Verify detection worked
 	if !tinyWasm.wasmProject {
 		t.Error("Expected wasmProject to be true after detecting .wasm.go file")
 	}
 	if tinyWasm.tinyGoCompiler {
 		t.Error("Expected tinyGoCompiler to be false (default to Go)")
 	}
-	if tinyWasm.currentMode != config.BuildLargeSizeShortcut {
-		t.Errorf("Expected currentMode to be %s, got %s", config.BuildLargeSizeShortcut, tinyWasm.currentMode)
+	if tinyWasm.currentMode != "L" {
+		t.Errorf("Expected currentMode to be L, got %s", tinyWasm.currentMode)
 	}
 
 	// Ensure wasm_exec.js was created in the output path and is non-empty
@@ -125,16 +121,14 @@ func TestInitializationDetectionFromGoFiles(t *testing.T) {
 // TestDefaultConfiguration tests that WasmExecJsOutputDir defaults to "src/web/ui/js"
 func TestDefaultConfiguration(t *testing.T) {
 	config := &Config{
-		AppRootDir:              "/test",
-		SourceDir:               "web",
-		OutputDir:               "theme/js",
-		BuildLargeSizeShortcut:  "c",
-		BuildMediumSizeShortcut: "d",
-		BuildSmallSizeShortcut:  "p",
-		Logger:                  func(message ...any) {},
+		SourceDir: "web",
+		OutputDir: "theme/js",
+		Logger:    func(message ...any) {},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetAppRootDir("/test")
+	tinyWasm.SetBuildShortcuts("c", "d", "p")
 
 	expected := "web/js"
 	// Note: We don't check a default anymore because wasmExecJsOutputDir is private and defaults to empty.
@@ -160,16 +154,14 @@ func TestNoWasmProjectDetected(t *testing.T) {
 
 	// Create WasmClient instance
 	config := &Config{
-		AppRootDir:              testDir,
-		SourceDir:               "web",
-		OutputDir:               "theme/js",
-		BuildLargeSizeShortcut:  "L",
-		BuildMediumSizeShortcut: "M",
-		BuildSmallSizeShortcut:  "S",
-		Logger:                  func(message ...any) {},
+		SourceDir: "web",
+		OutputDir: "theme/js",
+		Logger:    func(message ...any) {},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetAppRootDir(testDir)
+	tinyWasm.SetBuildShortcuts("L", "M", "S")
 	tinyWasm.SetWasmExecJsOutputDir("theme/js")
 
 	// Initially, no WASM project should be detected

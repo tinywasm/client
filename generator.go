@@ -15,7 +15,7 @@ var embeddedFS embed.FS
 // It never overwrites an existing file and returns the WasmClient instance for method chaining.
 func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 	// Build target path from Config
-	targetPath := filepath.Join(t.AppRootDir, t.SourceDir, t.MainInputFile)
+	targetPath := filepath.Join(t.appRootDir, t.Config.SourceDir, t.mainInputFile)
 
 	// Never overwrite existing files
 	if _, err := os.Stat(targetPath); err == nil {
@@ -42,9 +42,9 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 		}
 
 		// devflow needs the full destination path
-		destDir := filepath.Join(t.AppRootDir, t.SourceDir)
+		destDir := filepath.Join(t.appRootDir, t.Config.SourceDir)
 
-		m := devflow.NewMarkDown(t.AppRootDir, destDir, writer).
+		m := devflow.NewMarkDown(t.appRootDir, destDir, writer).
 			InputByte(raw)
 
 		if t.Logger != nil {
@@ -52,7 +52,7 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 		}
 
 		// Extract to the main file
-		if err := m.Extract(t.MainInputFile); err != nil {
+		if err := m.Extract(t.mainInputFile); err != nil {
 			if t.Logger != nil {
 				t.Logger("Error extracting go code from markdown:", err)
 			}
@@ -72,7 +72,7 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 	// Skip if DisableWasmExecJsOutput is set (e.g., for inline embedding scenarios)
 	// Ensure wasm_exec.js is present in output (create/overwrite as needed)
 	// Skip if DisableWasmExecJsOutput is set (e.g., for inline embedding scenarios)
-	if !t.Config.DisableWasmExecJsOutput {
+	if !t.disableWasmExecJsOutput {
 		t.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 

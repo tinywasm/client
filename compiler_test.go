@@ -14,19 +14,25 @@ func TestShouldCompileToWasm(t *testing.T) {
 	rootDir := t.TempDir()
 	sourceDir := filepath.Join(rootDir, "wasmTest")
 	outputDir := filepath.Join(rootDir, "output")
+	if err := os.MkdirAll(sourceDir, 0755); err != nil {
+		t.Fatalf("Error creating source dir: %v", err)
+	}
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		t.Fatalf("Error creating output dir: %v", err)
+	}
 
 	// modules support removed; tests operate on sourceDir directly
 	var logMessages []string
 	config := &Config{
-		AppRootDir: rootDir,
-		SourceDir:  "wasmTest",
-		OutputDir:  "output",
+		SourceDir: "wasmTest",
+		OutputDir: "output",
 		Logger: func(message ...any) {
 			logMessages = append(logMessages, fmt.Sprint(message...))
 		},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetAppRootDir(rootDir)
 	tests := []struct {
 		name     string
 		fileName string
@@ -71,6 +77,14 @@ func TestCompilerComparison(t *testing.T) {
 	if err := os.MkdirAll(publicDir, 0755); err != nil {
 		t.Fatalf("Error creating test directory: %v", err)
 	}
+
+	// Create directories needed by the WasmClient
+	if err := os.MkdirAll(filepath.Join(rootDir, "wasmTest"), 0755); err != nil {
+		t.Fatalf("Error creating source dir: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(rootDir, "output"), 0755); err != nil {
+		t.Fatalf("Error creating output dir: %v", err)
+	}
 	// Test data for compilation
 	testCases := []struct {
 		name          string
@@ -86,8 +100,9 @@ func TestCompilerComparison(t *testing.T) {
 		},
 	}
 
-	// Create main.wasm.go file for testing
-	mainWasmPath := filepath.Join(webDir, "main.wasm.go")
+	// Create client.go file for testing in the sourceDir
+	sourceDir := filepath.Join(rootDir, "wasmTest")
+	mainWasmPath := filepath.Join(sourceDir, "client.go")
 	wasmContent := `package main
 	
 	func main() {
@@ -99,15 +114,15 @@ func TestCompilerComparison(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var logMessages []string
 			config := &Config{
-				AppRootDir: rootDir,
-				SourceDir:  "wasmTest",
-				OutputDir:  "output",
+				SourceDir: "wasmTest",
+				OutputDir: "output",
 				Logger: func(message ...any) {
 					logMessages = append(logMessages, fmt.Sprint(message...))
 				},
 			}
 
 			tinyWasm := New(config)
+			tinyWasm.SetAppRootDir(rootDir)
 			// Tests run in the same package so we can set the private flag directly
 			tinyWasm.tinyGoCompiler = tc.tinyGoEnabled
 
@@ -141,7 +156,7 @@ func TestCompilerComparison(t *testing.T) {
 			} else if !tc.tinyGoEnabled && isUsingTinyGo {
 				t.Error("Expected Go standard compiler but TinyGo is selected")
 			} // Test compilation (this will fail but we can check the command preparation)
-			err := tinyWasm.NewFileEvent("main.wasm.go", ".go", mainWasmPath, "write")
+			err := tinyWasm.NewFileEvent("client.go", ".go", mainWasmPath, "write")
 
 			// Check that the correct compiler is being used
 			if tc.tinyGoEnabled && tinyWasm.tinyGoInstalled {
