@@ -61,10 +61,15 @@ func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
 		return nil, Errf("not a WASM project")
 	}
 
+	// DEBUG: Log which wasm_exec.js is being selected
+	w.Logger("DEBUG getWasmExecContent: mode=", mode, ", useTinyGo=", useTinyGo, ", buildMediumShortcut=", w.buildMediumSizeShortcut)
+
 	// Return appropriate embedded content based on compiler configuration
 	if useTinyGo {
+		w.Logger("DEBUG: Returning TinyGo wasm_exec.js")
 		return embeddedWasmExecTinyGo, nil
 	}
+	w.Logger("DEBUG: Returning Go standard wasm_exec.js")
 	return embeddedWasmExecGo, nil
 }
 

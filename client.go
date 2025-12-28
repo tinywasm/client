@@ -154,29 +154,41 @@ func (w *WasmClient) Value() string {
 }
 
 // SetBuildOnDisk switches between In-Memory and External (Disk) storage.
+// Compilation is only triggered when there is an actual mode change to avoid
+// unnecessary builds during initialization.
 func (w *WasmClient) SetBuildOnDisk(onDisk bool) {
 	if onDisk {
 		if _, ok := w.storage.(*diskStorage); !ok {
 			w.storage = &diskStorage{client: w}
 			w.Logger("WASM Client switched to External (Disk) Mode")
+			// Trigger compilation only when switching modes
+			if err := w.storage.Compile(); err != nil {
+				w.Logger("Compilation failed after mode switch:", err)
+			}
 		}
 	} else {
 		if _, ok := w.storage.(*memoryStorage); !ok {
 			w.storage = &memoryStorage{client: w}
 			w.Logger("WASM Client switched to In-Memory Mode")
+			// Trigger compilation only when switching modes
+			if err := w.storage.Compile(); err != nil {
+				w.Logger("Compilation failed after mode switch:", err)
+			}
 		}
-	}
-	// Trigger immediate compilation to ensure the new storage has fresh content
-	if err := w.storage.Compile(); err != nil {
-		w.Logger("Compilation failed after mode switch:", err)
 	}
 }
 
-// loadMode updates currenSizeMode from the store if available
+// loadMode updates currenSizeMode from the store if available and syncs the active builder
 func (w *WasmClient) loadMode() {
 	if w.Database != nil {
 		if val, err := w.Database.Get(StoreKeySizeMode); err == nil && val != "" {
-			w.currenSizeMode = val
+			// Only update if the mode is different from current
+			if w.currenSizeMode != val {
+				w.currenSizeMode = val
+				// Sync the active builder with the loaded mode
+				// This ensures the correct compiler (Go vs TinyGo) is used
+				w.updateCurrentBuilder(val)
+			}
 		}
 	}
 }

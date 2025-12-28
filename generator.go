@@ -19,17 +19,13 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 
 	// Never overwrite existing files
 	if _, err := os.Stat(targetPath); err == nil {
-		if t.Logger != nil {
-			t.Logger("WASM source file already exists at", targetPath, ", skipping generation")
-		}
+		t.Logger("WASM source file already exists at", targetPath, ", skipping generation")
 		// Fallthrough to switch mode logic below
 	} else {
 		// Read embedded markdown (no template processing needed - static content)
 		raw, errRead := embeddedFS.ReadFile("templates/basic_wasm_client.md")
 		if errRead != nil {
-			if t.Logger != nil {
-				t.Logger("Error reading embedded template:", errRead)
-			}
+			t.Logger("Error reading embedded template:", errRead)
 			return t
 		}
 
@@ -47,21 +43,13 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 		m := devflow.NewMarkDown(t.appRootDir, destDir, writer).
 			InputByte(raw)
 
-		if t.Logger != nil {
-			m.SetLogger(t.Logger)
-		}
-
 		// Extract to the main file
 		if err := m.Extract(t.mainInputFile); err != nil {
-			if t.Logger != nil {
-				t.Logger("Error extracting go code from markdown:", err)
-			}
+			t.Logger("Error extracting go code from markdown:", err)
 			return t
 		}
 
-		if t.Logger != nil {
-			t.Logger("Generated WASM source file at", targetPath)
-		}
+		t.Logger("Generated WASM source file at", targetPath)
 
 		t.VisualStudioCodeWasmEnvConfig()
 	}

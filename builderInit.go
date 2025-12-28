@@ -62,8 +62,16 @@ func (w *WasmClient) builderWasmInit() {
 	}
 	w.builderSizeSmall = gobuild.New(&prodConfig)
 
-	// Set initial mode and active builder (default to coding mode)
-	w.activeSizeBuilder = w.builderSizeLarge // Default: fast development
+	// Sync active builder with current mode (don't always reset to Large)
+	// This is important when builderWasmInit is called after loadMode() (e.g., from SetAppRootDir)
+	switch w.currenSizeMode {
+	case w.buildMediumSizeShortcut: // "M"
+		w.activeSizeBuilder = w.builderSizeMedium
+	case w.buildSmallSizeShortcut: // "S"
+		w.activeSizeBuilder = w.builderSizeSmall
+	default: // "L" or empty
+		w.activeSizeBuilder = w.builderSizeLarge
+	}
 }
 
 // updateCurrentBuilder sets the activeSizeBuilder based on mode and cancels ongoing operations
