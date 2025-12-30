@@ -45,11 +45,11 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 
 	// Auto-recompile
 	if err := w.RecompileMainWasm(); err != nil {
-		warningMsg := Translate("Warning:", "auto", "compilation", "failed:", err).String()
-		if warningMsg == "" {
-			warningMsg = "Warning: auto compilation failed: " + err.Error()
+		errorMsg := Translate("Error:", "auto", "compilation", "failed:", err).String()
+		if errorMsg == "" {
+			errorMsg = "Error: auto compilation failed: " + err.Error()
 		}
-		progress <- warningMsg // Changed from progress(warningMsg)
+		progress <- errorMsg
 		return
 	}
 
@@ -67,14 +67,14 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 	progress <- w.getSuccessMessage(newValue)
 }
 
-// RecompileMainWasm recompiles the main WASM file.
+// RecompileMainWasm recompiles the main WASM file using the current storage mode.
 func (w *WasmClient) RecompileMainWasm() error {
-	if w.activeSizeBuilder == nil {
-		return Err("builder not initialized")
+	if w.storage == nil {
+		return Err("storage not initialized")
 	}
 
-	// Use gobuild to compile
-	return w.activeSizeBuilder.CompileProgram()
+	// Use storage.Compile() to respect In-Memory vs Disk mode
+	return w.storage.Compile()
 }
 
 // validateMode validates if the provided mode is supported
