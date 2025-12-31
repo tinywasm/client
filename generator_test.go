@@ -14,11 +14,11 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 
 	cfg := NewConfig()
 	cfg.SourceDir = sourceDir
-	cfg.Logger = func(messages ...any) {
-		t.Log(messages...)
-	}
 
 	tw := New(cfg)
+	tw.SetLog(func(messages ...any) {
+		t.Log(messages...)
+	})
 	tw.SetAppRootDir(tmp)
 	tw.SetMainInputFile("main.go")
 

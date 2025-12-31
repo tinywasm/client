@@ -29,13 +29,13 @@ func main() { fmt.Println("WASM") }`), 0644)
 		SourceDir:       "web",
 		OutputDir:       "web/public",
 		AssetsURLPrefix: "assets",
-		Logger: func(msg ...any) {
-			t.Log(msg...)
-		},
 	}
 
 	// 1. Initialize - Should be In-Memory (no .wasm file yet)
 	c := New(cfg)
+	c.SetLog(func(msg ...any) {
+		t.Log(msg...)
+	})
 	c.SetAppRootDir(tmpDir)
 	c.SetMainInputFile("client.go")
 	c.SetOutputName("test-client")

@@ -43,21 +43,13 @@ type WasmClient struct {
 	buildMediumSizeShortcut string
 	buildSmallSizeShortcut  string
 	enableWasmExecJsOutput  bool // Default: false (disabled)
-	lastOpID                string
+	log                     func(message ...any)
 }
 
 // New creates a new WasmClient instance with the provided configuration
-// Timeout is set to 40 seconds maximum as TinyGo compilation can be slow
-// Default values: MainInputFile in Config defaults to "main.wasm.go"
 func New(c *Config) *WasmClient {
-	// Ensure we have a config
-	defaults := NewConfig()
 	if c == nil {
-		c = defaults
-	}
-
-	if c.Logger == nil {
-		c.Logger = defaults.Logger
+		c = NewConfig()
 	}
 
 	w := &WasmClient{
@@ -118,6 +110,16 @@ func (w *WasmClient) wasmRoutePath() string {
 // Name returns the name of the WASM project
 func (w *WasmClient) Name() string {
 	return "CLIENT"
+}
+
+func (w *WasmClient) SetLog(f func(message ...any)) {
+	w.log = f
+}
+
+func (w *WasmClient) Logger(messages ...any) {
+	if w.log != nil {
+		w.log(messages...)
+	}
 }
 
 // WasmProjectTinyGoJsUse returns dynamic state based on current configuration

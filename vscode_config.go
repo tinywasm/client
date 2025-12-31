@@ -17,9 +17,7 @@ func (w *WasmClient) VisualStudioCodeWasmEnvConfig() { // Create .vscode directo
 	// Use AppRootDir from Config (falls back to "." by default)
 	vscodeDir := filepath.Join(w.appRootDir, ".vscode")
 	if err := os.MkdirAll(vscodeDir, 0755); err != nil {
-		if w.Logger != nil {
-			w.Logger("Warning: Error creating .vscode directory:", err)
-		}
+		w.Logger("Warning: Error creating .vscode directory:", err)
 		return
 	}
 
@@ -57,16 +55,12 @@ func (w *WasmClient) VisualStudioCodeWasmEnvConfig() { // Create .vscode directo
 	// Write updated settings
 	data, err := json.MarshalIndent(settings, "", "  ")
 	if err != nil {
-		if w.Logger != nil {
-			w.Logger("Warning: marshaling VS Code settings:", err)
-		}
+		w.Logger("Warning: marshaling VS Code settings:", err)
 		return
 	}
 
 	if err := os.WriteFile(settingsPath, data, 0644); err != nil {
-		if w.Logger != nil {
-			w.Logger("Warning: writing VS Code settings:", err)
-		}
+		w.Logger("Warning: writing VS Code settings:", err)
 		return
 	}
 }
@@ -80,9 +74,7 @@ func (w *WasmClient) makeDirectoryHiddenWindows(dirPath string) {
 	// This command is built into all Windows versions and doesn't require PowerShell
 	cmd := exec.Command("cmd", "/c", "attrib", "+h", dirPath)
 	if err := cmd.Run(); err != nil {
-		if w.Logger != nil {
-			w.Logger("Warning: Could not make .vscode directory hidden on Windows:", err)
-		}
+		w.Logger("Warning: Could not make .vscode directory hidden on Windows:", err)
 		// Continue normally - this is not a critical operation for WASM development
 	}
 }

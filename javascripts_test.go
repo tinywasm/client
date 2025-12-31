@@ -32,9 +32,7 @@ func matchedSignatures(content string, sigs []string) []string {
 func TestJavascriptForInitializingSignatures(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	config := &Config{
-		Logger: func(...any) {},
-	}
+	config := &Config{}
 
 	// Create WasmClient instance with temp directory
 	w := New(config)

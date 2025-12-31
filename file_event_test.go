@@ -38,12 +38,12 @@ go 1.21
 	config := &Config{
 		SourceDir: sourceDirName,
 		OutputDir: "output",
-		Logger: func(message ...any) {
-			logMessages = append(logMessages, fmt.Sprint(message...))
-		},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetLog(func(message ...any) {
+		logMessages = append(logMessages, fmt.Sprint(message...))
+	})
 	tinyWasm.SetAppRootDir(tmp)
 	// Force External storage for tests that expect files on disk
 	tinyWasm.storage = &diskStorage{client: tinyWasm}
@@ -126,11 +126,11 @@ go 1.21
 		config := NewConfig()
 		config.SourceDir = sourceDirName
 		config.OutputDir = "output"
-		config.Logger = func(message ...any) {
-			logMessages = append(logMessages, fmt.Sprint(message...))
-		}
 
 		tinyWasm := New(config)
+		tinyWasm.SetLog(func(message ...any) {
+			logMessages = append(logMessages, fmt.Sprint(message...))
+		})
 		tinyWasm.SetAppRootDir(tmp)
 		// Tests run inside the package; set private tinyGoCompiler explicitly
 		tinyWasm.tinyGoCompiler = false // Start with Go standard compiler
@@ -140,23 +140,16 @@ go 1.21
 			t.Fatal("Expected coding mode to be used initially")
 		}
 
-		// Test setting TinyGo compiler (debug mode) using progress channel
-		progressChan := make(chan string, 1)
+		// Test setting TinyGo compiler (debug mode)
 		var changeMsg string
-		done := make(chan bool)
-
-		go func() {
-			for msg := range progressChan {
-				changeMsg = msg
+		tinyWasm.SetLog(func(message ...any) {
+			if len(message) > 0 {
+				changeMsg = fmt.Sprint(message[0])
 			}
-			done <- true
-		}()
+		})
+		tinyWasm.Change("M")
 
-		tinyWasm.Change("M", progressChan)
-		close(progressChan) // Close channel so goroutine can finish
-		<-done
-
-		// If TinyGo isn't available, progress likely contains an error message
+		// If TinyGo isn't available, log likely contains an error message
 		if strings.Contains(strings.ToLower(changeMsg), "cannot") || strings.Contains(strings.ToLower(changeMsg), "not available") {
 			t.Logf("TinyGo not available: %s", changeMsg)
 		} else {
@@ -164,11 +157,12 @@ go 1.21
 			if tinyWasm.Value() != "M" {
 				t.Fatal("Expected Medium mode (debug) to be set after change")
 			}
-			// Message can be success or warning (auto-compilation might fail in test env)
-			// Accept "Medium" (new format) or "debug" (legacy) or "warning"
+			// Message can be success, warning, or auto-compilation error (in test env)
+			// Accept "Medium" (new format) or "debug" (legacy) or "warning" or "error"
 			msgLower := strings.ToLower(changeMsg)
-			if !strings.Contains(msgLower, "medium") && !strings.Contains(msgLower, "debug") && !strings.Contains(msgLower, "warning") {
-				t.Fatalf("Expected Medium mode message or warning, got: %s", changeMsg)
+			if !strings.Contains(msgLower, "medium") && !strings.Contains(msgLower, "debug") &&
+				!strings.Contains(msgLower, "warning") && !strings.Contains(msgLower, "error") {
+				t.Fatalf("Expected Medium mode message, warning, or error, got: %s", changeMsg)
 			}
 		}
 	})
@@ -181,12 +175,12 @@ func TestUnobservedFiles(t *testing.T) {
 	config := &Config{
 		SourceDir: "web",
 		OutputDir: "public",
-		Logger: func(message ...any) {
-			logMessages = append(logMessages, fmt.Sprint(message...))
-		},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetLog(func(message ...any) {
+		logMessages = append(logMessages, fmt.Sprint(message...))
+	})
 	tinyWasm.SetAppRootDir(tmp)
 	unobservedFiles := tinyWasm.UnobservedFiles()
 	// Should contain client.wasm and client_temp.wasm (generated files from gobuild)

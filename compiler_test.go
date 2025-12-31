@@ -26,12 +26,12 @@ func TestShouldCompileToWasm(t *testing.T) {
 	config := &Config{
 		SourceDir: "wasmTest",
 		OutputDir: "output",
-		Logger: func(message ...any) {
-			logMessages = append(logMessages, fmt.Sprint(message...))
-		},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetLog(func(message ...any) {
+		logMessages = append(logMessages, fmt.Sprint(message...))
+	})
 	tinyWasm.SetAppRootDir(rootDir)
 	tests := []struct {
 		name     string
@@ -116,31 +116,25 @@ func TestCompilerComparison(t *testing.T) {
 			config := &Config{
 				SourceDir: "wasmTest",
 				OutputDir: "output",
-				Logger: func(message ...any) {
-					logMessages = append(logMessages, fmt.Sprint(message...))
-				},
 			}
 
 			tinyWasm := New(config)
+			tinyWasm.SetLog(func(message ...any) {
+				logMessages = append(logMessages, fmt.Sprint(message...))
+			})
 			tinyWasm.SetAppRootDir(rootDir)
 			// Tests run in the same package so we can set the private flag directly
 			tinyWasm.tinyGoCompiler = tc.tinyGoEnabled
 
 			// Test compiler detection
 			if tc.tinyGoEnabled {
-				// Try to enable TinyGo (might fail if not installed). Use progress channel to capture messages.
-				progressChan := make(chan string, 1)
 				var msg string
-				done := make(chan bool)
-				go func() {
-					for m := range progressChan {
-						msg = m
+				tinyWasm.SetLog(func(message ...any) {
+					if len(message) > 0 {
+						msg = fmt.Sprint(message[0])
 					}
-					done <- true
-				}()
-				tinyWasm.Change("b", progressChan)
-				close(progressChan) // Close channel so goroutine can finish
-				<-done
+				})
+				tinyWasm.Change("M")
 
 				// If TinyGo isn't available, the progress channel likely contains an error message.
 				if strings.Contains(strings.ToLower(msg), "cannot") || strings.Contains(strings.ToLower(msg), "not available") {

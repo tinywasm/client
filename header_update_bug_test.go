@@ -15,7 +15,6 @@ func TestStoreModePersistence(t *testing.T) {
 	store := &testDatabase{data: make(map[string]string)}
 
 	config := &Config{
-		Logger:   func(...any) {},
 		Database: store,
 	}
 
@@ -27,11 +26,7 @@ func TestStoreModePersistence(t *testing.T) {
 	}
 
 	// Step 2: Change to Medium mode
-	progress := make(chan string, 10)
-	w1.Change("M", progress)
-	close(progress)
-	for range progress {
-	} // drain
+	w1.Change("M")
 
 	saved, _ := store.Get(StoreKeySizeMode)
 	if saved != "M" {
@@ -45,11 +40,7 @@ func TestStoreModePersistence(t *testing.T) {
 	}
 
 	// Step 3: Change to Small mode (critical test for the bug)
-	progress = make(chan string, 10)
-	w2.Change("S", progress)
-	close(progress)
-	for range progress {
-	} // drain
+	w2.Change("S")
 
 	saved, _ = store.Get(StoreKeySizeMode)
 	if saved != "S" {
@@ -65,11 +56,7 @@ func TestStoreModePersistence(t *testing.T) {
 	modes := []string{"M", "S", "L", "M", "S"}
 	for _, mode := range modes {
 		w := New(config)
-		progress = make(chan string, 10)
-		w.Change(mode, progress)
-		close(progress)
-		for range progress {
-		} // drain
+		w.Change(mode)
 
 		saved, _ := store.Get(StoreKeySizeMode)
 		if saved != mode {

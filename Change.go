@@ -12,17 +12,15 @@ func (w *WasmClient) Shortcuts() []map[string]string {
 	}
 }
 
-// Change updates the compiler mode for WasmClient and reports progress via the provided channel.
-// Implements the HandlerEdit interface: Change(newValue string, progress chan<- string)
-// NOTE: The caller (devtui) is responsible for closing the progress channel, NOT the handler.
-func (w *WasmClient) Change(newValue string, progress chan<- string) {
-	// DO NOT close the channel - devtui owns it and will close it after this method returns
+// Change updates the compiler mode for WasmClient.
+// Implements the HandlerEdit interface: Change(newValue string)
+func (w *WasmClient) Change(newValue string) {
 	// Normalize input: trim spaces and convert to uppercase
 	newValue = Convert(newValue).ToUpper().String()
 
 	// Validate mode
 	if err := w.validateMode(newValue); err != nil {
-		progress <- err.Error()
+		w.Logger(err.Error())
 		return
 	}
 
@@ -30,7 +28,7 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 	if w.requiresTinyGo(newValue) {
 		w.verifyTinyGoInstallationStatus()
 		if !w.tinyGoInstalled {
-			progress <- w.handleTinyGoMissing().Error()
+			w.Logger(w.handleTinyGoMissing().Error())
 			return
 		}
 	}
@@ -49,7 +47,7 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 		if errorMsg == "" {
 			errorMsg = "Error: auto compilation failed: " + err.Error()
 		}
-		progress <- errorMsg
+		w.Logger(errorMsg)
 		return
 	}
 
@@ -64,7 +62,7 @@ func (w *WasmClient) Change(newValue string, progress chan<- string) {
 	}
 
 	// Report success
-	progress <- w.getSuccessMessage(newValue)
+	w.Logger(w.getSuccessMessage(newValue))
 }
 
 // RecompileMainWasm recompiles the main WASM file using the current storage mode.
@@ -113,5 +111,3 @@ func (w *WasmClient) getSuccessMessage(mode string) string {
 	}
 
 }
-
-func (w *WasmClient) GetLastOperationID() string { return w.lastOpID }

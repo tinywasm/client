@@ -48,7 +48,6 @@ func TestOutputRelativePath(t *testing.T) {
 			config := &Config{
 				SourceDir: "src",
 				OutputDir: tt.outputDir,
-				Logger:    func(...any) {}, // Silent logger
 			}
 
 			tw := New(config)
@@ -90,7 +89,6 @@ func TestOutputRelativePathConsistency(t *testing.T) {
 	config := &Config{
 		SourceDir: "src/cmd/webclient",
 		OutputDir: "src/web/public",
-		Logger:    func(...any) {},
 	}
 
 	tw := New(config)
@@ -108,16 +106,8 @@ func TestOutputRelativePathConsistency(t *testing.T) {
 	}
 
 	// Switch to debug mode
-	progressChan := make(chan string, 1)
-	done := make(chan bool)
-	go func() {
-		for range progressChan { // Drain all messages
-		}
-		done <- true
-	}()
-	tw.Change("b", progressChan)
-	close(progressChan) // Close channel so goroutine can finish
-	<-done
+	// Switch to debug mode
+	tw.Change("M")
 	resultDebug := tw.OutputRelativePath()
 	if filepath.IsAbs(resultDebug) {
 		t.Errorf("Debug mode: returned absolute path: %s", resultDebug)
@@ -127,16 +117,7 @@ func TestOutputRelativePathConsistency(t *testing.T) {
 	}
 
 	// Switch to production mode
-	progressChan = make(chan string, 1)
-	done = make(chan bool)
-	go func() {
-		for range progressChan { // Drain all messages
-		}
-		done <- true
-	}()
-	tw.Change("m", progressChan)
-	close(progressChan) // Close channel so goroutine can finish
-	<-done
+	tw.Change("S")
 	resultProd := tw.OutputRelativePath()
 	if filepath.IsAbs(resultProd) {
 		t.Errorf("Production mode: returned absolute path: %s", resultProd)

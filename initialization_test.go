@@ -16,7 +16,6 @@ func TestInitialization(t *testing.T) {
 	config := &Config{
 		SourceDir: "web",
 		OutputDir: "web/public",
-		Logger:    func(message ...any) {},
 	}
 
 	tinyWasm := New(config)
@@ -38,7 +37,6 @@ func TestWasmExecJsGeneration(t *testing.T) {
 	config := &Config{
 		SourceDir: "web",
 		OutputDir: "theme/js",
-		Logger:    func(message ...any) {},
 	}
 
 	tinyWasm := New(config)
@@ -80,7 +78,6 @@ func TestDefaultConfiguration(t *testing.T) {
 	config := &Config{
 		SourceDir: "web",
 		OutputDir: "theme/js",
-		Logger:    func(message ...any) {},
 	}
 
 	tinyWasm := New(config)
@@ -103,7 +100,6 @@ func TestCreateDefaultFile(t *testing.T) {
 	config := &Config{
 		SourceDir: "web",
 		OutputDir: "theme/js",
-		Logger:    func(message ...any) {},
 	}
 
 	tinyWasm := New(config)

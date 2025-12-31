@@ -14,22 +14,21 @@ func TestStoreRoundtrip(t *testing.T) {
 	store := &testDatabase{data: make(map[string]string)}
 
 	config := &Config{
-		Logger:   func(...any) {},
 		Database: store,
 	}
 
 	New(config)
 
 	// Test all three supported shortcuts: coding, debugging, production
-	shortcuts := []string{"L", "M", "S"}
-
-	for _, mode := range shortcuts {
+	for _, mode := range []string{"L", "M", "S"} {
 		// Use a fresh WasmClient instance per mode to avoid shared state
 		w := New(config)
 
-		progress := make(chan string, 10)
-		w.Change(mode, progress)
-		close(progress) // Close the channel since Change doesn't
+		// Clear cache to ensure fresh generation
+		w.ClearJavaScriptCache()
+
+		// Change mode
+		w.Change(mode)
 
 		// Check that mode is saved in store
 		saved, err := store.Get(StoreKeySizeMode)

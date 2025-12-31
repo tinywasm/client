@@ -57,12 +57,12 @@ func main() {
 	cfg := NewConfig()
 	cfg.SourceDir = webDirName
 	cfg.OutputDir = filepath.Join(webDirName, "public")
-	cfg.Logger = func(message ...any) {
-		logMessages = append(logMessages, fmt.Sprint(message...))
-	}
 	cfg.Database = &testDatabase{data: make(map[string]string)}
 
 	w := New(cfg)
+	w.SetLog(func(message ...any) {
+		logMessages = append(logMessages, fmt.Sprint(message...))
+	})
 	w.SetAppRootDir(tmp)
 	w.SetWasmExecJsOutputDir(filepath.Join(webDirName, "theme", "js"))
 	// Force External storage for this test as it verifies disk artifacts
@@ -148,20 +148,7 @@ func main() {
 			w.ClearJavaScriptCache()
 
 			// Step 2: Change compilation mode
-			progressChan := make(chan string, 5)
-			var progressMsg string
-			done := make(chan bool)
-
-			go func() {
-				for msg := range progressChan {
-					progressMsg = msg // Capture the last message
-				}
-				done <- true
-			}()
-
-			w.Change(tc.mode, progressChan)
-			close(progressChan) // Close channel so goroutine can finish
-			<-done              // Wait for the goroutine to finish
+			w.Change(tc.mode)
 
 			// Assert that the internal mode has changed
 			if w.Value() != tc.mode {
@@ -202,13 +189,13 @@ func main() {
 			// Step 3: Simulate file modification event to trigger re-compilation
 			err = w.NewFileEvent("main.go", ".go", mainWasmPath, "write")
 			if err != nil {
-				t.Fatalf("mode %s: NewFileEvent with write event failed: %v; progress: %s", tc.name, err, progressMsg)
+				t.Fatalf("mode %s: NewFileEvent with write event failed: %v", tc.name, err)
 			}
 
 			// Step 4: Verify output file and its size
 			fi, err := os.Stat(outPath())
 			if err != nil {
-				t.Fatalf("mode %s: expected output file at %s, got error: %v; progress: %s", tc.name, outPath(), err, progressMsg)
+				t.Fatalf("mode %s: expected output file at %s, got error: %v", tc.name, outPath(), err)
 			}
 
 			// Use the specific assertion for the test case
@@ -220,16 +207,7 @@ func main() {
 	// Verify that Go and TinyGo generate different JavaScript
 	if tinygoPresent {
 		// Switch to a TinyGo mode to get TinyGo JavaScript
-		progressChan := make(chan string, 1)
-		done := make(chan bool)
-		go func() {
-			for range progressChan { // Drain all messages
-			}
-			done <- true
-		}()
-		w.Change("M", progressChan)
-		close(progressChan) // Close channel so goroutine can finish
-		<-done
+		w.Change("M")
 
 		tinygoJS, err := w.JavascriptForInitializing()
 		if err != nil {

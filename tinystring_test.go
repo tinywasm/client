@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -65,19 +66,15 @@ func TestTinyStringMessages(t *testing.T) {
 		tw := New(config)
 		tw.SetAppRootDir(t.TempDir())
 
-		// Test valid mode change using progress channel
-		progressChan := make(chan string, 1)
 		var got string
-		done := make(chan bool)
-		go func() {
-			for msg := range progressChan {
-				got = msg
+		tw.SetLog(func(message ...any) {
+			if len(message) > 0 {
+				got = fmt.Sprint(message[0])
 			}
-			done <- true
-		}()
-		tw.Change("L", progressChan)
-		close(progressChan) // Close channel so goroutine can finish
-		<-done
+		})
+
+		// Test valid mode change
+		tw.Change("L")
 
 		// Allow warning if no main.wasm.go exists in test env
 		if got == "" {
@@ -85,19 +82,14 @@ func TestTinyStringMessages(t *testing.T) {
 		}
 		t.Logf("Change message (success or warning): %s", got)
 
-		// Test invalid mode (non-existent mode) via progress channel
-		errChan := make(chan string, 1)
+		// Test invalid mode (non-existent mode)
 		var errMsg string
-		errDone := make(chan bool)
-		go func() {
-			for msg := range errChan {
-				errMsg = msg
+		tw.SetLog(func(message ...any) {
+			if len(message) > 0 {
+				errMsg = fmt.Sprint(message[0])
 			}
-			errDone <- true
-		}()
-		tw.Change("invalid", errChan)
-		close(errChan) // Close channel so goroutine can finish
-		<-errDone
+		})
+		tw.Change("invalid")
 
 		// Ensure that the current value did not change and that validateMode reports an error.
 		if tw.Value() != "L" {

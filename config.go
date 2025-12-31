@@ -22,7 +22,6 @@ type Config struct {
 	// default: "" -> serves at "/client.wasm"
 	AssetsURLPrefix string
 
-	Logger func(message ...any)
 	// TinyGoCompiler removed: tinyGoCompiler (private) in WasmClient is used instead to avoid confusion
 
 	// gobuild integration fields
@@ -38,8 +37,5 @@ func NewConfig() *Config {
 	return &Config{
 		SourceDir: "web",
 		OutputDir: "web/public",
-		Logger: func(message ...any) {
-			// Default logger: do nothing (silent operation)
-		},
 	}
 }

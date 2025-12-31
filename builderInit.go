@@ -16,6 +16,7 @@ func (w *WasmClient) builderWasmInit() {
 
 	// Base configuration shared by all builders
 	baseConfig := gobuild.Config{
+		AppRootDir:                w.appRootDir, // CRITICAL: Set working directory for go.mod resolution
 		MainInputFileRelativePath: mainInputFileRelativePath,
 		OutName:                   w.outputName, // Output will be {OutputName}.wasm
 		Extension:                 ".wasm",

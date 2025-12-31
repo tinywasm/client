@@ -25,14 +25,14 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	config := &Config{
 		SourceDir: "web",
 		OutputDir: "theme/js",
-		Logger: func(message ...any) {
-			msg := fmt.Sprint(message...)
-			messages = append(messages, msg)
-			t.Log("LOG:", msg)
-		},
 	}
 
 	tinyWasm := New(config)
+	tinyWasm.SetLog(func(message ...any) {
+		msg := fmt.Sprint(message...)
+		messages = append(messages, msg)
+		t.Log("LOG:", msg)
+	})
 	tinyWasm.SetAppRootDir(testDir)
 	tinyWasm.SetEnableWasmExecJsOutput(true)
 	tinyWasm.SetWasmExecJsOutputDir("theme/js")
