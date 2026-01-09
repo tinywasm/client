@@ -44,6 +44,7 @@ type WasmClient struct {
 	buildMediumSizeShortcut string
 	buildSmallSizeShortcut  string
 	enableWasmExecJsOutput  bool // Default: false (disabled)
+	shouldCreateIDEConfig   func() bool
 	log                     func(message ...any)
 
 	// storageMu protects storage and currenSizeMode fields from concurrent access
@@ -74,6 +75,8 @@ func New(c *Config) *WasmClient {
 
 		// Initialize with default mode
 		currenSizeMode: "L", // Start with coding mode
+
+		shouldCreateIDEConfig: func() bool { return false },
 	}
 
 	// Initialize gobuild instance with WASM-specific configuration
@@ -260,4 +263,10 @@ func (w *WasmClient) SetBuildShortcuts(large, medium, small string) {
 // SetEnableWasmExecJsOutput enables automatic creation of wasm_exec.js file.
 func (w *WasmClient) SetEnableWasmExecJsOutput(enable bool) {
 	w.enableWasmExecJsOutput = enable
+}
+
+// SetShouldCreateIDEConfig sets a function that determines if IDE configuration
+// files (like .vscode) should be created.
+func (w *WasmClient) SetShouldCreateIDEConfig(f func() bool) {
+	w.shouldCreateIDEConfig = f
 }

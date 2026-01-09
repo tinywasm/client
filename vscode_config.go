@@ -14,6 +14,10 @@ import (
 // This configuration enables VS Code's Go extension to properly recognize WASM imports and provide
 // accurate IntelliSense, error detection, and code completion for syscall/js and other WASM-specific packages.
 func (w *WasmClient) VisualStudioCodeWasmEnvConfig() { // Create .vscode directory if it doesn't exist
+	if w.shouldCreateIDEConfig != nil && !w.shouldCreateIDEConfig() {
+		return
+	}
+
 	// Use AppRootDir from Config (falls back to "." by default)
 	vscodeDir := filepath.Join(w.appRootDir, ".vscode")
 	if err := os.MkdirAll(vscodeDir, 0755); err != nil {
