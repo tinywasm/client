@@ -2,6 +2,7 @@ package client
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/tinywasm/gobuild"
 )
@@ -44,6 +45,9 @@ type WasmClient struct {
 	buildSmallSizeShortcut  string
 	enableWasmExecJsOutput  bool // Default: false (disabled)
 	log                     func(message ...any)
+
+	// storageMu protects storage and currenSizeMode fields from concurrent access
+	storageMu sync.RWMutex
 }
 
 // New creates a new WasmClient instance with the provided configuration
@@ -87,6 +91,8 @@ func New(c *Config) *WasmClient {
 // RegisterRoutes registers the WASM client file route on the provided mux.
 // It delegates to the active storage.
 func (w *WasmClient) RegisterRoutes(mux *http.ServeMux) {
+	w.storageMu.RLock()
+	defer w.storageMu.RUnlock()
 	w.storage.RegisterRoutes(mux)
 }
 
@@ -148,6 +154,9 @@ func (w *WasmClient) Value() string {
 	// Sync with store if available
 	w.loadMode()
 
+	w.storageMu.RLock()
+	defer w.storageMu.RUnlock()
+
 	// Use explicit mode tracking instead of pointer comparison
 	if w.currenSizeMode == "" {
 		return w.buildLargeSizeShortcut // Default to coding mode
@@ -156,25 +165,30 @@ func (w *WasmClient) Value() string {
 }
 
 // SetBuildOnDisk switches between In-Memory and External (Disk) storage.
-// Compilation is only triggered when there is an actual mode change to avoid
-// unnecessary builds during initialization.
-func (w *WasmClient) SetBuildOnDisk(onDisk bool) {
+// When compileNow is true, compilation is triggered immediately after mode switch.
+// When compileNow is false, compilation (and directory creation) is deferred until first explicit Compile() call.
+func (w *WasmClient) SetBuildOnDisk(onDisk, compileNow bool) {
+	w.storageMu.Lock()
+	defer w.storageMu.Unlock()
+
 	if onDisk {
 		if _, ok := w.storage.(*diskStorage); !ok {
 			w.storage = &diskStorage{client: w}
 			w.Logger("WASM Client switched to External (Disk) Mode")
-			// Trigger compilation only when switching modes
-			if err := w.storage.Compile(); err != nil {
-				w.Logger("Compilation failed after mode switch:", err)
+			if compileNow {
+				if err := w.storage.Compile(); err != nil {
+					w.Logger("Compilation failed after mode switch:", err)
+				}
 			}
 		}
 	} else {
 		if _, ok := w.storage.(*memoryStorage); !ok {
 			w.storage = &memoryStorage{client: w}
 			w.Logger("WASM Client switched to In-Memory Mode")
-			// Trigger compilation only when switching modes
-			if err := w.storage.Compile(); err != nil {
-				w.Logger("Compilation failed after mode switch:", err)
+			if compileNow {
+				if err := w.storage.Compile(); err != nil {
+					w.Logger("Compilation failed after mode switch:", err)
+				}
 			}
 		}
 	}
@@ -184,6 +198,8 @@ func (w *WasmClient) SetBuildOnDisk(onDisk bool) {
 func (w *WasmClient) loadMode() {
 	if w.Database != nil {
 		if val, err := w.Database.Get(StoreKeySizeMode); err == nil && val != "" {
+			w.storageMu.Lock()
+			defer w.storageMu.Unlock()
 			// Only update if the mode is different from current
 			if w.currenSizeMode != val {
 				w.currenSizeMode = val

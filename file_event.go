@@ -32,23 +32,24 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 		return nil
 	}
 
-	// IMPORTANT: At this point, devwatch has already called depfind.ThisFileIsMine()
-	// and confirmed this file belongs to this handler. We should ALWAYS compile.
-	// The old ShouldCompileToWasm() check was incorrect - it rejected dependency files.
+	// Capture storage under read lock to prevent data race with SetBuildOnDisk
+	w.storageMu.RLock()
+	s := w.storage
+	w.storageMu.RUnlock()
 
 	// Compile using current storage (In-Memory or External)
-	if w.storage == nil {
+	if s == nil {
 		return Err("storage not initialized")
 	}
 
 	w.Logger("Compiling WASM due to", filePath, "change...")
 
 	// Compile using storage
-	if err := w.storage.Compile(); err != nil {
+	if err := s.Compile(); err != nil {
 		return Err("compiling to WebAssembly error: ", err)
 	}
 
-	w.Logger("✓ WASM compilation successful")
+	w.Logger("WASM", s.Name(), w.MainInputFileRelativePath(), w.activeSizeBuilder.BinarySize())
 
 	if w.OnWasmExecChange != nil {
 		w.OnWasmExecChange()

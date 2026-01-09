@@ -62,14 +62,14 @@ func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
 	}
 
 	// DEBUG: Log which wasm_exec.js is being selected
-	w.Logger("DEBUG getWasmExecContent: mode=", mode, ", useTinyGo=", useTinyGo, ", buildMediumShortcut=", w.buildMediumSizeShortcut)
+	//w.Logger("DEBUG getWasmExecContent: mode=", mode, ", useTinyGo=", useTinyGo, ", buildMediumShortcut=", w.buildMediumSizeShortcut)
 
 	// Return appropriate embedded content based on compiler configuration
 	if useTinyGo {
-		w.Logger("DEBUG: Returning TinyGo wasm_exec.js")
+		//w.Logger("DEBUG: Returning TinyGo wasm_exec.js")
 		return embeddedWasmExecTinyGo, nil
 	}
-	w.Logger("DEBUG: Returning Go standard wasm_exec.js")
+	//w.Logger("DEBUG: Returning Go standard wasm_exec.js")
 	return embeddedWasmExecGo, nil
 }
 
@@ -272,7 +272,7 @@ func (w *WasmClient) GetWasmExecJsPathGo() (string, error) {
 func (w *WasmClient) wasmProjectWriteOrReplaceWasmExecJsOutput() {
 	outputPath := w.WasmExecJsOutputPath()
 
-	w.Logger("DEBUG: Writing/overwriting wasm_exec.js to output path:", outputPath)
+	//w.Logger("DEBUG: Writing/overwriting wasm_exec.js to output path:", outputPath)
 
 	// Create output directory if it doesn't exist
 	outputDir := filepath.Dir(outputPath)
@@ -294,5 +294,5 @@ func (w *WasmClient) wasmProjectWriteOrReplaceWasmExecJsOutput() {
 		return
 	}
 
-	w.Logger("DEBUG: Wrote/overwrote JavaScript initialization file in output directory")
+	//w.Logger("DEBUG: Wrote/overwrote JavaScript initialization file in output directory")
 }
