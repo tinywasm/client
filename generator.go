@@ -14,6 +14,11 @@ var embeddedFS embed.FS
 // CreateDefaultWasmFileClientIfNotExist creates a default WASM main.go file from the embedded markdown template
 // It never overwrites an existing file and returns the WasmClient instance for method chaining.
 func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
+	// Check if generation is allowed
+	if t.shouldGenerateDefaultFile != nil && !t.shouldGenerateDefaultFile() {
+		return t
+	}
+
 	// Build target path from Config
 	targetPath := filepath.Join(t.appRootDir, t.Config.SourceDir, t.mainInputFile)
 

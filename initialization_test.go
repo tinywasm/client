@@ -104,6 +104,7 @@ func TestCreateDefaultFile(t *testing.T) {
 
 	tinyWasm := New(config)
 	tinyWasm.SetAppRootDir(testDir)
+	tinyWasm.SetShouldGenerateDefaultFile(func() bool { return true })
 
 	// Now create the default WASM file
 	result := tinyWasm.CreateDefaultWasmFileClientIfNotExist()

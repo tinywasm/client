@@ -37,15 +37,16 @@ type WasmClient struct {
 	wasmExecJsOutputDir string // output dir for wasm_exec.js file (relative) eg: "web/js", "theme/js"
 
 	// Configuration fields moved from Config
-	appRootDir              string
-	mainInputFile           string
-	outputName              string
-	buildLargeSizeShortcut  string
-	buildMediumSizeShortcut string
-	buildSmallSizeShortcut  string
-	enableWasmExecJsOutput  bool // Default: false (disabled)
-	shouldCreateIDEConfig   func() bool
-	log                     func(message ...any)
+	appRootDir                string
+	mainInputFile             string
+	outputName                string
+	buildLargeSizeShortcut    string
+	buildMediumSizeShortcut   string
+	buildSmallSizeShortcut    string
+	enableWasmExecJsOutput    bool // Default: false (disabled)
+	shouldCreateIDEConfig     func() bool
+	shouldGenerateDefaultFile func() bool
+	log                       func(message ...any)
 
 	// storageMu protects storage and currenSizeMode fields from concurrent access
 	storageMu sync.RWMutex
@@ -76,7 +77,8 @@ func New(c *Config) *WasmClient {
 		// Initialize with default mode
 		currenSizeMode: "L", // Start with coding mode
 
-		shouldCreateIDEConfig: func() bool { return false },
+		shouldCreateIDEConfig:     func() bool { return false },
+		shouldGenerateDefaultFile: func() bool { return false },
 	}
 
 	// Initialize gobuild instance with WASM-specific configuration
@@ -269,4 +271,10 @@ func (w *WasmClient) SetEnableWasmExecJsOutput(enable bool) {
 // files (like .vscode) should be created.
 func (w *WasmClient) SetShouldCreateIDEConfig(f func() bool) {
 	w.shouldCreateIDEConfig = f
+}
+
+// SetShouldGenerateDefaultFile sets a function that determines if the default
+// WASM client source file (usually client.go) should be created if it doesn't exist.
+func (w *WasmClient) SetShouldGenerateDefaultFile(f func() bool) {
+	w.shouldGenerateDefaultFile = f
 }

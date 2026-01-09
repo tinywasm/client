@@ -6,12 +6,12 @@ require github.com/tinywasm/gobuild v0.0.22
 
 require github.com/tinywasm/fmt v0.14.0
 
-require github.com/tinywasm/devflow v0.0.31
+require github.com/tinywasm/devflow v0.0.33
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
-	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
 )
