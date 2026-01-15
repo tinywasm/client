@@ -25,8 +25,9 @@ Intelligent WebAssembly compilation manager for Go with automatic project detect
 ```go
 // 1. Create base configuration
 cfg := client.NewConfig()
-cfg.SourceDir = "web"
-cfg.OutputDir = "web/public"
+// Customize source and output directories if needed (must be functions)
+cfg.SourceDir = func() string { return "web" }
+cfg.OutputDir = func() string { return "web/public" }
 
 // 2. Initialize client
 twc := client.New(cfg)
@@ -41,20 +42,29 @@ twc.SetBuildShortcuts("L", "M", "S") // customize mode triggers
 twc.SetWasmExecJsOutputDir("web/theme/js")
 ```
 
-### Mode Switching (DevTUI Integration)
+### Project Initialization
 
-Switching modes is asynchronous and reports progress via a channel:
+`client` provides helpers to quickly set up a new WASM project. This includes generating a default `client.go` and configuring `.vscode/settings.json` for proper `gopls` support (handling `GOOS=js` and `GOARCH=wasm`).
 
 ```go
-progress := make(chan string)
-go func() {
-    for p := range progress {
-        fmt.Println("Status:", p)
-    }
-}()
+// Generate default client.go and .vscode configuration if they don't exist
+twc.CreateDefaultWasmFileClientIfNotExist()
+```
 
+### Mode Switching (DevTUI Integration)
+
+Switching modes is asynchronous and reports status via the configured Logger.
+
+```go
 // Switch to Small (Production) mode
-twc.Change("S", progress)
+twc.Change("S")
+```
+
+You can also retrieve the current shortcuts mapping:
+
+```go
+shortcuts := twc.Shortcuts()
+// returns []map[string]string, e.g., [{"L": "Large (stLib)"}, ...]
 ```
 
 ## 🏗 Core Concepts
@@ -65,8 +75,8 @@ twc.Change("S", progress)
 
 1.  **WASM Binary** (via `OutputDir`): The final WebAssembly file loaded by the browser.
 2.  **JavaScript Runtime**: Mode-specific `wasm_exec.js`.
-    - **Dynamic**: Recommended to use `tw.JavascriptForInitializing()` to get the content directly for embedding or serving.
-    - **Disk-based**: Use `tw.SetWasmExecJsOutputDir()` if you need a physical file for external bundlers or mode-transparency for other tools.
+    - **Dynamic**: Recommended to use `twc.JavascriptForInitializing()` to get the content directly for embedding or serving.
+    - **Disk-based**: Use `twc.SetWasmExecJsOutputDir()` if you need a physical file for external bundlers or mode-transparency for other tools.
 
 ### Serving Strategies
 
