@@ -14,8 +14,8 @@ func TestInitialization(t *testing.T) {
 
 	// Create WasmClient instance
 	config := &Config{
-		SourceDir: "web",
-		OutputDir: "web/public",
+		SourceDir: func() string { return "web" },
+		OutputDir: func() string { return "web/public" },
 	}
 
 	tinyWasm := New(config)
@@ -35,8 +35,8 @@ func TestWasmExecJsGeneration(t *testing.T) {
 
 	// Create WasmClient instance
 	config := &Config{
-		SourceDir: "web",
-		OutputDir: "theme/js",
+		SourceDir: func() string { return "web" },
+		OutputDir: func() string { return "theme/js" },
 	}
 
 	tinyWasm := New(config)
@@ -76,8 +76,8 @@ func TestWasmExecJsGeneration(t *testing.T) {
 // TestDefaultConfiguration tests reaching the correct path for wasm_exec.js
 func TestDefaultConfiguration(t *testing.T) {
 	config := &Config{
-		SourceDir: "web",
-		OutputDir: "theme/js",
+		SourceDir: func() string { return "web" },
+		OutputDir: func() string { return "theme/js" },
 	}
 
 	tinyWasm := New(config)
@@ -98,8 +98,8 @@ func TestCreateDefaultFile(t *testing.T) {
 
 	// Create WasmClient instance
 	config := &Config{
-		SourceDir: "web",
-		OutputDir: "theme/js",
+		SourceDir: func() string { return "web" },
+		OutputDir: func() string { return "theme/js" },
 	}
 
 	tinyWasm := New(config)

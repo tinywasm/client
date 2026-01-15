@@ -9,8 +9,8 @@ import (
 func TestTinyStringMessages(t *testing.T) {
 	t.Run("Test success messages with TinyString", func(t *testing.T) {
 		config := NewConfig()
-		config.SourceDir = "test"
-		config.OutputDir = "public"
+		config.SourceDir = func() string { return "test" }
+		config.OutputDir = func() string { return "public" }
 		tw := New(config)
 		tw.SetAppRootDir(t.TempDir())
 
@@ -42,8 +42,8 @@ func TestTinyStringMessages(t *testing.T) {
 
 	t.Run("Test error messages with TinyString", func(t *testing.T) {
 		config := NewConfig()
-		config.SourceDir = "test"
-		config.OutputDir = "public"
+		config.SourceDir = func() string { return "test" }
+		config.OutputDir = func() string { return "public" }
 		tw := New(config)
 		tw.SetAppRootDir(t.TempDir())
 
@@ -61,8 +61,8 @@ func TestTinyStringMessages(t *testing.T) {
 
 	t.Run("Test Change method with TinyString messages", func(t *testing.T) {
 		config := NewConfig()
-		config.SourceDir = "test"
-		config.OutputDir = "public"
+		config.SourceDir = func() string { return "test" }
+		config.OutputDir = func() string { return "public" }
 		tw := New(config)
 		tw.SetAppRootDir(t.TempDir())
 

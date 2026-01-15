@@ -10,9 +10,9 @@ func TestCreateDefaultWasmFileClientGuard(t *testing.T) {
 	tmp := t.TempDir()
 	sourceDir := "web"
 	cfg := NewConfig()
-	cfg.SourceDir = sourceDir
-
 	tw := New(cfg)
+	tw.Config.SourceDir = func() string { return sourceDir }
+
 	tw.SetAppRootDir(tmp)
 	tw.SetMainInputFile("client.go")
 

@@ -55,11 +55,11 @@ func main() {
 	// Prepare config with logger to prevent nil pointer dereference
 	var logMessages []string
 	cfg := NewConfig()
-	cfg.SourceDir = webDirName
-	cfg.OutputDir = filepath.Join(webDirName, "public")
+	w := New(cfg) // Initialize w first to access w.Config
+	w.Config.SourceDir = func() string { return webDirName }
+	w.Config.OutputDir = func() string { return filepath.Join(webDirName, "public") }
 	cfg.Database = &testDatabase{data: make(map[string]string)}
 
-	w := New(cfg)
 	w.SetLog(func(message ...any) {
 		logMessages = append(logMessages, fmt.Sprint(message...))
 	})
@@ -86,7 +86,7 @@ func main() {
 	}
 
 	outPath := func() string {
-		return filepath.Join(tmp, cfg.OutputDir, "client.wasm")
+		return filepath.Join(tmp, w.Config.OutputDir(), "client.wasm")
 	}
 
 	// Initial compile in coding mode to get a baseline file size

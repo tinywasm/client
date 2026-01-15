@@ -58,6 +58,14 @@ func New(c *Config) *WasmClient {
 		c = NewConfig()
 	}
 
+	// Ensure dynamic fields are never nil to prevent panics in builders
+	if c.SourceDir == nil {
+		c.SourceDir = func() string { return "web" }
+	}
+	if c.OutputDir == nil {
+		c.OutputDir = func() string { return "web/public" }
+	}
+
 	w := &WasmClient{
 		Config: c,
 

@@ -13,7 +13,7 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 	fullSourcePath := filepath.Join(tmp, sourceDir)
 
 	cfg := NewConfig()
-	cfg.SourceDir = sourceDir
+	cfg.SourceDir = func() string { return sourceDir }
 
 	tw := New(cfg)
 	tw.SetAppRootDir(tmp)
@@ -66,7 +66,7 @@ func TestCreateDefaultWasmFileClientIfNotExistDoesNotOverwrite(t *testing.T) {
 	}
 
 	cfg := NewConfig()
-	cfg.SourceDir = sourceDir
+	cfg.SourceDir = func() string { return sourceDir }
 
 	tw := New(cfg)
 	tw.SetAppRootDir(tmp)

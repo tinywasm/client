@@ -46,8 +46,8 @@ func TestOutputRelativePath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := &Config{
-				SourceDir: "src",
-				OutputDir: tt.outputDir,
+				SourceDir: func() string { return "src" },
+				OutputDir: func() string { return tt.outputDir },
 			}
 
 			tw := New(config)
@@ -87,8 +87,8 @@ func TestOutputRelativePathConsistency(t *testing.T) {
 	tempDir := t.TempDir()
 
 	config := &Config{
-		SourceDir: "src/cmd/webclient",
-		OutputDir: "src/web/public",
+		SourceDir: func() string { return "src/cmd/webclient" },
+		OutputDir: func() string { return "src/web/public" },
 	}
 
 	tw := New(config)

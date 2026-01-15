@@ -90,7 +90,7 @@ func (s *diskStorage) Compile() error {
 	s.client.Logger("Compiling WASM Client (External/Disk)...")
 
 	// Ensure directory exists
-	outDir := filepath.Join(s.client.appRootDir, s.client.Config.OutputDir)
+	outDir := filepath.Join(s.client.appRootDir, s.client.Config.OutputDir())
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		return err
 	}
@@ -101,10 +101,10 @@ func (s *diskStorage) Compile() error {
 
 func (s *diskStorage) RegisterRoutes(mux *http.ServeMux) {
 	routePath := s.client.wasmRoutePath()
-	fsPath := filepath.Join(s.client.Config.OutputDir, s.client.outputName+".wasm")
+	result := filepath.Join(s.client.Config.OutputDir(), s.client.outputName+".wasm")
 	// Note: Config.OutputDir is relative to AppRootDir usually, but ServeFile needs OS path.
 	// We need absolute path.
-	absPath := filepath.Join(s.client.appRootDir, fsPath)
+	absPath := filepath.Join(s.client.appRootDir, result)
 
 	mux.HandleFunc(routePath, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/wasm")

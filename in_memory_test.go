@@ -26,8 +26,8 @@ func main() { fmt.Println("WASM") }`), 0644)
 	}
 
 	cfg := &Config{
-		SourceDir:       "web",
-		OutputDir:       "web/public",
+		SourceDir:       func() string { return "web" },
+		OutputDir:       func() string { return "web/public" },
 		AssetsURLPrefix: "assets",
 	}
 

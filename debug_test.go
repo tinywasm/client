@@ -23,8 +23,8 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	// Create WasmClient instance with verbose logging
 	messages := []string{}
 	config := &Config{
-		SourceDir: "web",
-		OutputDir: "theme/js",
+		SourceDir: func() string { return "web" },
+		OutputDir: func() string { return "theme/js" },
 	}
 
 	tinyWasm := New(config)
@@ -44,7 +44,7 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	}
 
 	// Check if wasm_exec.js was created
-	wasmExecPath := filepath.Join(testDir, config.OutputDir, "wasm_exec.js")
+	wasmExecPath := filepath.Join(testDir, config.OutputDir(), "wasm_exec.js")
 	t.Logf("Checking path: %s", wasmExecPath)
 
 	info, err := os.Stat(wasmExecPath)

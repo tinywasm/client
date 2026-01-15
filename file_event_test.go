@@ -36,8 +36,8 @@ go 1.21
 	// Configure WasmClient handler with a logger for testing output
 	var logMessages []string
 	config := &Config{
-		SourceDir: sourceDirName,
-		OutputDir: "output",
+		SourceDir: func() string { return sourceDirName },
+		OutputDir: func() string { return "output" },
 	}
 
 	tinyWasm := New(config)
@@ -124,8 +124,8 @@ go 1.21
 		// Test initial configuration
 		var logMessages []string
 		config := NewConfig()
-		config.SourceDir = sourceDirName
-		config.OutputDir = "output"
+		config.SourceDir = func() string { return sourceDirName }
+		config.OutputDir = func() string { return "output" }
 
 		tinyWasm := New(config)
 		tinyWasm.SetLog(func(message ...any) {
@@ -173,8 +173,8 @@ func TestUnobservedFiles(t *testing.T) {
 	tmp := t.TempDir()
 	var logMessages []string
 	config := &Config{
-		SourceDir: "web",
-		OutputDir: "public",
+		SourceDir: func() string { return "web" },
+		OutputDir: func() string { return "public" },
 	}
 
 	tinyWasm := New(config)

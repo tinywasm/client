@@ -10,11 +10,13 @@ import (
 
 // builderWasmInit configures 3 builders for WASM compilation modes
 func (w *WasmClient) builderWasmInit() {
-	sourceDir := filepath.Join(w.appRootDir, w.Config.SourceDir)
-	outputDir := filepath.Join(w.appRootDir, w.Config.OutputDir)
+	sourceDir := filepath.Join(w.appRootDir, w.Config.SourceDir())
+	outputDir := filepath.Join(w.appRootDir, w.Config.OutputDir())
 	mainInputFileRelativePath := filepath.Join(sourceDir, w.mainInputFile)
 
 	// Base configuration shared by all builders
+	// The baseConfig is no longer used directly for builderSizeLarge, but its fields are replicated.
+	// The other builders (Medium, Small) will still use a derived config from this base.
 	baseConfig := gobuild.Config{
 		AppRootDir:                w.appRootDir, // CRITICAL: Set working directory for go.mod resolution
 		MainInputFileRelativePath: mainInputFileRelativePath,
@@ -120,6 +122,6 @@ func (w *WasmClient) OutputRelativePath() string {
 
 	// Fallback: construct from config values (which are already relative)
 	// Normalize to forward slashes for consistency
-	result := filepath.Join(w.Config.OutputDir, w.outputName+".wasm")
+	result := filepath.Join(w.Config.OutputDir(), w.outputName+".wasm")
 	return strings.ReplaceAll(result, "\\", "/")
 }

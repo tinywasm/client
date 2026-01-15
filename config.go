@@ -11,11 +11,11 @@ type KeyValueDataBase interface {
 type Config struct {
 	// SourceDir specifies the directory containing the Go source for the webclient (relative to AppRootDir).
 	// e.g., "web"
-	SourceDir string
+	SourceDir func() string
 
 	// OutputDir specifies the directory for WASM and related assets (relative to AppRootDir).
 	// e.g., "web/public"
-	OutputDir string
+	OutputDir func() string
 
 	// AssetsURLPrefix is an optional URL prefix/folder for serving the WASM file.
 	// e.g. "assets" -> serves at "/assets/client.wasm"
@@ -35,7 +35,7 @@ type Config struct {
 // NewConfig creates a WasmClient Config with sensible defaults
 func NewConfig() *Config {
 	return &Config{
-		SourceDir: "web",
-		OutputDir: "web/public",
+		SourceDir: func() string { return "web" },
+		OutputDir: func() string { return "web/public" },
 	}
 }

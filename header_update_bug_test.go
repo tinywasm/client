@@ -14,9 +14,8 @@ func TestStoreModePersistence(t *testing.T) {
 
 	store := &testDatabase{data: make(map[string]string)}
 
-	config := &Config{
-		Database: store,
-	}
+	config := NewConfig()
+	config.Database = store
 
 	// Step 1: Start with initial mode (should be L)
 	w1 := New(config)

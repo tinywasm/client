@@ -24,8 +24,8 @@ func TestShouldCompileToWasm(t *testing.T) {
 	// modules support removed; tests operate on sourceDir directly
 	var logMessages []string
 	config := &Config{
-		SourceDir: "wasmTest",
-		OutputDir: "output",
+		SourceDir: func() string { return "wasmTest" },
+		OutputDir: func() string { return "output" },
 	}
 
 	tinyWasm := New(config)
@@ -114,8 +114,8 @@ func TestCompilerComparison(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var logMessages []string
 			config := &Config{
-				SourceDir: "wasmTest",
-				OutputDir: "output",
+				SourceDir: func() string { return "wasmTest" },
+				OutputDir: func() string { return "output" },
 			}
 
 			tinyWasm := New(config)

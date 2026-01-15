@@ -19,14 +19,9 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 		return t
 	}
 
-	// Build target path from Config
-	targetPath := filepath.Join(t.appRootDir, t.Config.SourceDir, t.mainInputFile)
-
-	// Never overwrite existing files
-	if _, err := os.Stat(targetPath); err == nil {
-		t.Logger("WASM source file already exists at", targetPath, ", skipping generation")
-		// Fallthrough to switch mode logic below
-	} else {
+	// Path to client.go
+	clientPath := filepath.Join(t.appRootDir, t.Config.SourceDir(), t.mainInputFile)
+	if _, err := os.Stat(clientPath); os.IsNotExist(err) {
 		// Read embedded markdown (no template processing needed - static content)
 		raw, errRead := embeddedFS.ReadFile("templates/basic_wasm_client.md")
 		if errRead != nil {
@@ -42,10 +37,16 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 			return os.WriteFile(name, data, 0o644)
 		}
 
-		// devflow needs the full destination path
-		destDir := filepath.Join(t.appRootDir, t.Config.SourceDir)
+		// Ensure SourceDir exists
+		srcDir := filepath.Join(t.appRootDir, t.Config.SourceDir())
+		if _, err := os.Stat(srcDir); os.IsNotExist(err) {
+			if err := os.MkdirAll(srcDir, 0o755); err != nil {
+				t.Logger("Error creating source directory:", err)
+				return t
+			}
+		}
 
-		m := devflow.NewMarkDown(t.appRootDir, destDir, writer).
+		m := devflow.NewMarkDown(t.appRootDir, srcDir, writer).
 			InputByte(raw)
 
 		// Extract to the main file
@@ -54,7 +55,7 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 			return t
 		}
 
-		t.Logger("Generated WASM source file at", targetPath)
+		t.Logger("Generated WASM source file at", clientPath)
 
 		t.VisualStudioCodeWasmEnvConfig()
 	}
