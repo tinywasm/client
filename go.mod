@@ -6,7 +6,7 @@ require github.com/tinywasm/gobuild v0.0.22
 
 require github.com/tinywasm/fmt v0.14.0
 
-require github.com/tinywasm/devflow v0.0.59
+require github.com/tinywasm/devflow v0.0.60
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
