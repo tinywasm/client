@@ -44,9 +44,7 @@ func (w *WasmClient) Change(newValue string) {
 	// Auto-recompile
 	if err := w.RecompileMainWasm(); err != nil {
 		errorMsg := Translate("Error:", "auto", "compilation", "failed:", err).String()
-		if errorMsg == "" {
-			errorMsg = "Error: auto compilation failed: " + err.Error()
-		}
+		//errorMsg = "Error: auto compilation failed: " + err.Error()
 		w.Logger(errorMsg)
 		return
 	}
@@ -61,17 +59,7 @@ func (w *WasmClient) Change(newValue string) {
 		w.OnWasmExecChange()
 	}
 
-	// Report success
-	switch newValue {
-	case w.buildLargeSizeShortcut:
-		w.LogSuccessState("Changed", "To", "Mode", "Large")
-	case w.buildMediumSizeShortcut:
-		w.LogSuccessState("Changed", "To", "Mode", "Medium")
-	case w.buildSmallSizeShortcut:
-		w.LogSuccessState("Changed", "To", "Mode", "Small")
-	default:
-		w.LogSuccessState("Changed", "To", "Mode", newValue)
-	}
+	w.logSuccessState("Changed", "To", "Mode", newValue)
 }
 
 // RecompileMainWasm recompiles the main WASM file using the current storage mode.
@@ -105,19 +93,9 @@ func (w *WasmClient) validateMode(mode string) error {
 	return Err(D.Mode, ":", mode, D.Invalid, D.Valid, ":", validModes)
 }
 
-// LogSuccessState logs the standard success message with WASM details
-func (w *WasmClient) LogSuccessState(messages ...any) {
-	w.storageMu.RLock()
-	defer w.storageMu.RUnlock()
-	w.logSuccessState(messages...)
-}
-
+// logSuccessState logs the standard success message with WASM details (Safe: Acquires Lock)
 func (w *WasmClient) logSuccessState(messages ...any) {
-	s := w.storage
-	if s == nil {
-		return
-	}
 
-	args := append(messages, "WASM", s.Name(), w.MainInputFileRelativePath(), w.activeSizeBuilder.BinarySize())
+	args := append(messages, "WASM", w.storage.Name(), w.MainInputFileRelativePath(), w.activeSizeBuilder.BinarySize())
 	w.Logger(args...)
 }
