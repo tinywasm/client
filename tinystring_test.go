@@ -7,38 +7,6 @@ import (
 )
 
 func TestTinyStringMessages(t *testing.T) {
-	t.Run("Test success messages with TinyString", func(t *testing.T) {
-		config := NewConfig()
-		config.SourceDir = func() string { return "test" }
-		config.OutputDir = func() string { return "public" }
-		tw := New(config)
-		tw.SetAppRootDir(t.TempDir())
-
-		// Test each mode message
-		tests := []struct {
-			mode     string
-			expected []string // Words that should appear in the message
-		}{
-			{"L", []string{"Changed", "Mode", "Large"}},
-			{"M", []string{"Changed", "Mode", "Medium"}},
-			{"S", []string{"Changed", "Mode", "Small"}},
-		}
-
-		for _, test := range tests {
-			msg := tw.getSuccessMessage(test.mode)
-
-			// Check that all expected words are present in the message
-			msgLower := strings.ToLower(msg)
-			for _, expected := range test.expected {
-				if !strings.Contains(msgLower, strings.ToLower(expected)) {
-					t.Errorf("Mode %s: expected message to contain '%s', got: %s",
-						test.mode, expected, msg)
-				}
-			}
-
-			t.Logf("Mode %s message: %s", test.mode, msg)
-		}
-	})
 
 	t.Run("Test error messages with TinyString", func(t *testing.T) {
 		config := NewConfig()

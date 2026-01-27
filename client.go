@@ -184,27 +184,34 @@ func (w *WasmClient) SetBuildOnDisk(onDisk, compileNow bool) {
 	w.storageMu.Lock()
 	defer w.storageMu.Unlock()
 
+	var newModeName string
+	var newStorage BuildStorage
+
 	if onDisk {
-		if _, ok := w.storage.(*diskStorage); !ok {
-			w.storage = &diskStorage{client: w}
-			w.Logger("WASM Client switched to External (Disk) Mode")
-			if compileNow {
-				if err := w.storage.Compile(); err != nil {
-					w.Logger("Compilation failed after mode switch:", err)
-				}
-			}
+		if _, ok := w.storage.(*diskStorage); ok {
+			return
 		}
+		newModeName = "External"
+		newStorage = &diskStorage{client: w}
 	} else {
-		if _, ok := w.storage.(*memoryStorage); !ok {
-			w.storage = &memoryStorage{client: w}
-			w.Logger("WASM Client switched to In-Memory Mode")
-			if compileNow {
-				if err := w.storage.Compile(); err != nil {
-					w.Logger("Compilation failed after mode switch:", err)
-				}
-			}
+		if _, ok := w.storage.(*memoryStorage); ok {
+			return
+		}
+		newModeName = "In-Memory"
+		newStorage = &memoryStorage{client: w}
+	}
+
+	// Apply switch
+	w.storage = newStorage
+
+	if compileNow {
+		if err := w.storage.Compile(); err != nil {
+			w.Logger("Compilation failed after mode switch:", err)
+			return
 		}
 	}
+
+	w.logSuccessState("Changed", "To", "Storage", newModeName)
 }
 
 // loadMode updates currenSizeMode from the store if available and syncs the active builder

@@ -62,7 +62,16 @@ func (w *WasmClient) Change(newValue string) {
 	}
 
 	// Report success
-	w.Logger(w.getSuccessMessage(newValue))
+	switch newValue {
+	case w.buildLargeSizeShortcut:
+		w.LogSuccessState("Changed", "To", "Mode", "Large")
+	case w.buildMediumSizeShortcut:
+		w.LogSuccessState("Changed", "To", "Mode", "Medium")
+	case w.buildSmallSizeShortcut:
+		w.LogSuccessState("Changed", "To", "Mode", "Small")
+	default:
+		w.LogSuccessState("Changed", "To", "Mode", newValue)
+	}
 }
 
 // RecompileMainWasm recompiles the main WASM file using the current storage mode.
@@ -96,18 +105,19 @@ func (w *WasmClient) validateMode(mode string) error {
 	return Err(D.Mode, ":", mode, D.Invalid, D.Valid, ":", validModes)
 }
 
-// getSuccessMessage returns appropriate success message for mode
-func (w *WasmClient) getSuccessMessage(mode string) string {
+// LogSuccessState logs the standard success message with WASM details
+func (w *WasmClient) LogSuccessState(messages ...any) {
+	w.storageMu.RLock()
+	defer w.storageMu.RUnlock()
+	w.logSuccessState(messages...)
+}
 
-	switch mode {
-	case w.buildLargeSizeShortcut:
-		return Translate(D.Changed, D.To, D.Mode, "Large").String()
-	case w.buildMediumSizeShortcut:
-		return Translate(D.Changed, D.To, D.Mode, "Medium").String()
-	case w.buildSmallSizeShortcut:
-		return Translate(D.Changed, D.To, D.Mode, "Small").String()
-	default:
-		return Translate(D.Mode, ":", mode, D.Invalid).String()
+func (w *WasmClient) logSuccessState(messages ...any) {
+	s := w.storage
+	if s == nil {
+		return
 	}
 
+	args := append(messages, "WASM", s.Name(), w.MainInputFileRelativePath(), w.activeSizeBuilder.BinarySize())
+	w.Logger(args...)
 }

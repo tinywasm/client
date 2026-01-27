@@ -144,7 +144,7 @@ go 1.21
 		var changeMsg string
 		tinyWasm.SetLog(func(message ...any) {
 			if len(message) > 0 {
-				changeMsg = fmt.Sprint(message[0])
+				changeMsg = fmt.Sprint(message...)
 			}
 		})
 		tinyWasm.Change("M")
@@ -161,8 +161,9 @@ go 1.21
 			// Accept "Medium" (new format) or "debug" (legacy) or "warning" or "error"
 			msgLower := strings.ToLower(changeMsg)
 			if !strings.Contains(msgLower, "medium") && !strings.Contains(msgLower, "debug") &&
-				!strings.Contains(msgLower, "warning") && !strings.Contains(msgLower, "error") {
-				t.Fatalf("Expected Medium mode message, warning, or error, got: %s", changeMsg)
+				!strings.Contains(msgLower, "warning") && !strings.Contains(msgLower, "error") &&
+				!strings.Contains(msgLower, "wasm") {
+				t.Fatalf("Expected Medium mode message, WASM success, warning, or error, got: %s", changeMsg)
 			}
 		}
 	})

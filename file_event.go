@@ -49,7 +49,7 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 		return Err("compiling to WebAssembly error: ", err)
 	}
 
-	w.Logger("WASM", s.Name(), w.MainInputFileRelativePath(), w.activeSizeBuilder.BinarySize())
+	w.LogSuccessState()
 
 	if w.OnWasmExecChange != nil {
 		w.OnWasmExecChange()
