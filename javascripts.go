@@ -3,6 +3,7 @@ package client
 import (
 	_ "embed"
 	"flag"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -49,6 +50,22 @@ type Javascript struct {
 	UseTinyGo bool
 	// WasmFilename is the name of the WASM file to be loaded in the browser.
 	WasmFilename string
+}
+
+// RegisterRoutes registers the WASM file route on the provided mux.
+// The route path is derived from WasmFilename (e.g., "/client.wasm").
+func (j *Javascript) RegisterRoutes(mux *http.ServeMux, wasmFilePath string) {
+	wasmFile := j.WasmFilename
+	if wasmFile == "" {
+		wasmFile = "client.wasm"
+	}
+
+	routePath := "/" + wasmFile
+
+	mux.HandleFunc(routePath, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/wasm")
+		http.ServeFile(w, r, wasmFilePath)
+	})
 }
 
 // ArgumentsForServer returns runtime arguments for the server,
