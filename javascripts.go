@@ -37,23 +37,32 @@ func wasm_execTinyGoSignatures() []string {
 	}
 }
 
+// Javascript provides functionalities to generate WASM initialization JavaScript.
+// It can be used independently or embedded in other structures.
+type Javascript struct {
+	// UseTinyGo determines if TinyGo's wasm_exec.js should be used.
+	UseTinyGo bool
+	// WasmFilename is the name of the WASM file to be loaded in the browser.
+	WasmFilename string
+}
+
 // WasmExecJsOutputPath returns the output path for wasm_exec.js
 func (w *WasmClient) WasmExecJsOutputPath() string {
 	return path.Join(w.appRootDir, w.wasmExecJsOutputDir, "wasm_exec.js")
+}
+
+// getWasmExecContent returns the raw wasm_exec.js content.
+func (j *Javascript) getWasmExecContent() ([]byte, error) {
+	if j.UseTinyGo {
+		return embeddedWasmExecTinyGo, nil
+	}
+	return embeddedWasmExecGo, nil
 }
 
 // getWasmExecContent returns the raw wasm_exec.js content for the current compiler configuration.
 // This method returns the unmodified content from embedded assets without any headers or caching.
 // It relies on WasmClient's internal state (via WasmProjectTinyGoJsUse) to determine which
 // compiler (Go vs TinyGo) to use.
-//
-// The returned content is suitable for:
-//   - Direct file output
-//   - Integration into build tools
-//   - Embedding in worker scripts
-//
-// Note: This method does NOT add mode headers or perform caching. Those responsibilities
-// belong to GetSSRClientInitJS() which is used for the internal initialization flow.
 func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
 	// Determine project type and compiler from WasmClient state
 	isWasm, useTinyGo := w.WasmProjectTinyGoJsUse(mode)
@@ -61,16 +70,49 @@ func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
 		return nil, Errf("not a WASM project")
 	}
 
-	// DEBUG: Log which wasm_exec.js is being selected
-	//w.Logger("DEBUG getWasmExecContent: mode=", mode, ", useTinyGo=", useTinyGo, ", buildMediumShortcut=", w.buildMediumSizeShortcut)
+	w.Javascript.UseTinyGo = useTinyGo
+	return w.Javascript.getWasmExecContent()
+}
 
-	// Return appropriate embedded content based on compiler configuration
-	if useTinyGo {
-		//w.Logger("DEBUG: Returning TinyGo wasm_exec.js")
-		return embeddedWasmExecTinyGo, nil
+// GetSSRClientInitJS returns the JavaScript code needed to initialize WASM.
+func (j *Javascript) GetSSRClientInitJS(customizations ...string) (js string, err error) {
+	wasmJs, err := j.getWasmExecContent()
+	if err != nil {
+		return "", err
 	}
-	//w.Logger("DEBUG: Returning Go standard wasm_exec.js")
-	return embeddedWasmExecGo, nil
+
+	stringWasmJs := string(wasmJs)
+
+	// Determine header: use custom if provided, otherwise default
+	var header string
+	if len(customizations) > 0 {
+		header = customizations[0]
+	}
+
+	stringWasmJs = header + stringWasmJs
+
+	// Determine footer: use custom if provided, otherwise default
+	var footer string
+	if len(customizations) > 1 {
+		footer = customizations[1]
+	} else {
+		// Default footer: WebAssembly initialization code
+		wasmFile := j.WasmFilename
+		if wasmFile == "" {
+			wasmFile = "client.wasm"
+		}
+		footer = `
+		const go = new Go();
+		WebAssembly.instantiateStreaming(fetch("` + wasmFile + `"), go.importObject).then((result) => {
+			go.run(result.instance);
+		});
+	`
+	}
+	stringWasmJs += footer
+
+	// Normalize JS output to avoid accidental differences between cached and
+	// freshly-generated content (line endings, trailing spaces).
+	return normalizeJs(stringWasmJs), nil
 }
 
 // GetSSRClientInitJS returns the JavaScript code needed to initialize WASM.
@@ -87,52 +129,25 @@ func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
 //   - GetSSRClientInitJS("// Custom Header\n", "console.log('loaded');") - Both custom
 func (h *WasmClient) GetSSRClientInitJS(customizations ...string) (js string, err error) {
 	mode := h.Value()
-	isWasm, _ := h.WasmProjectTinyGoJsUse(mode)
+	isWasm, useTinyGo := h.WasmProjectTinyGoJsUse(mode)
 	if !isWasm {
 		return "", nil // Not a WASM project
 	}
 
 	// Always regenerate the JS, do not use cache
 
-	// Get raw content from embedded assets instead of system paths
-	wasmJs, err := h.getWasmExecContent(mode)
-	if err != nil {
-		return "", err
-	}
-
-	stringWasmJs := string(wasmJs)
-
-	// Determine header: use custom if provided, otherwise default
-	var header string
-	if len(customizations) > 0 {
-		header = customizations[0]
-	}
-
-	stringWasmJs = header + stringWasmJs
-
 	// Verify activeSizeBuilder is initialized before accessing it
 	if h.activeSizeBuilder == nil {
 		return "", Errf("activeSizeBuilder not initialized")
 	}
 
-	// Determine footer: use custom if provided, otherwise default
-	var footer string
-	if len(customizations) > 1 {
-		footer = customizations[1]
-	} else {
-		// Default footer: WebAssembly initialization code
-		footer = `
-		const go = new Go();
-		WebAssembly.instantiateStreaming(fetch("` + h.activeSizeBuilder.MainOutputFileNameWithExtension() + `"), go.importObject).then((result) => {
-			go.run(result.instance);
-		});
-	`
-	}
-	stringWasmJs += footer
+	h.Javascript.UseTinyGo = useTinyGo
+	h.Javascript.WasmFilename = h.activeSizeBuilder.MainOutputFileNameWithExtension()
 
-	// Normalize JS output to avoid accidental differences between cached and
-	// freshly-generated content (line endings, trailing spaces).
-	normalized := normalizeJs(stringWasmJs)
+	normalized, err := h.Javascript.GetSSRClientInitJS(customizations...)
+	if err != nil {
+		return "", err
+	}
 
 	// Store in appropriate cache based on mode
 	switch mode {

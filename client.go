@@ -50,6 +50,9 @@ type WasmClient struct {
 
 	// storageMu protects storage and currenSizeMode fields from concurrent access
 	storageMu sync.RWMutex
+
+	// Javascript provides WASM initialization JS snippets
+	Javascript *Javascript
 }
 
 // New creates a new WasmClient instance with the provided configuration
@@ -97,6 +100,10 @@ func New(c *Config) *WasmClient {
 
 	// Default to In-Memory storage
 	w.storage = &memoryStorage{client: w}
+
+	w.Javascript = &Javascript{
+		WasmFilename: w.outputName + ".wasm",
+	}
 
 	return w
 }
