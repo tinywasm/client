@@ -1,7 +1,6 @@
 package client
 
 import (
-	"net/http"
 	"sync"
 
 	"github.com/tinywasm/gobuild"
@@ -106,14 +105,6 @@ func New(c *Config) *WasmClient {
 	}
 
 	return w
-}
-
-// RegisterRoutes registers the WASM client file route on the provided mux.
-// It delegates to the active storage.
-func (w *WasmClient) RegisterRoutes(mux *http.ServeMux) {
-	w.storageMu.RLock()
-	defer w.storageMu.RUnlock()
-	w.storage.RegisterRoutes(mux)
 }
 
 // wasmRoutePath calculates the URL path for the WASM file

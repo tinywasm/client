@@ -2,6 +2,7 @@ package client
 
 import (
 	_ "embed"
+	"flag"
 	"os"
 	"os/exec"
 	"path"
@@ -16,6 +17,10 @@ var embeddedWasmExecGo []byte
 
 //go:embed assets/wasm_exec_tinygo.js
 var embeddedWasmExecTinyGo []byte
+
+func init() {
+	flag.Bool("usetinygo", false, "use TinyGo wasm_exec.js (passed by tinywasm)")
+}
 
 // wasm_execGoSignatures returns signatures expected in Go's wasm_exec.js
 func wasm_execGoSignatures() []string {
@@ -56,6 +61,7 @@ func (j *Javascript) ArgumentsForServer() []string {
 // Returns the value found, or false as default (use Go stdlib).
 // The flag can appear in any position in the arguments.
 func ParseUseTinyGoFlag() bool {
+
 	for _, arg := range os.Args[1:] {
 		if strings.HasPrefix(arg, "-usetinygo=") {
 			return arg == "-usetinygo=true"
