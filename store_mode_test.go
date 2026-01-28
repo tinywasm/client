@@ -24,7 +24,7 @@ func (m *MockDatabase) Set(key, value string) error {
 	return nil
 }
 
-func TestJavascriptForInitializing_RespectsStoreValue(t *testing.T) {
+func TestGetSSRClientInitJS_RespectsStoreValue(t *testing.T) {
 	// 1. Setup Database with a specific mode "S" (TinyGo)
 	// Default is "L" (Go)
 	db := NewMockDatabase()
@@ -36,7 +36,7 @@ func TestJavascriptForInitializing_RespectsStoreValue(t *testing.T) {
 	// We deliberately don't set currenSizeMode here to simulate it starting with default
 	// creating a fresh client that SHOULD read from store
 
-	// BUT, the user says "when ANOTHER handler calls JavascriptForInitializing".
+	// BUT, the user says "when ANOTHER handler calls GetSSRClientInitJS".
 	// This implies the client might have been initialized ALREADY, and THEN the store changes?
 	// Or maybe the client is initialized, and then we expect it to read from the store on every call?
 

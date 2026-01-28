@@ -25,11 +25,11 @@ func matchedSignatures(content string, sigs []string) []string {
 	return out
 }
 
-// TestJavascriptForInitializingSignatures verifies that JavascriptForInitializing()
+// TestGetSSRClientInitJSSignatures verifies that GetSSRClientInitJS()
 // returns distinct JS content for Go vs TinyGo (at least one signature found each)
 // and that the TinyGo usage flag changes between modes. The test is skipped
 // if tinygo is not available in PATH per VerifyTinyGoInstallation requirement.
-func TestJavascriptForInitializingSignatures(t *testing.T) {
+func TestGetSSRClientInitJSSignatures(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	config := &Config{}
@@ -55,9 +55,9 @@ func TestJavascriptForInitializingSignatures(t *testing.T) {
 		t.Fatalf("expected TinyGo usage in debug mode, WasmProjectTinyGoJsUse returned false")
 	}
 
-	tinyJs, err := w.JavascriptForInitializing()
+	tinyJs, err := w.GetSSRClientInitJS()
 	if err != nil {
-		t.Fatalf("JavascriptForInitializing() failed for TinyGo case: %v", err)
+		t.Fatalf("GetSSRClientInitJS() failed for TinyGo case: %v", err)
 	}
 
 	tinyGoFound := countSignatures(tinyJs, wasm_execTinyGoSignatures())
@@ -81,9 +81,9 @@ func TestJavascriptForInitializingSignatures(t *testing.T) {
 		t.Fatalf("expected TinyGo usage to be false in coding mode, but WasmProjectTinyGoJsUse returned true")
 	}
 
-	goJs, err := w.JavascriptForInitializing()
+	goJs, err := w.GetSSRClientInitJS()
 	if err != nil {
-		t.Fatalf("JavascriptForInitializing() failed for Go case: %v", err)
+		t.Fatalf("GetSSRClientInitJS() failed for Go case: %v", err)
 	}
 
 	goFound := countSignatures(goJs, wasm_execGoSignatures())

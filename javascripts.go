@@ -53,7 +53,7 @@ func (w *WasmClient) WasmExecJsOutputPath() string {
 //   - Embedding in worker scripts
 //
 // Note: This method does NOT add mode headers or perform caching. Those responsibilities
-// belong to JavascriptForInitializing() which is used for the internal initialization flow.
+// belong to GetSSRClientInitJS() which is used for the internal initialization flow.
 func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
 	// Determine project type and compiler from WasmClient state
 	isWasm, useTinyGo := w.WasmProjectTinyGoJsUse(mode)
@@ -73,7 +73,7 @@ func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
 	return embeddedWasmExecGo, nil
 }
 
-// JavascriptForInitializing returns the JavaScript code needed to initialize WASM.
+// GetSSRClientInitJS returns the JavaScript code needed to initialize WASM.
 //
 // Parameters (variadic):
 //   - customizations[0]: Custom header string to prepend to wasm_exec.js content.
@@ -82,10 +82,10 @@ func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
 //     If not provided, defaults to WebAssembly initialization code with fetch and instantiate.
 //
 // Examples:
-//   - JavascriptForInitializing() - Uses default header and footer
-//   - JavascriptForInitializing("// Custom Header\n") - Custom header, default footer
-//   - JavascriptForInitializing("// Custom Header\n", "console.log('loaded');") - Both custom
-func (h *WasmClient) JavascriptForInitializing(customizations ...string) (js string, err error) {
+//   - GetSSRClientInitJS() - Uses default header and footer
+//   - GetSSRClientInitJS("// Custom Header\n") - Custom header, default footer
+//   - GetSSRClientInitJS("// Custom Header\n", "console.log('loaded');") - Both custom
+func (h *WasmClient) GetSSRClientInitJS(customizations ...string) (js string, err error) {
 	mode := h.Value()
 	isWasm, _ := h.WasmProjectTinyGoJsUse(mode)
 	if !isWasm {
@@ -282,7 +282,7 @@ func (w *WasmClient) wasmProjectWriteOrReplaceWasmExecJsOutput() {
 	}
 
 	// Get the complete JavaScript initialization code (includes WASM setup)
-	jsContent, err := w.JavascriptForInitializing()
+	jsContent, err := w.GetSSRClientInitJS()
 	if err != nil {
 		w.Logger("Failed to generate JavaScript initialization code:", err)
 		return

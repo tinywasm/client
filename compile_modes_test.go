@@ -100,12 +100,12 @@ func main() {
 	}
 
 	// Test JavaScript generation for initial coding mode (Go compiler)
-	goJS, err := w.JavascriptForInitializing()
+	goJS, err := w.GetSSRClientInitJS()
 	if err != nil {
-		t.Errorf("coding mode: JavascriptForInitializing failed: %v", err)
+		t.Errorf("coding mode: GetSSRClientInitJS failed: %v", err)
 	} else {
 		if len(goJS) == 0 {
-			t.Errorf("coding mode: JavascriptForInitializing returned empty JavaScript")
+			t.Errorf("coding mode: GetSSRClientInitJS returned empty JavaScript")
 		}
 	}
 
@@ -164,14 +164,14 @@ func main() {
 			}
 
 			// Test JavaScript generation after mode change
-			modeJS, err := w.JavascriptForInitializing()
+			modeJS, err := w.GetSSRClientInitJS()
 			if err != nil {
-				t.Errorf("%s mode: JavascriptForInitializing failed: %v", tc.name, err)
+				t.Errorf("%s mode: GetSSRClientInitJS failed: %v", tc.name, err)
 				return
 			}
 
 			if len(modeJS) == 0 {
-				t.Errorf("%s mode: JavascriptForInitializing returned empty JavaScript", tc.name)
+				t.Errorf("%s mode: GetSSRClientInitJS returned empty JavaScript", tc.name)
 				return
 			}
 
@@ -179,9 +179,9 @@ func main() {
 			w.ClearJavaScriptCache()
 
 			// Test again to verify cache clearing works
-			freshJS, freshErr := w.JavascriptForInitializing()
+			freshJS, freshErr := w.GetSSRClientInitJS()
 			if freshErr != nil {
-				t.Errorf("%s mode: JavascriptForInitializing after cache clear failed: %v", tc.name, freshErr)
+				t.Errorf("%s mode: GetSSRClientInitJS after cache clear failed: %v", tc.name, freshErr)
 			} else if modeJS != freshJS {
 				t.Errorf("%s mode: JavaScript differs after cache clear (length %d vs %d)", tc.name, len(modeJS), len(freshJS))
 			}
@@ -209,7 +209,7 @@ func main() {
 		// Switch to a TinyGo mode to get TinyGo JavaScript
 		w.Change("M")
 
-		tinygoJS, err := w.JavascriptForInitializing()
+		tinygoJS, err := w.GetSSRClientInitJS()
 		if err != nil {
 			t.Errorf("Failed to get TinyGo JavaScript: %v", err)
 		} else if len(tinygoJS) > 0 && len(goJS) > 0 {
