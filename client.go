@@ -300,3 +300,16 @@ func (w *WasmClient) SetShouldCreateIDEConfig(f func() bool) {
 func (w *WasmClient) SetShouldGenerateDefaultFile(f func() bool) {
 	w.shouldGenerateDefaultFile = f
 }
+
+// UseTinyGo returns true if the current mode requires TinyGo's wasm_exec.js
+func (w *WasmClient) UseTinyGo() bool {
+	_, useTinyGo := w.WasmProjectTinyGoJsUse()
+	return useTinyGo
+}
+
+// ArgumentsForServer returns runtime args to pass to the server,
+// including the -usetinygo flag based on current compiler mode.
+func (w *WasmClient) ArgumentsForServer() []string {
+	w.Javascript.UseTinyGo = w.UseTinyGo()
+	return w.Javascript.ArgumentsForServer()
+}

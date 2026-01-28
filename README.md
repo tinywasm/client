@@ -75,7 +75,8 @@ shortcuts := twc.Shortcuts()
 
 1.  **WASM Binary** (via `OutputDir`): The final WebAssembly file loaded by the browser.
 2.  **JavaScript Runtime**: Mode-specific `wasm_exec.js`.
-    - **Dynamic**: Recommended to use `twc.GetSSRClientInitJS()` to get the content directly for embedding or serving.
+    - **WasmClient Integration**: Recommended to use `twc.GetSSRClientInitJS()` to get the content directly for embedding or serving.
+    - **Standalone Handler**: Use `client.Javascript` for a lightweight, reusable component that generates the WASM initialization JavaScript without the full `WasmClient` logic.
     - **Disk-based**: Use `twc.SetWasmExecJsOutputDir()` if you need a physical file for external bundlers or mode-transparency for other tools.
 
 ### Serving Strategies

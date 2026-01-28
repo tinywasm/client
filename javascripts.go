@@ -46,6 +46,24 @@ type Javascript struct {
 	WasmFilename string
 }
 
+// ArgumentsForServer returns runtime arguments for the server,
+// including the -usetinygo flag based on current configuration.
+func (j *Javascript) ArgumentsForServer() []string {
+	return []string{Sprintf("-usetinygo=%v", j.UseTinyGo)}
+}
+
+// ParseUseTinyGoFlag parses -usetinygo flag from os.Args.
+// Returns the value found, or false as default (use Go stdlib).
+// The flag can appear in any position in the arguments.
+func ParseUseTinyGoFlag() bool {
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "-usetinygo=") {
+			return arg == "-usetinygo=true"
+		}
+	}
+	return false
+}
+
 // WasmExecJsOutputPath returns the output path for wasm_exec.js
 func (w *WasmClient) WasmExecJsOutputPath() string {
 	return path.Join(w.appRootDir, w.wasmExecJsOutputDir, "wasm_exec.js")
