@@ -100,9 +100,8 @@ func New(c *Config) *WasmClient {
 	// Default to In-Memory storage
 	w.storage = &memoryStorage{client: w}
 
-	w.Javascript = &Javascript{
-		WasmFilename: w.outputName + ".wasm",
-	}
+	w.Javascript = &Javascript{}
+	w.Javascript.SetWasmFilename(w.outputName + ".wasm")
 
 	return w
 }
@@ -299,8 +298,8 @@ func (w *WasmClient) UseTinyGo() bool {
 }
 
 // ArgumentsForServer returns runtime args to pass to the server,
-// including the -usetinygo flag based on current compiler mode.
+// including the -wasmsize_mode flag based on current compiler mode.
 func (w *WasmClient) ArgumentsForServer() []string {
-	w.Javascript.UseTinyGo = w.UseTinyGo()
+	w.Javascript.SetMode(w.Value())
 	return w.Javascript.ArgumentsForServer()
 }

@@ -20,7 +20,7 @@ var embeddedWasmExecGo []byte
 var embeddedWasmExecTinyGo []byte
 
 func init() {
-	flag.Bool("usetinygo", false, "use TinyGo wasm_exec.js (passed by tinywasm)")
+	flag.String("wasmsize_mode", "", "wasm size mode (passed by tinywasm)")
 }
 
 // wasm_execGoSignatures returns signatures expected in Go's wasm_exec.js
@@ -45,17 +45,40 @@ func wasm_execTinyGoSignatures() []string {
 
 // Javascript provides functionalities to generate WASM initialization JavaScript.
 // It can be used independently or embedded in other structures.
+// Javascript provides functionalities to generate WASM initialization JavaScript.
+// It can be used independently or embedded in other structures.
 type Javascript struct {
-	// UseTinyGo determines if TinyGo's wasm_exec.js should be used.
-	UseTinyGo bool
-	// WasmFilename is the name of the WASM file to be loaded in the browser.
-	WasmFilename string
+	useTinyGo    bool
+	wasmFilename string
+	wasmSizeMode string
+}
+
+// SetMode sets the compilation mode and automatically determines if TinyGo is needed.
+func (j *Javascript) SetMode(mode string) {
+	j.wasmSizeMode = mode
+	// Logic: "M" and "S" modes imply TinyGo. "L" implies Go (standard).
+	j.useTinyGo = (mode == "M" || mode == "S")
+}
+
+// SetWasmFilename sets the WASM filename to be used in the generated JavaScript.
+func (j *Javascript) SetWasmFilename(filename string) {
+	j.wasmFilename = filename
+}
+
+// NewJavascriptFromArgs creates a new Javascript instance by parsing command line arguments.
+func NewJavascriptFromArgs() *Javascript {
+	j := &Javascript{
+		wasmFilename: "client.wasm",
+	}
+	mode := ParseWasmSizeModeFlag()
+	j.SetMode(mode)
+	return j
 }
 
 // RegisterRoutes registers the WASM file route on the provided mux.
 // The route path is derived from WasmFilename (e.g., "/client.wasm").
 func (j *Javascript) RegisterRoutes(mux *http.ServeMux, wasmFilePath string) {
-	wasmFile := j.WasmFilename
+	wasmFile := j.wasmFilename
 	if wasmFile == "" {
 		wasmFile = "client.wasm"
 	}
@@ -69,22 +92,25 @@ func (j *Javascript) RegisterRoutes(mux *http.ServeMux, wasmFilePath string) {
 }
 
 // ArgumentsForServer returns runtime arguments for the server,
-// including the -usetinygo flag based on current configuration.
+// relying solely on the -wasmsize_mode flag.
 func (j *Javascript) ArgumentsForServer() []string {
-	return []string{Sprintf("-usetinygo=%v", j.UseTinyGo)}
+	return []string{
+		Sprintf("-wasmsize_mode=%s", j.wasmSizeMode),
+	}
 }
 
-// ParseUseTinyGoFlag parses -usetinygo flag from os.Args.
-// Returns the value found, or false as default (use Go stdlib).
-// The flag can appear in any position in the arguments.
-func ParseUseTinyGoFlag() bool {
-
+// ParseWasmSizeModeFlag parses -wasmsize_mode flag from os.Args.
+// Returns the value found, or empty string if not present.
+func ParseWasmSizeModeFlag() string {
 	for _, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "-usetinygo=") {
-			return arg == "-usetinygo=true"
+		if strings.HasPrefix(arg, "-wasmsize_mode=") {
+			parts := strings.SplitN(arg, "=", 2)
+			if len(parts) == 2 {
+				return parts[1]
+			}
 		}
 	}
-	return false
+	return ""
 }
 
 // WasmExecJsOutputPath returns the output path for wasm_exec.js
@@ -94,7 +120,7 @@ func (w *WasmClient) WasmExecJsOutputPath() string {
 
 // getWasmExecContent returns the raw wasm_exec.js content.
 func (j *Javascript) getWasmExecContent() ([]byte, error) {
-	if j.UseTinyGo {
+	if j.useTinyGo {
 		return embeddedWasmExecTinyGo, nil
 	}
 	return embeddedWasmExecGo, nil
@@ -106,12 +132,12 @@ func (j *Javascript) getWasmExecContent() ([]byte, error) {
 // compiler (Go vs TinyGo) to use.
 func (w *WasmClient) getWasmExecContent(mode string) ([]byte, error) {
 	// Determine project type and compiler from WasmClient state
-	isWasm, useTinyGo := w.WasmProjectTinyGoJsUse(mode)
+	isWasm, _ := w.WasmProjectTinyGoJsUse(mode)
 	if !isWasm {
 		return nil, Errf("not a WASM project")
 	}
 
-	w.Javascript.UseTinyGo = useTinyGo
+	w.Javascript.SetMode(mode) // Update mode and useTinyGo internal state
 	return w.Javascript.getWasmExecContent()
 }
 
@@ -138,7 +164,7 @@ func (j *Javascript) GetSSRClientInitJS(customizations ...string) (js string, er
 		footer = customizations[1]
 	} else {
 		// Default footer: WebAssembly initialization code
-		wasmFile := j.WasmFilename
+		wasmFile := j.wasmFilename
 		if wasmFile == "" {
 			wasmFile = "client.wasm"
 		}
@@ -170,7 +196,7 @@ func (j *Javascript) GetSSRClientInitJS(customizations ...string) (js string, er
 //   - GetSSRClientInitJS("// Custom Header\n", "console.log('loaded');") - Both custom
 func (h *WasmClient) GetSSRClientInitJS(customizations ...string) (js string, err error) {
 	mode := h.Value()
-	isWasm, useTinyGo := h.WasmProjectTinyGoJsUse(mode)
+	isWasm, _ := h.WasmProjectTinyGoJsUse(mode)
 	if !isWasm {
 		return "", nil // Not a WASM project
 	}
@@ -182,8 +208,8 @@ func (h *WasmClient) GetSSRClientInitJS(customizations ...string) (js string, er
 		return "", Errf("activeSizeBuilder not initialized")
 	}
 
-	h.Javascript.UseTinyGo = useTinyGo
-	h.Javascript.WasmFilename = h.activeSizeBuilder.MainOutputFileNameWithExtension()
+	h.Javascript.SetMode(mode)
+	h.Javascript.SetWasmFilename(h.activeSizeBuilder.MainOutputFileNameWithExtension())
 
 	normalized, err := h.Javascript.GetSSRClientInitJS(customizations...)
 	if err != nil {
