@@ -1,30 +1,10 @@
 package client
 
-// ToolExecutor defines how a tool should be executed
-type ToolExecutor func(args map[string]any)
-
-// ToolMetadata provides MCP tool configuration metadata
-// This is the standard interface that mcpserve expects
-type ToolMetadata struct {
-	Name        string
-	Description string
-	Parameters  []ParameterMetadata
-	Execute     ToolExecutor // Execution function
-}
-
-// ParameterMetadata describes a tool parameter
-type ParameterMetadata struct {
-	Name        string
-	Description string
-	Required    bool
-	Type        string
-	EnumValues  []string
-	Default     any
-}
+import "github.com/tinywasm/mcpserve"
 
 // GetMCPToolsMetadata returns metadata for all WasmClient MCP tools
-func (w *WasmClient) GetMCPToolsMetadata() []ToolMetadata {
-	return []ToolMetadata{
+func (w *WasmClient) GetMCPToolsMetadata() []mcpserve.ToolMetadata {
+	return []mcpserve.ToolMetadata{
 		{
 			Name: "wasm_set_mode",
 			Description: "Change WebAssembly compilation mode for the Go frontend. " +
@@ -32,7 +12,7 @@ func (w *WasmClient) GetMCPToolsMetadata() []ToolMetadata {
 				"M=MEDIUM (TinyGo debug, ~500KB, most features), " +
 				"S=SMALL (TinyGo compact, ~200KB, minimal). " +
 				"Use single letter shortcuts: L, M, or S.",
-			Parameters: []ParameterMetadata{
+			Parameters: []mcpserve.ParameterMetadata{
 				{
 					Name:        "mode",
 					Description: "Compilation mode: L (large), M (medium), or S (small)",

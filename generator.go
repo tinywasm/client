@@ -58,6 +58,17 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 		t.Logger("Generated WASM source file at", clientPath)
 
 		t.VisualStudioCodeWasmEnvConfig()
+
+		// Trigger compilation immediately so In-Memory mode has content to serve
+		t.storageMu.RLock()
+		store := t.storage
+		t.storageMu.RUnlock()
+
+		if store != nil {
+			if err := store.Compile(); err != nil {
+				t.Logger("Error compiling generated client:", err)
+			}
+		}
 	}
 
 	// Ensure wasm_exec.js is present in output (create/overwrite as needed)

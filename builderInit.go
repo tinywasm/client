@@ -37,6 +37,7 @@ func (w *WasmClient) builderWasmInit() {
 		if w.CompilingArguments != nil {
 			args = append(args, w.CompilingArguments()...)
 		}
+		args = append(args, "-p", "1")
 		return args
 	}
 	w.builderSizeLarge = gobuild.New(&codingConfig)
@@ -49,6 +50,7 @@ func (w *WasmClient) builderWasmInit() {
 		if w.CompilingArguments != nil {
 			args = append(args, w.CompilingArguments()...)
 		}
+		args = append(args, "-p", "1") // Add -p 1
 		return args
 	}
 	w.builderSizeMedium = gobuild.New(&debugConfig)
@@ -61,6 +63,7 @@ func (w *WasmClient) builderWasmInit() {
 		if w.CompilingArguments != nil {
 			args = append(args, w.CompilingArguments()...)
 		}
+		args = append(args, "-p", "1")
 		return args
 	}
 	w.builderSizeSmall = gobuild.New(&prodConfig)

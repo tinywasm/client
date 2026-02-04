@@ -79,8 +79,8 @@ func main() {
 	_, err := exec.LookPath("tinygo")
 	tinygoPresent := err == nil
 
-	// Step 1: Simulate InitialRegistration flow - notify about existing file
-	err = w.NewFileEvent("client.go", ".go", mainWasmPath, "create")
+	// Step 1: Simulate InitialRegistration flow - use "write" as "create" is now ignored
+	err = w.NewFileEvent("client.go", ".go", mainWasmPath, "write")
 	if err != nil {
 		t.Fatalf("NewFileEvent with create event failed: %v", err)
 	}
