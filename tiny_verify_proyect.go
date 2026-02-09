@@ -30,7 +30,7 @@ func (w *WasmClient) handleTinyGoMissing() error {
 	return Err("Error:", D.Cannot, "install TinyGo:", err.Error())
 }
 
-// verifyTinyGoInstallationStatus checks and caches TinyGo installation status
+// VerifyTinyGoInstallation checks and caches TinyGo installation status
 func (w *WasmClient) verifyTinyGoInstallationStatus() {
 	w.tinyGoInstalled = w.VerifyTinyGoInstallation() == nil
 }

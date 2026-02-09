@@ -162,7 +162,7 @@ func (w *WasmClient) Label() string {
 // Value returns the current compiler mode shortcut (c, d, or p)
 func (w *WasmClient) Value() string {
 	// Sync with store if available
-	w.loadMode()
+	// w.loadMode() // REMOVED: Causes race condition/reversion if DB is stale. Mode is managed in memory via Change().
 
 	w.storageMu.RLock()
 	defer w.storageMu.RUnlock()

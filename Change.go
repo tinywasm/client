@@ -42,11 +42,13 @@ func (w *WasmClient) Change(newValue string) {
 	}
 
 	// Auto-recompile
+	compilationSuccess := true
 	if err := w.RecompileMainWasm(); err != nil {
 		errorMsg := Translate("Error:", "auto", "compilation", "failed:", err).String()
 		//errorMsg = "Error: auto compilation failed: " + err.Error()
 		w.Logger(errorMsg)
-		return
+		compilationSuccess = false
+		// Don't return early - still need to update assets and notify listeners
 	}
 
 	// Ensure wasm_exec.js is available
@@ -54,12 +56,15 @@ func (w *WasmClient) Change(newValue string) {
 		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 
-	// Notify listener about change
+	// IMPORTANT: Always notify listener about mode change, even if compilation failed
+	// The assets (wasm_exec.js) need to be regenerated to match the new mode
 	if w.OnWasmExecChange != nil {
 		w.OnWasmExecChange()
 	}
 
-	w.logSuccessState("Changed", "To", "Mode", newValue)
+	if compilationSuccess {
+		w.logSuccessState("Changed", "To", "Mode", newValue)
+	}
 }
 
 // RecompileMainWasm recompiles the main WASM file using the current storage mode.
