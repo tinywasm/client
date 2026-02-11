@@ -86,5 +86,5 @@ func (s *diskStorage) RegisterRoutes(mux *http.ServeMux) {
 		w.Header().Set("Content-Type", "application/wasm")
 		http.ServeFile(w, r, absPath)
 	})
-	s.client.Logger("Registered External route:", routePath, "->", absPath)
+	s.client.logSuccessState("Registered External route:", routePath, "->", absPath)
 }

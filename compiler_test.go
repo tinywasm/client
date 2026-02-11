@@ -149,8 +149,9 @@ func TestCompilerComparison(t *testing.T) {
 				t.Logf("TinyGo requested but not available")
 			} else if !tc.tinyGoEnabled && isUsingTinyGo {
 				t.Error("Expected Go standard compiler but TinyGo is selected")
-			} // Test compilation (this will fail but we can check the command preparation)
-			err := tinyWasm.NewFileEvent("client.go", ".go", mainWasmPath, "write")
+			}
+			// Test compilation (this will fail but we can check the command preparation)
+			_ = tinyWasm.NewFileEvent("client.go", ".go", mainWasmPath, "write")
 
 			// Check that the correct compiler is being used
 			if tc.tinyGoEnabled && tinyWasm.tinyGoInstalled {
@@ -166,7 +167,6 @@ func TestCompilerComparison(t *testing.T) {
 			}
 
 			// We expect compilation to fail in test environment, that's ok
-			t.Logf("Compilation test completed for %s (error expected in test env): %v", tc.name, err)
 		})
 	}
 }

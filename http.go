@@ -1,8 +1,9 @@
 package client
 
 import (
-	"bytes"
+	"compress/gzip"
 	"net/http"
+	"strings"
 )
 
 // RegisterRoutes registers the WASM client file route on the provided mux.
@@ -19,22 +20,26 @@ func (s *memoryStorage) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc(routePath, func(w http.ResponseWriter, r *http.Request) {
 		s.mu.RLock()
 		content := s.wasmContent
-		lastMod := s.lastCompile
 		s.mu.RUnlock()
 
 		if len(content) == 0 {
-			// If not yet compiled, try to compile on demand (lazy loading)
-			// But careful with concurrency. For now, just error or wait.
-			// Let's try to trigger a compile if empty? Or just return 503.
 			http.Error(w, "WASM compiling...", http.StatusServiceUnavailable)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/wasm")
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Pragma", "no-cache")
-		w.Header().Set("Expires", "0")
-		http.ServeContent(w, r, s.client.outputName+".wasm", lastMod, bytes.NewReader(content))
+
+		// Serve with gzip if client supports it (WASM compresses ~60-70%)
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			w.Header().Set("Content-Encoding", "gzip")
+			gz, _ := gzip.NewWriterLevel(w, gzip.BestCompression)
+			gz.Write(content)
+			gz.Close()
+			return
+		}
+
+		w.Write(content)
 	})
-	s.client.Logger("Registered In-Memory route:", routePath)
+	s.client.logSuccessState("Registered In-Memory route:", routePath)
 }

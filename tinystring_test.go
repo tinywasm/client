@@ -16,14 +16,9 @@ func TestTinyStringMessages(t *testing.T) {
 		tw.SetAppRootDir(t.TempDir())
 
 		// Test validation error
-		err := tw.validateMode("invalid")
-		if err == nil {
+		if err := tw.validateMode("invalid"); err == nil {
 			t.Fatal("Expected validation error for invalid mode")
 		}
-
-		errMsg := err.Error()
-		// Mostrar el mensaje real de error para facilitar el diagnóstico
-		t.Logf("Validation error message: %s", errMsg)
 		// Puedes ajustar aquí la validación según el formato real del error si lo deseas
 	})
 
@@ -48,7 +43,6 @@ func TestTinyStringMessages(t *testing.T) {
 		if got == "" {
 			t.Fatalf("Expected non-empty success or warning message, got: '%s'", got)
 		}
-		t.Logf("Change message (success or warning): %s", got)
 
 		// Test invalid mode (non-existent mode)
 		var errMsg string
@@ -66,19 +60,13 @@ func TestTinyStringMessages(t *testing.T) {
 
 		if err := tw.validateMode("invalid"); err == nil {
 			t.Fatal("Expected validateMode to return an error for invalid mode")
-		} else {
-			t.Logf("validateMode returned expected error: %v", err)
 		}
 
 		if errMsg != "" {
 			// If a progress message exists, prefer a non-fatal assertion that it mentions invalidity.
 			if !strings.Contains(strings.ToLower(errMsg), "invalid") {
 				t.Logf("Progress message for invalid mode did not contain 'invalid': %s", errMsg)
-			} else {
-				t.Logf("Invalid input error: %s", errMsg)
 			}
-		} else {
-			t.Log("Change produced empty progress message for invalid mode (acceptable)")
 		}
 	})
 }

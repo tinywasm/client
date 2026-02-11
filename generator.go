@@ -55,7 +55,7 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 			return t
 		}
 
-		t.Logger("Generated WASM source file at", clientPath)
+		t.logSuccessState("Generated WASM source file at", clientPath)
 
 		t.VisualStudioCodeWasmEnvConfig()
 

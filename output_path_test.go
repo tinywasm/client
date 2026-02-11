@@ -55,11 +55,6 @@ func TestOutputRelativePath(t *testing.T) {
 			tw.SetOutputName(tt.outputName)
 			result := tw.OutputRelativePath()
 
-			t.Logf("AppRootDir: %s", tempBase)
-			t.Logf("OutputDir: %s", tt.outputDir)
-			t.Logf("OutputName: %s", tt.outputName)
-			t.Logf("Result: %s", result)
-
 			// Check if path is absolute (should NOT be)
 			if filepath.IsAbs(result) {
 				t.Errorf("OutputRelativePath() returned ABSOLUTE path: %s (expected relative)", result)

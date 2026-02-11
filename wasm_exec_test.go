@@ -338,8 +338,6 @@ func TestEnsureWasmExecFilesExists(t *testing.T) {
 				t.Errorf("File hash changed when it shouldn't have")
 			}
 
-			// Log that file is now in assets directory
-			t.Logf("File %s is now available in assets directory", tt.expectedFile)
 		})
 	}
 }
