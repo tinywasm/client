@@ -23,7 +23,7 @@ func (w *WasmClient) builderWasmInit() {
 		OutName:                   w.outputName, // Output will be {OutputName}.wasm
 		Extension:                 ".wasm",
 		OutFolderRelativePath:     outputDir,
-		Logger:                    w.Logger,
+		Logger:                    nil,
 		Timeout:                   60 * time.Second, // 1 minute for all modes
 		Callback:                  w.Callback,
 	}

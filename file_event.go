@@ -20,14 +20,12 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 		return Err(e, "filePath is empty")
 	}
 
-	w.Logger(extension, event, "...", filePath)
-
 	// Only process Go files for compilation triggers
 	if extension != ".go" {
 		return nil
 	}
 
-	// Only process write/create events
+	// Only log and process write/create events (skip silent scan events)
 	if event != "write" && event != "create" {
 		return nil
 	}
@@ -41,8 +39,6 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 	if s == nil {
 		return Err("storage not initialized")
 	}
-
-	w.Logger("Compiling WASM due to", filePath, "change...")
 
 	// Compile using storage
 	if err := s.Compile(); err != nil {

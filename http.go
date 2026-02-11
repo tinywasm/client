@@ -41,5 +41,5 @@ func (s *memoryStorage) RegisterRoutes(mux *http.ServeMux) {
 
 		w.Write(content)
 	})
-	s.client.logSuccessState("Registered In-Memory route:", routePath)
+	s.client.logSuccessState("Registered http route:", routePath)
 }

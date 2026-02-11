@@ -36,8 +36,6 @@ func (s *memoryStorage) Name() string {
 }
 
 func (s *memoryStorage) Compile() error {
-	s.client.Logger("Compiling WASM Client (In-Memory)...")
-
 	// Delegate to active builder's CompileToMemory
 	// Note: activeSizeBuilder is in WasmClient
 	content, err := s.client.activeSizeBuilder.CompileToMemory()
@@ -63,8 +61,6 @@ func (s *diskStorage) Name() string {
 }
 
 func (s *diskStorage) Compile() error {
-	s.client.Logger("Compiling WASM Client (External/Disk)...")
-
 	// Ensure directory exists
 	outDir := filepath.Join(s.client.appRootDir, s.client.Config.OutputDir())
 	if err := os.MkdirAll(outDir, 0755); err != nil {
@@ -86,5 +82,5 @@ func (s *diskStorage) RegisterRoutes(mux *http.ServeMux) {
 		w.Header().Set("Content-Type", "application/wasm")
 		http.ServeFile(w, r, absPath)
 	})
-	s.client.logSuccessState("Registered External route:", routePath, "->", absPath)
+	s.client.logSuccessState("Registered http route:", routePath, "->", absPath)
 }

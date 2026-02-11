@@ -56,9 +56,10 @@ func (w *WasmClient) Change(newValue string) {
 		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 
-	// IMPORTANT: Always notify listener about mode change, even if compilation failed
-	// The assets (wasm_exec.js) need to be regenerated to match the new mode
-	if w.OnWasmExecChange != nil {
+	// Only notify listener when compilation succeeded.
+	// If compilation failed, the new mode's wasm_exec.js would mismatch with the
+	// old mode's .wasm binary, causing the browser to freeze on reload.
+	if compilationSuccess && w.OnWasmExecChange != nil {
 		w.OnWasmExecChange()
 	}
 
