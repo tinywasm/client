@@ -6,9 +6,9 @@ import (
 
 func (w *WasmClient) Shortcuts() []map[string]string {
 	return []map[string]string{
-		{w.buildLargeSizeShortcut: Translate(D.Mode, "Large", "stLib").String()},
-		{w.buildMediumSizeShortcut: Translate(D.Mode, "Medium", "tinygo").String()},
-		{w.buildSmallSizeShortcut: Translate(D.Mode, "Small", "tinygo").String()},
+		{w.buildLargeSizeShortcut: Translate("mode", "Large", "stLib").String()},
+		{w.buildMediumSizeShortcut: Translate("mode", "Medium", "tinygo").String()},
+		{w.buildSmallSizeShortcut: Translate("mode", "Small", "tinygo").String()},
 	}
 }
 
@@ -96,7 +96,7 @@ func (w *WasmClient) validateMode(mode string) error {
 		}
 	}
 
-	return Err(D.Mode, ":", mode, D.Invalid, D.Valid, ":", validModes)
+	return Err("mode", ":", mode, "invalid", "valid", ":", validModes)
 }
 
 // logSuccessState logs the standard success message with WASM details (Safe: Acquires Lock)

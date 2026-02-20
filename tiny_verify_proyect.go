@@ -20,14 +20,14 @@ func (w *WasmClient) requiresTinyGo(mode string) bool {
 
 // installTinyGo placeholder for future TinyGo installation
 func (w *WasmClient) installTinyGo() error {
-	return Err("TinyGo", "installation", D.Not, "implemented")
+	return Err("TinyGo", "installation", "not", "implemented")
 }
 
 // handleTinyGoMissing handles missing TinyGo installation
 func (w *WasmClient) handleTinyGoMissing() error {
 	// installTinyGo always returns a non-nil error (not implemented)
 	err := w.installTinyGo()
-	return Err("Error:", D.Cannot, "install TinyGo:", err.Error())
+	return Err("Error:", "cannot", "install TinyGo:", err.Error())
 }
 
 // VerifyTinyGoInstallation checks and caches TinyGo installation status
