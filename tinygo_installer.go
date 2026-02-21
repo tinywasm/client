@@ -52,12 +52,26 @@ func EnsureTinyGoInstalled() (string, error) {
 		if err := installDebian(); err != nil {
 			return "", fmt.Errorf("debian installation failed: %w", err)
 		}
-		// After installation, check path again
-		path, err := exec.LookPath("tinygo")
-		if err == nil {
+
+		// After installation, check PATH again
+		if path, err := exec.LookPath("tinygo"); err == nil {
 			return path, nil
 		}
-		return "", fmt.Errorf("installation seemed successful but 'tinygo' not found in PATH: %v", err)
+
+		// Check common installation paths if not in PATH
+		commonPaths := []string{
+			"/usr/local/bin/tinygo",
+			"/usr/bin/tinygo",
+			"/usr/local/tinygo/bin/tinygo",
+		}
+
+		for _, p := range commonPaths {
+			if _, err := os.Stat(p); err == nil {
+				return p, nil
+			}
+		}
+
+		return "", fmt.Errorf("installation seemed successful but 'tinygo' not found in PATH or common locations")
 	}
 
 	// Fallback to tarball installation for other Linux distros or if dpkg fails/isn't preferred

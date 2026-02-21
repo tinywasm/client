@@ -27,3 +27,13 @@ func (w *WasmClient) Compile() error {
 	}
 	return w.storage.Compile()
 }
+
+// GenerateInitJS returns the JavaScript initialization code.
+// This is a wrapper around GetSSRClientInitJS for external use.
+func (w *WasmClient) GenerateInitJS() (string, error) {
+	w.storageMu.RLock()
+	defer w.storageMu.RUnlock()
+
+	// Calls internal logic which uses activeSizeBuilder and current mode
+	return w.GetSSRClientInitJS()
+}

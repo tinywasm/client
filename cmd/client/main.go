@@ -22,7 +22,8 @@ func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  Compiles Go code to WebAssembly using TinyGo.\n")
-		fmt.Fprintf(os.Stderr, "  Automatically installs TinyGo if missing (Linux supported).\n\n")
+		fmt.Fprintf(os.Stderr, "  Automatically installs TinyGo if missing (Linux supported).\n")
+		fmt.Fprintf(os.Stderr, "  Generates script.js in output directory if missing.\n\n")
 		flag.PrintDefaults()
 	}
 
@@ -58,9 +59,6 @@ func main() {
 	outputName := strings.TrimSuffix(outputFile, filepath.Ext(outputFile))
 
 	// Ensure TinyGo is installed
-	// We do this before setting up the client because the client builder initialization
-	// might check for tinygo (though currently it just sets the command string).
-	// But EnsureTinyGoInstalled returns the path to the executable, and we might need to add it to PATH.
 	fmt.Println("Checking TinyGo installation...")
 	tinyGoPath, err := client.EnsureTinyGoInstalled()
 	if err != nil {
@@ -77,20 +75,14 @@ func main() {
 
 	// Configure client
 	cfg := client.NewConfig()
-	// Use closures to return the calculated directories
 	cfg.SourceDir = func() string { return inputDir }
 	cfg.OutputDir = func() string { return outputDir }
 
 	w := client.New(cfg)
-
-	// We can leave AppRootDir as "." (default) because SourceDir/OutputDir are absolute.
-	// But just to be clean, let's set it to empty so Join doesn't prepend "."
-	// w.SetAppRootDir("") // New() sets it to "."
-
 	w.SetMainInputFile(inputFile)
 	w.SetOutputName(outputName)
 
-	// Set mode to Small (TinyGo) - this uses the extension method we added
+	// Set mode to Small (TinyGo)
 	w.SetMode("S")
 
 	// Force external storage (disk) without immediate compile
@@ -99,7 +91,6 @@ func main() {
 	// Trigger compilation explicitly
 	fmt.Printf("Compiling %s to %s...\n", inputFile, outputFile)
 
-	// Capture logs
 	w.SetLog(func(msg ...any) {
 		fmt.Println(msg...)
 	})
@@ -107,6 +98,26 @@ func main() {
 	if err := w.Compile(); err != nil {
 		fmt.Fprintf(os.Stderr, "Compilation failed: %v\n", err)
 		os.Exit(1)
+	}
+
+	// Check and generate script.js if missing
+	scriptJsPath := filepath.Join(outputDir, "script.js")
+	if _, err := os.Stat(scriptJsPath); os.IsNotExist(err) {
+		fmt.Printf("script.js not found at %s, generating...\n", scriptJsPath)
+
+		jsContent, err := w.GenerateInitJS()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to generate JS content: %v\n", err)
+			// Don't exit, as WASM might still be usable manually
+		} else {
+			if err := os.WriteFile(scriptJsPath, []byte(jsContent), 0644); err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to write script.js: %v\n", err)
+			} else {
+				fmt.Printf("Generated %s\n", scriptJsPath)
+			}
+		}
+	} else {
+		fmt.Printf("script.js already exists at %s, skipping generation.\n", scriptJsPath)
 	}
 
 	fmt.Println("Successfully compiled!")
