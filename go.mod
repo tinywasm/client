@@ -8,7 +8,7 @@ require github.com/tinywasm/fmt v0.18.4
 
 require (
 	github.com/tinywasm/devflow v0.2.9
-	github.com/tinywasm/mcpserve v0.0.20
+	github.com/tinywasm/mcpserve v0.0.21
 )
 
 require (
@@ -23,6 +23,7 @@ require (
 	github.com/mark3labs/mcp-go v0.43.2 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
 	github.com/tinywasm/context v0.0.11 // indirect
+	github.com/tinywasm/sse v0.0.10 // indirect
 	github.com/tinywasm/wizard v0.0.22 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
