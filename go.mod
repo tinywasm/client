@@ -7,7 +7,7 @@ require github.com/tinywasm/gobuild v0.0.24
 require github.com/tinywasm/fmt v0.18.4
 
 require (
-	github.com/tinywasm/devflow v0.2.14
+	github.com/tinywasm/devflow v0.2.22
 	github.com/tinywasm/mcpserve v0.0.22
 )
 
