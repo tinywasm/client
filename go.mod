@@ -7,7 +7,7 @@ require github.com/tinywasm/gobuild v0.0.24
 require github.com/tinywasm/fmt v0.18.4
 
 require (
-	github.com/tinywasm/devflow v0.2.9
+	github.com/tinywasm/devflow v0.2.14
 	github.com/tinywasm/mcpserve v0.0.22
 )
 
@@ -20,5 +20,6 @@ require (
 	github.com/tinywasm/sse v0.0.10 // indirect
 	github.com/tinywasm/wizard v0.0.22 // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
-	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/term v0.40.0 // indirect
 )
