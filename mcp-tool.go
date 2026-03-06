@@ -2,9 +2,9 @@ package client
 
 import "github.com/tinywasm/mcp"
 
-// GetMCPToolsMetadata returns metadata for all WasmClient MCP tools
-func (w *WasmClient) GetMCPToolsMetadata() []mcp.ToolMetadata {
-	return []mcp.ToolMetadata{
+// GetMCPTools returns metadata for all WasmClient MCP tools
+func (w *WasmClient) GetMCPTools() []mcp.Tool {
+	return []mcp.Tool{
 		{
 			Name: "wasm_set_mode",
 			Description: "Change WebAssembly compilation mode for the Go frontend. " +
@@ -12,7 +12,7 @@ func (w *WasmClient) GetMCPToolsMetadata() []mcp.ToolMetadata {
 				"M=MEDIUM (TinyGo debug, ~500KB, most features), " +
 				"S=SMALL (TinyGo compact, ~200KB, minimal). " +
 				"Use single letter shortcuts: L, M, or S.",
-			Parameters: []mcp.ParameterMetadata{
+			Parameters: []mcp.Parameter{
 				{
 					Name:        "mode",
 					Description: "Compilation mode: L (large), M (medium), or S (small)",
