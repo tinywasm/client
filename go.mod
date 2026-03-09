@@ -8,7 +8,7 @@ require github.com/tinywasm/fmt v0.18.6
 
 require (
 	github.com/tinywasm/devflow v0.2.22
-	github.com/tinywasm/mcp v0.0.17
+	github.com/tinywasm/mcp v0.0.19
 )
 
 require (
