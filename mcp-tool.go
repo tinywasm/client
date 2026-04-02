@@ -1,6 +1,9 @@
 package client
 
-import "github.com/tinywasm/mcp"
+import (
+	"github.com/tinywasm/context"
+	"github.com/tinywasm/mcp"
+)
 
 // GetMCPTools returns metadata for all WasmClient MCP tools
 func (w *WasmClient) GetMCPTools() []mcp.Tool {
@@ -12,31 +15,19 @@ func (w *WasmClient) GetMCPTools() []mcp.Tool {
 				"M=MEDIUM (TinyGo debug, ~500KB, most features), " +
 				"S=SMALL (TinyGo compact, ~200KB, minimal). " +
 				"Use single letter shortcuts: L, M, or S.",
-			Parameters: []mcp.Parameter{
-				{
-					Name:        "mode",
-					Description: "Compilation mode: L (large), M (medium), or S (small)",
-					Required:    true,
-					Type:        "string",
-					EnumValues:  []string{"L", "M", "S"},
-				},
-			},
-			Execute: func(args map[string]any) {
-				modeValue, ok := args["mode"]
-				if !ok {
-					w.Logger("missing required parameter 'mode'. Use L, M, or S")
-					return
-				}
-
-				mode, ok := modeValue.(string)
-				if !ok {
-					w.Logger("parameter 'mode' must be a string (L, M, or S)")
-					return
+			InputSchema: new(SetModeArgs).InputSchema(),
+			Resource:    "wasm",
+			Action:      'u',
+			Execute: func(ctx *context.Context, req mcp.Request) (*mcp.Result, error) {
+				var args SetModeArgs
+				if err := req.Bind(&args); err != nil {
+					return nil, err
 				}
 
 				// Domain-specific logic: Change WASM compilation mode
 				// Messages flow through w.Logger() which is captured by mcpserve
-				w.Change(mode)
+				w.Change(args.Mode)
+				return mcp.Text("Compilation mode changed to " + args.Mode), nil
 			},
 		},
 	}

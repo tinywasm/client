@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,14 +21,14 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 		t.Fatalf("Failed to create test .wasm.go file: %v", err)
 	}
 
-	// Create WasmClient instance with verbose logging
+	// Create client.WasmClient instance with verbose logging
 	messages := []string{}
-	config := &Config{
+	config := &client.Config{
 		SourceDir: func() string { return "web" },
 		OutputDir: func() string { return "theme/js" },
 	}
 
-	tinyWasm := New(config)
+	tinyWasm := client.New(config)
 	tinyWasm.SetLog(func(message ...any) {
 		msg := fmt.Sprint(message...)
 		messages = append(messages, msg)
@@ -54,7 +55,7 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 
 	t.Logf("File size: %d bytes", info.Size())
 
-	// Read and log the content
+	// Read and client.Log the content
 	data, err := os.ReadFile(wasmExecPath)
 	if err != nil {
 		t.Fatalf("Failed to read wasm_exec.js: %v", err)
@@ -64,21 +65,21 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 	t.Logf("Content length: %d", len(content))
 	t.Logf("Content preview (first 500 chars):\n%s", content[:min(500, len(content))])
 
-	t.Logf("=== WasmClient State ===")
-	t.Logf("tinyGoCompiler: %v", tinyWasm.tinyGoCompiler)
-	t.Logf("tinyGoInstalled: %v", tinyWasm.tinyGoInstalled)
-	t.Logf("currenSizeMode: %s", tinyWasm.currenSizeMode)
+	t.Logf("=== client.WasmClient State ===")
+	t.Logf("client.TinyGoCompilerFlag: %v", tinyWasm.TinyGoCompilerFlag)
+	t.Logf("client.TinyGoInstalled: %v", tinyWasm.TinyGoInstalled)
+	t.Logf("client.CurrentSizeMode: %s", tinyWasm.CurrentSizeMode)
 
 	// Check WasmProjectTinyGoJsUse
 	isWasm, useTinyGo := tinyWasm.WasmProjectTinyGoJsUse()
 	t.Logf("WasmProjectTinyGoJsUse: wasmProject=%v, useTinyGo=%v", isWasm, useTinyGo)
 
-	// Check requiresTinyGo for current mode
-	requiresTiny := tinyWasm.requiresTinyGo(tinyWasm.currenSizeMode)
-	t.Logf("requiresTinyGo(%s): %v", tinyWasm.currenSizeMode, requiresTiny)
+	// Check client.RequiresTinyGo for current mode
+	requiresTiny := tinyWasm.RequiresTinyGo(tinyWasm.CurrentSizeMode)
+	t.Logf("client.RequiresTinyGo(%s): %v", tinyWasm.CurrentSizeMode, requiresTiny)
 
 	// Check for Go signatures
-	goSignatures := wasm_execGoSignatures()
+	goSignatures := client.WasmExecGoSignatures()
 	t.Logf("Checking for %d Go signatures: %v", len(goSignatures), goSignatures)
 
 	for _, signature := range goSignatures {

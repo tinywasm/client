@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"os/exec"
 	"testing"
 )
@@ -11,18 +12,18 @@ func TestStoreRoundtrip(t *testing.T) {
 		t.Skip("tinygo not found in PATH")
 	}
 
-	store := &testDatabase{data: make(map[string]string)}
+	store := &TestDatabase{data: make(map[string]string)}
 
-	config := &Config{
+	config := &client.Config{
 		Database: store,
 	}
 
-	New(config)
+	client.New(config)
 
 	// Test all three supported shortcuts: coding, debugging, production
 	for _, mode := range []string{"L", "M", "S"} {
-		// Use a fresh WasmClient instance per mode to avoid shared state
-		w := New(config)
+		// Use a fresh client.WasmClient instance per mode to avoid shared state
+		w := client.New(config)
 
 		// Clear cache to ensure fresh generation
 		w.ClearJavaScriptCache()
@@ -31,7 +32,7 @@ func TestStoreRoundtrip(t *testing.T) {
 		w.Change(mode)
 
 		// Check that mode is saved in store
-		saved, err := store.Get(StoreKeySizeMode)
+		saved, err := store.Get(client.StoreKeySizeMode)
 		if err != nil {
 			t.Fatalf("failed to get mode from store for %q: %v", mode, err)
 		}
@@ -40,7 +41,7 @@ func TestStoreRoundtrip(t *testing.T) {
 		}
 
 		// Create new instance to test loading
-		w2 := New(config)
+		w2 := client.New(config)
 		if w2.Value() != mode {
 			t.Fatalf("expected loaded mode %q, got %q", mode, w2.Value())
 		}

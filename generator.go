@@ -15,12 +15,12 @@ var embeddedFS embed.FS
 // It never overwrites an existing file and returns the WasmClient instance for method chaining.
 func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 	// Check if generation is allowed
-	if t.shouldGenerateDefaultFile != nil && !t.shouldGenerateDefaultFile() {
+	if t.ShouldGenerateDefaultFile != nil && !t.ShouldGenerateDefaultFile() {
 		return t
 	}
 
 	// Path to client.go
-	clientPath := filepath.Join(t.appRootDir, t.Config.SourceDir(), t.mainInputFile)
+	clientPath := filepath.Join(t.AppRootDir, t.Config.SourceDir(), t.MainInputFile)
 	if _, err := os.Stat(clientPath); os.IsNotExist(err) {
 		// Read embedded markdown (no template processing needed - static content)
 		raw, errRead := embeddedFS.ReadFile("templates/basic_wasm_client.md")
@@ -38,7 +38,7 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 		}
 
 		// Ensure SourceDir exists
-		srcDir := filepath.Join(t.appRootDir, t.Config.SourceDir())
+		srcDir := filepath.Join(t.AppRootDir, t.Config.SourceDir())
 		if _, err := os.Stat(srcDir); os.IsNotExist(err) {
 			if err := os.MkdirAll(srcDir, 0o755); err != nil {
 				t.Logger("Error creating source directory:", err)
@@ -46,22 +46,22 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 			}
 		}
 
-		m := devflow.NewMarkDown(t.appRootDir, srcDir, writer).
+		m := devflow.NewMarkDown(t.AppRootDir, srcDir, writer).
 			InputByte(raw)
 
 		// Extract to the main file
-		if err := m.Extract(t.mainInputFile); err != nil {
+		if err := m.Extract(t.MainInputFile); err != nil {
 			t.Logger("Error extracting go code from markdown:", err)
 			return t
 		}
 
-		t.logSuccessState("Generated WASM source file at", clientPath)
+		t.LogSuccessState("Generated WASM source file at", clientPath)
 
 		t.VisualStudioCodeWasmEnvConfig()
 
 		// Trigger compilation immediately so In-Memory mode has content to serve
 		t.storageMu.RLock()
-		store := t.storage
+		store := t.Storage
 		t.storageMu.RUnlock()
 
 		if store != nil {
@@ -76,12 +76,12 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 	// Ensure wasm_exec.js is present in output (create/overwrite as needed)
 	// Skip if DisableWasmExecJsOutput is set (e.g., for inline embedding scenarios)
 	// Ensure wasm_exec.js is present in output (create/overwrite as needed)
-	if t.enableWasmExecJsOutput {
+	if t.EnableWasmExecJsOutput {
 		t.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 
 	// Ensure wasm_exec.js is present in output (create/overwrite as needed)
-	if t.enableWasmExecJsOutput {
+	if t.EnableWasmExecJsOutput {
 		t.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 

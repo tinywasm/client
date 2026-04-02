@@ -10,11 +10,11 @@ import (
 
 // TinyGoCompiler returns if TinyGo compiler should be used (dynamic based on configuration)
 func (w *WasmClient) TinyGoCompiler() bool {
-	return w.tinyGoCompiler && w.tinyGoInstalled
+	return w.TinyGoCompilerFlag && w.TinyGoInstalled
 }
 
-// requiresTinyGo checks if the mode requires TinyGo compiler
-func (w *WasmClient) requiresTinyGo(mode string) bool {
+// RequiresTinyGo checks if the mode requires TinyGo compiler
+func (w *WasmClient) RequiresTinyGo(mode string) bool {
 	return mode == w.buildMediumSizeShortcut || mode == w.buildSmallSizeShortcut
 }
 
@@ -32,7 +32,7 @@ func (w *WasmClient) handleTinyGoMissing() error {
 
 // VerifyTinyGoInstallation checks and caches TinyGo installation status
 func (w *WasmClient) verifyTinyGoInstallationStatus() {
-	w.tinyGoInstalled = w.VerifyTinyGoInstallation() == nil
+	w.TinyGoInstalled = w.VerifyTinyGoInstallation() == nil
 }
 
 // VerifyTinyGoProjectCompatibility checks if the project is compatible with TinyGo compilation

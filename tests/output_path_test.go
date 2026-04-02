@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"path/filepath"
 	"testing"
 )
@@ -14,45 +15,45 @@ func TestOutputRelativePath(t *testing.T) {
 	tests := []struct {
 		name       string
 		outputDir  string
-		outputName string
+		OutputName string
 		expectPath string // Normalized with forward slashes for cross-platform testing
 	}{
 		{
 			name:       "Unix style path",
 			outputDir:  "deploy/edgeworker",
-			outputName: "app",
+			OutputName: "app",
 			expectPath: "deploy/edgeworker/app.wasm",
 		},
 		{
 			name:       "Windows style path",
 			outputDir:  "deploy\\edgeworker",
-			outputName: "worker",
+			OutputName: "worker",
 			expectPath: "deploy/edgeworker/worker.wasm", // Normalized to forward slashes
 		},
 		{
 			name:       "Simple output directory",
 			outputDir:  "output",
-			outputName: "main",
+			OutputName: "main",
 			expectPath: "output/main.wasm",
 		},
 		{
 			name:       "Build directory",
 			outputDir:  "build",
-			outputName: "app",
+			OutputName: "app",
 			expectPath: "build/app.wasm",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := &Config{
+			config := &client.Config{
 				SourceDir: func() string { return "src" },
 				OutputDir: func() string { return tt.outputDir },
 			}
 
-			tw := New(config)
+			tw := client.New(config)
 			tw.SetAppRootDir(tempBase)
-			tw.SetOutputName(tt.outputName)
+			tw.SetOutputName(tt.OutputName)
 			result := tw.OutputRelativePath()
 
 			// Check if path is absolute (should NOT be)
@@ -81,12 +82,12 @@ func TestOutputRelativePath(t *testing.T) {
 func TestOutputRelativePathConsistency(t *testing.T) {
 	tempDir := t.TempDir()
 
-	config := &Config{
+	config := &client.Config{
 		SourceDir: func() string { return "src/cmd/webclient" },
 		OutputDir: func() string { return "src/web/public" },
 	}
 
-	tw := New(config)
+	tw := client.New(config)
 	tw.SetAppRootDir(tempDir)
 	tw.SetOutputName("main")
 	expected := "src/web/public/main.wasm"

@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"os"
 	"strings"
 	"testing"
@@ -20,7 +21,7 @@ func TestWasmExecContentChange(t *testing.T) {
 		// The flag parsing loop looks for strings starting with "-wasmsize_mode="
 		os.Args = []string{"server", "-wasmsize_mode=" + modeArg}
 
-		js := NewJavascriptFromArgs()
+		js := client.NewJavascriptFromArgs()
 		content, err := js.GetSSRClientInitJS()
 		if err != nil {
 			t.Fatalf("Failed to get JS for mode %s: %v", modeArg, err)

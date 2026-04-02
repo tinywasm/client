@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"strings"
 	"testing"
 )
@@ -32,10 +33,10 @@ func matchedSignatures(content string, sigs []string) []string {
 func TestGetSSRClientInitJSSignatures(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	config := &Config{}
+	config := &client.Config{}
 
-	// Create WasmClient instance with temp directory
-	w := New(config)
+	// Create client.WasmClient instance with temp directory
+	w := client.New(config)
 	w.SetAppRootDir(tmpDir)
 
 	// Skip only if tinygo not present
@@ -45,9 +46,9 @@ func TestGetSSRClientInitJSSignatures(t *testing.T) {
 
 	// --- TinyGo case ---
 	// Set mode to debug (requires TinyGo)
-	w.currenSizeMode = "M"
+	w.CurrentSizeMode = "M"
 	// ensure installer flag
-	w.tinyGoInstalled = true
+	w.TinyGoInstalled = true
 
 	// Check that WasmProjectTinyGoJsUse reports TinyGo usage
 	_, tinyUsedBefore := w.WasmProjectTinyGoJsUse()
@@ -60,10 +61,10 @@ func TestGetSSRClientInitJSSignatures(t *testing.T) {
 		t.Fatalf("GetSSRClientInitJS() failed for TinyGo case: %v", err)
 	}
 
-	tinyGoFound := countSignatures(tinyJs, wasm_execTinyGoSignatures())
-	goFoundInTiny := countSignatures(tinyJs, wasm_execGoSignatures())
-	t.Logf("TinyGo JS matched TinyGo sigs: %v", matchedSignatures(tinyJs, wasm_execTinyGoSignatures()))
-	t.Logf("TinyGo JS matched Go sigs: %v", matchedSignatures(tinyJs, wasm_execGoSignatures()))
+	tinyGoFound := countSignatures(tinyJs, client.WasmExecTinyGoSignatures())
+	goFoundInTiny := countSignatures(tinyJs, client.WasmExecGoSignatures())
+	t.Logf("TinyGo JS matched TinyGo sigs: %v", matchedSignatures(tinyJs, client.WasmExecTinyGoSignatures()))
+	t.Logf("TinyGo JS matched Go sigs: %v", matchedSignatures(tinyJs, client.WasmExecGoSignatures()))
 
 	if tinyGoFound == 0 {
 		t.Fatalf("expected at least one TinyGo signature in TinyGo JS, found none")
@@ -74,7 +75,7 @@ func TestGetSSRClientInitJSSignatures(t *testing.T) {
 
 	// --- Go case ---
 	// Set mode to coding (Go standard)
-	w.currenSizeMode = "L"
+	w.CurrentSizeMode = "L"
 
 	_, tinyUsedAfter := w.WasmProjectTinyGoJsUse()
 	if tinyUsedAfter {
@@ -86,10 +87,10 @@ func TestGetSSRClientInitJSSignatures(t *testing.T) {
 		t.Fatalf("GetSSRClientInitJS() failed for Go case: %v", err)
 	}
 
-	goFound := countSignatures(goJs, wasm_execGoSignatures())
-	tinyFoundInGo := countSignatures(goJs, wasm_execTinyGoSignatures())
-	t.Logf("Go JS matched Go sigs: %v", matchedSignatures(goJs, wasm_execGoSignatures()))
-	t.Logf("Go JS matched TinyGo sigs: %v", matchedSignatures(goJs, wasm_execTinyGoSignatures()))
+	goFound := countSignatures(goJs, client.WasmExecGoSignatures())
+	tinyFoundInGo := countSignatures(goJs, client.WasmExecTinyGoSignatures())
+	t.Logf("Go JS matched Go sigs: %v", matchedSignatures(goJs, client.WasmExecGoSignatures()))
+	t.Logf("Go JS matched TinyGo sigs: %v", matchedSignatures(goJs, client.WasmExecTinyGoSignatures()))
 
 	if goFound == 0 {
 		t.Fatalf("expected at least one Go signature in Go JS, found none")

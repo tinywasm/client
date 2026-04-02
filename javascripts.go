@@ -23,8 +23,8 @@ func init() {
 	flag.String("wasmsize_mode", "", "wasm size mode (passed by tinywasm)")
 }
 
-// wasm_execGoSignatures returns signatures expected in Go's wasm_exec.js
-func wasm_execGoSignatures() []string {
+// WasmExecGoSignatures returns signatures expected in Go's wasm_exec.js
+func WasmExecGoSignatures() []string {
 	return []string{
 		"runtime.scheduleTimeoutEvent",
 		"runtime.clearTimeoutEvent",
@@ -33,8 +33,8 @@ func wasm_execGoSignatures() []string {
 	}
 }
 
-// wasm_execTinyGoSignatures returns signatures expected in TinyGo's wasm_exec.js
-func wasm_execTinyGoSignatures() []string {
+// WasmExecTinyGoSignatures returns signatures expected in TinyGo's wasm_exec.js
+func WasmExecTinyGoSignatures() []string {
 	return []string{
 		"runtime.sleepTicks",
 		"runtime.ticks",
@@ -118,7 +118,7 @@ func ParseWasmSizeModeFlag() string {
 
 // WasmExecJsOutputPath returns the output path for wasm_exec.js
 func (w *WasmClient) WasmExecJsOutputPath() string {
-	return path.Join(w.appRootDir, w.wasmExecJsOutputDir, "wasm_exec.js")
+	return path.Join(w.AppRootDir, w.wasmExecJsOutputDir, "wasm_exec.js")
 }
 
 // getWasmExecContent returns the raw wasm_exec.js content.
@@ -196,7 +196,7 @@ func (j *Javascript) GetSSRClientInitJS(customizations ...string) (js string, er
 // Examples:
 //   - GetSSRClientInitJS() - Uses default header and footer
 //   - GetSSRClientInitJS("// Custom Header\n") - Custom header, default footer
-//   - GetSSRClientInitJS("// Custom Header\n", "console.log('loaded');") - Both custom
+//   - GetSSRClientInitJS("// Custom Header\n", "console.Log('loaded');") - Both custom
 func (h *WasmClient) GetSSRClientInitJS(customizations ...string) (js string, err error) {
 	mode := h.Value()
 	isWasm, _ := h.WasmProjectTinyGoJsUse(mode)
@@ -229,7 +229,7 @@ func (h *WasmClient) GetSSRClientInitJS(customizations ...string) (js string, er
 		h.mode_small_tinygo_wasm_exec_cache = normalized
 	default:
 		// Fallback: if TinyGo compiler in use write to tinyGo cache, otherwise go cache
-		if h.tinyGoCompiler {
+		if h.TinyGoCompilerFlag {
 			h.mode_medium_tinygo_wasm_exec_cache = normalized
 		} else {
 			h.mode_large_go_wasm_exec_cache = normalized

@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,7 +12,7 @@ import (
 func TestNewFileEvent(t *testing.T) {
 	// Setup test environment with an isolated temporary directory
 	tmp := t.TempDir()
-	// SourceDir should be the subfolder name under AppRootDir
+	// SourceDir should be the subfolder name under client.AppRootDir
 	sourceDirName := "wasmTest"
 	sourceDir := filepath.Join(tmp, sourceDirName)
 
@@ -33,20 +34,20 @@ go 1.21
 		t.Fatalf("failed to write go.mod: %v", err)
 	}
 
-	// Configure WasmClient handler with a logger for testing output
+	// Configure client.WasmClient handler with a logger for testing output
 	var logMessages []string
-	config := &Config{
+	config := &client.Config{
 		SourceDir: func() string { return sourceDirName },
 		OutputDir: func() string { return "output" },
 	}
 
-	tinyWasm := New(config)
+	tinyWasm := client.New(config)
 	tinyWasm.SetLog(func(message ...any) {
 		logMessages = append(logMessages, fmt.Sprint(message...))
 	})
 	tinyWasm.SetAppRootDir(tmp)
-	// Force External storage for tests that expect files on disk
-	tinyWasm.storage = &diskStorage{client: tinyWasm}
+	// Force External client.Storage for tests that expect files on disk
+	tinyWasm.Storage = &client.DiskStorage{Client: tinyWasm}
 	t.Run("Verify client.go compilation", func(t *testing.T) {
 		mainWasmPath := filepath.Join(tmp, sourceDirName, "client.go") // client.go in source root
 		// defer os.Remove(mainWasmPath)  // Removed to allow subsequent tests
@@ -55,7 +56,7 @@ go 1.21
 		content := `package main
 
 		func main() {
-			println("Hello WasmClient!")
+			println("Hello client.WasmClient!")
 		}`
 		os.WriteFile(mainWasmPath, []byte(content), 0644)
 
@@ -85,7 +86,7 @@ go 1.21
 		content := `package main
 
 		func main() {
-			println("Hello Users Module with WasmClient!")
+			println("Hello Users Module with client.WasmClient!")
 		}`
 		os.WriteFile(moduleWasmPath, []byte(content), 0644)
 
@@ -123,17 +124,17 @@ go 1.21
 	t.Run("Verify TinyGo compiler is configurable", func(t *testing.T) {
 		// Test initial configuration
 		var logMessages []string
-		config := NewConfig()
+		config := client.NewConfig()
 		config.SourceDir = func() string { return sourceDirName }
 		config.OutputDir = func() string { return "output" }
 
-		tinyWasm := New(config)
+		tinyWasm := client.New(config)
 		tinyWasm.SetLog(func(message ...any) {
 			logMessages = append(logMessages, fmt.Sprint(message...))
 		})
 		tinyWasm.SetAppRootDir(tmp)
-		// Tests run inside the package; set private tinyGoCompiler explicitly
-		tinyWasm.tinyGoCompiler = false // Start with Go standard compiler
+		// Tests run inside the package; set private client.TinyGoCompilerFlag explicitly
+		tinyWasm.TinyGoCompilerFlag = false // Start with Go standard compiler
 
 		// Verify initial state (should be coding mode)
 		if tinyWasm.Value() != "L" {
@@ -149,7 +150,7 @@ go 1.21
 		})
 		tinyWasm.Change("M")
 
-		// If TinyGo isn't available, log likely contains an error message
+		// If TinyGo isn't available, client.Log likely contains an error message
 		if strings.Contains(strings.ToLower(changeMsg), "cannot") || strings.Contains(strings.ToLower(changeMsg), "not available") {
 			t.Logf("TinyGo not available: %s", changeMsg)
 		} else {
@@ -162,7 +163,7 @@ go 1.21
 			msgLower := strings.ToLower(changeMsg)
 			if !strings.Contains(msgLower, "medium") && !strings.Contains(msgLower, "debug") &&
 				!strings.Contains(msgLower, "warning") && !strings.Contains(msgLower, "error") &&
-				!strings.Contains(msgLower, "wasm") {
+				!strings.Contains(msgLower, "client.wasm") {
 				t.Fatalf("Expected Medium mode message, WASM success, warning, or error, got: %s", changeMsg)
 			}
 		}
@@ -173,12 +174,12 @@ go 1.21
 func TestUnobservedFiles(t *testing.T) {
 	tmp := t.TempDir()
 	var logMessages []string
-	config := &Config{
+	config := &client.Config{
 		SourceDir: func() string { return "web" },
 		OutputDir: func() string { return "public" },
 	}
 
-	tinyWasm := New(config)
+	tinyWasm := client.New(config)
 	tinyWasm.SetLog(func(message ...any) {
 		logMessages = append(logMessages, fmt.Sprint(message...))
 	})

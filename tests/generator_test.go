@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,10 +13,10 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 	sourceDir := "src/cmd/webclient"
 	fullSourcePath := filepath.Join(tmp, sourceDir)
 
-	cfg := NewConfig()
+	cfg := client.NewConfig()
 	cfg.SourceDir = func() string { return sourceDir }
 
-	tw := New(cfg)
+	tw := client.New(cfg)
 	tw.SetAppRootDir(tmp)
 	tw.SetMainInputFile("main.go")
 	tw.SetShouldGenerateDefaultFile(func() bool { return true })
@@ -65,10 +66,10 @@ func TestCreateDefaultWasmFileClientIfNotExistDoesNotOverwrite(t *testing.T) {
 		t.Fatalf("creating source dir: %v", err)
 	}
 
-	cfg := NewConfig()
+	cfg := client.NewConfig()
 	cfg.SourceDir = func() string { return sourceDir }
 
-	tw := New(cfg)
+	tw := client.New(cfg)
 	tw.SetAppRootDir(tmp)
 	tw.SetMainInputFile("main.go")
 	tw.SetShouldGenerateDefaultFile(func() bool { return true })

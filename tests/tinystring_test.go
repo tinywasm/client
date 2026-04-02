@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"fmt"
 	"strings"
 	"testing"
@@ -9,24 +10,24 @@ import (
 func TestTinyStringMessages(t *testing.T) {
 
 	t.Run("Test error messages with TinyString", func(t *testing.T) {
-		config := NewConfig()
+		config := client.NewConfig()
 		config.SourceDir = func() string { return "test" }
 		config.OutputDir = func() string { return "public" }
-		tw := New(config)
+		tw := client.New(config)
 		tw.SetAppRootDir(t.TempDir())
 
 		// Test validation error
-		if err := tw.validateMode("invalid"); err == nil {
+		if err := tw.ValidateMode("invalid"); err == nil {
 			t.Fatal("Expected validation error for invalid mode")
 		}
 		// Puedes ajustar aquí la validación según el formato real del error si lo deseas
 	})
 
 	t.Run("Test Change method with TinyString messages", func(t *testing.T) {
-		config := NewConfig()
+		config := client.NewConfig()
 		config.SourceDir = func() string { return "test" }
 		config.OutputDir = func() string { return "public" }
-		tw := New(config)
+		tw := client.New(config)
 		tw.SetAppRootDir(t.TempDir())
 
 		var got string
@@ -53,13 +54,13 @@ func TestTinyStringMessages(t *testing.T) {
 		})
 		tw.Change("invalid")
 
-		// Ensure that the current value did not change and that validateMode reports an error.
+		// Ensure that the current value did not change and that client.ValidateMode reports an error.
 		if tw.Value() != "L" {
 			t.Errorf("Expected compiler mode to remain 'L' after invalid change, got: %s", tw.Value())
 		}
 
-		if err := tw.validateMode("invalid"); err == nil {
-			t.Fatal("Expected validateMode to return an error for invalid mode")
+		if err := tw.ValidateMode("invalid"); err == nil {
+			t.Fatal("Expected client.ValidateMode to return an error for invalid mode")
 		}
 
 		if errMsg != "" {
