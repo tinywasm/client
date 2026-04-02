@@ -7,6 +7,7 @@ require github.com/tinywasm/gobuild v0.0.24
 require github.com/tinywasm/fmt v0.22.0
 
 require (
+	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/devflow v0.4.14
 	github.com/tinywasm/form v0.2.0
 	github.com/tinywasm/mcp v0.1.1
@@ -16,7 +17,6 @@ require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
-	github.com/tinywasm/context v0.0.18 // indirect
 	github.com/tinywasm/dom v0.6.0 // indirect
 	github.com/tinywasm/fetch v0.1.23 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect

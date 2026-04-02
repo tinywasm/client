@@ -2,3 +2,4 @@ test/*
 web/
 src/
 C:*
+.env

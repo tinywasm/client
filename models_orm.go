@@ -22,3 +22,4 @@ func (m *SetModeArgs) Pointers() []any {
 func (m *SetModeArgs) Validate(action byte) error {
 	return fmt.ValidateFields(action, m)
 }
+

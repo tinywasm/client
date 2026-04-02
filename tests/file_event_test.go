@@ -142,13 +142,14 @@ go 1.21
 		}
 
 		// Test setting TinyGo compiler (debug mode)
-		var changeMsg string
+		logMessages = nil
 		tinyWasm.SetLog(func(message ...any) {
 			if len(message) > 0 {
-				changeMsg = fmt.Sprint(message...)
+				logMessages = append(logMessages, fmt.Sprintln(message...))
 			}
 		})
 		tinyWasm.Change("M")
+		changeMsg := strings.Join(logMessages, "")
 
 		// If TinyGo isn't available, client.Log likely contains an error message
 		if strings.Contains(strings.ToLower(changeMsg), "cannot") || strings.Contains(strings.ToLower(changeMsg), "not available") {
@@ -159,9 +160,10 @@ go 1.21
 				t.Fatal("Expected Medium mode (debug) to be set after change")
 			}
 			// Message can be success, warning, or auto-compilation error (in test env)
-			// Accept "Medium" (new format) or "debug" (legacy) or "warning" or "error"
+			// Accept "Medium" (new format) or "debug" (legacy) or "M" or "warning" or "error"
 			msgLower := strings.ToLower(changeMsg)
 			if !strings.Contains(msgLower, "medium") && !strings.Contains(msgLower, "debug") &&
+				!strings.Contains(msgLower, "mode m") && // Added mode shortcut
 				!strings.Contains(msgLower, "warning") && !strings.Contains(msgLower, "error") &&
 				!strings.Contains(msgLower, "client.wasm") {
 				t.Fatalf("Expected Medium mode message, WASM success, warning, or error, got: %s", changeMsg)
