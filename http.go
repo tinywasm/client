@@ -7,20 +7,20 @@ import (
 )
 
 // RegisterRoutes registers the WASM client file route on the provided mux.
-// It delegates to the active storage.
+// It delegates to the active Storage.
 func (w *WasmClient) RegisterRoutes(mux *http.ServeMux) {
 	w.storageMu.RLock()
 	defer w.storageMu.RUnlock()
-	w.storage.RegisterRoutes(mux)
+	w.Storage.RegisterRoutes(mux)
 }
 
-func (s *memoryStorage) RegisterRoutes(mux *http.ServeMux) {
-	routePath := s.client.wasmRoutePath()
+func (s *MemoryStorage) RegisterRoutes(mux *http.ServeMux) {
+	routePath := s.Client.wasmRoutePath()
 
 	mux.HandleFunc(routePath, func(w http.ResponseWriter, r *http.Request) {
-		s.mu.RLock()
-		content := s.wasmContent
-		s.mu.RUnlock()
+		s.Mu.RLock()
+		content := s.WasmContent
+		s.Mu.RUnlock()
 
 		if len(content) == 0 {
 			http.Error(w, "WASM compiling...", http.StatusServiceUnavailable)
@@ -41,5 +41,5 @@ func (s *memoryStorage) RegisterRoutes(mux *http.ServeMux) {
 
 		w.Write(content)
 	})
-	s.client.logSuccessState("Registered http route:", routePath)
+	s.Client.LogSuccessState("Registered http route:", routePath)
 }

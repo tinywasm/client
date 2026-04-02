@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,8 +10,8 @@ import (
 func TestCreateDefaultWasmFileClientGuard(t *testing.T) {
 	tmp := t.TempDir()
 	sourceDir := "web"
-	cfg := NewConfig()
-	tw := New(cfg)
+	cfg := client.NewConfig()
+	tw := client.New(cfg)
 	tw.Config.SourceDir = func() string { return sourceDir }
 
 	tw.SetAppRootDir(tmp)

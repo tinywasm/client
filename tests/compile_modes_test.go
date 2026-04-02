@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"fmt"
 	"os"
 	"os/exec"
@@ -37,13 +38,13 @@ go 1.21
 
 	// Write a minimal main.go
 	mainWasmPath := filepath.Join(webDir, "client.go")
-	wasmContent := `package main
+	WasmContent := `package main
 
 func main() {
     println("hello wasm")
 }
 `
-	if err := os.WriteFile(mainWasmPath, []byte(wasmContent), 0644); err != nil {
+	if err := os.WriteFile(mainWasmPath, []byte(WasmContent), 0644); err != nil {
 		t.Fatalf("failed to write client.go: %v", err)
 	}
 
@@ -54,21 +55,21 @@ func main() {
 
 	// Prepare config with logger to prevent nil pointer dereference
 	var logMessages []string
-	cfg := NewConfig()
-	w := New(cfg) // Initialize w first to access w.Config
+	cfg := client.NewConfig()
+	w := client.New(cfg) // Initialize w first to access w.Config
 	w.Config.SourceDir = func() string { return webDirName }
 	w.Config.OutputDir = func() string { return filepath.Join(webDirName, "public") }
-	cfg.Database = &testDatabase{data: make(map[string]string)}
+	cfg.Database = &TestDatabase{data: make(map[string]string)}
 
 	w.SetLog(func(message ...any) {
 		logMessages = append(logMessages, fmt.Sprint(message...))
 	})
 	w.SetAppRootDir(tmp)
 	w.SetWasmExecJsOutputDir(filepath.Join(webDirName, "theme", "js"))
-	// Force External storage for this test as it verifies disk artifacts
-	w.storage = &diskStorage{client: w}
+	// Force External client.Storage for this test as it verifies disk artifacts
+	w.Storage = &client.DiskStorage{Client: w}
 	// Allow tests to enable tinygo detection by setting the private field
-	w.tinyGoCompiler = true
+	w.TinyGoCompilerFlag = true
 
 	// Debug: Check initial state
 	if w.Value() != "L" {
@@ -156,7 +157,7 @@ func main() {
 			}
 
 			// CRITICAL: Verify that the mode is saved in the Database
-			saved, err := cfg.Database.Get(StoreKeySizeMode)
+			saved, err := cfg.Database.Get(client.StoreKeySizeMode)
 			if err != nil {
 				t.Errorf("Failed to get mode from store for %s: %v", tc.name, err)
 			} else if saved != tc.mode {

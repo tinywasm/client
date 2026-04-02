@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"os"
 	"path/filepath"
 	"testing"
@@ -8,8 +9,8 @@ import (
 
 func TestVisualStudioCodeWasmEnvConfigGuard(t *testing.T) {
 	tmp := t.TempDir()
-	cfg := NewConfig()
-	w := New(cfg)
+	cfg := client.NewConfig()
+	w := client.New(cfg)
 	w.SetAppRootDir(tmp)
 
 	t.Run("DoesNotCreateVscodeIfShouldCreateIDEConfigIsFalse", func(t *testing.T) {
@@ -18,7 +19,7 @@ func TestVisualStudioCodeWasmEnvConfigGuard(t *testing.T) {
 
 		vscodeDir := filepath.Join(tmp, ".vscode")
 		if _, err := os.Stat(vscodeDir); err == nil {
-			t.Error("expected .vscode directory NOT to be created when shouldCreateIDEConfig returns false")
+			t.Error("expected .vscode directory NOT to be created when client.ShouldCreateIDEConfig returns false")
 		}
 	})
 
@@ -28,7 +29,7 @@ func TestVisualStudioCodeWasmEnvConfigGuard(t *testing.T) {
 
 		vscodeDir := filepath.Join(tmp, ".vscode")
 		if _, err := os.Stat(vscodeDir); os.IsNotExist(err) {
-			t.Error("expected .vscode directory to be created when shouldCreateIDEConfig returns true")
+			t.Error("expected .vscode directory to be created when client.ShouldCreateIDEConfig returns true")
 		}
 	})
 }

@@ -19,22 +19,22 @@ func (w *WasmClient) Change(newValue string) {
 	newValue = Convert(newValue).ToUpper().String()
 
 	// Validate mode
-	if err := w.validateMode(newValue); err != nil {
+	if err := w.ValidateMode(newValue); err != nil {
 		w.Logger(err.Error())
 		return
 	}
 
 	// Lazily verify TinyGo installation status ONLY when a TinyGo mode is requested
-	if w.requiresTinyGo(newValue) {
+	if w.RequiresTinyGo(newValue) {
 		w.verifyTinyGoInstallationStatus()
-		if !w.tinyGoInstalled {
+		if !w.TinyGoInstalled {
 			w.Logger(w.handleTinyGoMissing().Error())
 			return
 		}
 	}
 
 	// Update active builder
-	w.updateCurrentBuilder(newValue)
+	w.UpdateCurrentBuilder(newValue)
 
 	// Save mode to store if available
 	if w.Database != nil {
@@ -52,7 +52,7 @@ func (w *WasmClient) Change(newValue string) {
 	}
 
 	// Ensure wasm_exec.js is available
-	if w.enableWasmExecJsOutput {
+	if w.EnableWasmExecJsOutput {
 		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
 	}
 
@@ -64,22 +64,22 @@ func (w *WasmClient) Change(newValue string) {
 	}
 
 	if compilationSuccess {
-		w.logSuccessState("Changed", "To", "Mode", newValue)
+		w.LogSuccessState("Changed", "To", "Mode", newValue)
 	}
 }
 
-// RecompileMainWasm recompiles the main WASM file using the current storage mode.
+// RecompileMainWasm recompiles the main WASM file using the current Storage mode.
 func (w *WasmClient) RecompileMainWasm() error {
-	if w.storage == nil {
-		return Err("storage not initialized")
+	if w.Storage == nil {
+		return Err("Storage not initialized")
 	}
 
-	// Use storage.Compile() to respect In-Memory vs Disk mode
-	return w.storage.Compile()
+	// Use Storage.Compile() to respect In-Memory vs Disk mode
+	return w.Storage.Compile()
 }
 
-// validateMode validates if the provided mode is supported
-func (w *WasmClient) validateMode(mode string) error {
+// ValidateMode validates if the provided mode is supported
+func (w *WasmClient) ValidateMode(mode string) error {
 	// Ensure mode is uppercase to match configured shortcuts which are
 	// expected to be single uppercase letters by default.
 	mode = Convert(mode).ToUpper().String()
@@ -99,9 +99,9 @@ func (w *WasmClient) validateMode(mode string) error {
 	return Err("mode", ":", mode, "invalid", "valid", ":", validModes)
 }
 
-// logSuccessState logs the standard success message with WASM details (Safe: Acquires Lock)
-func (w *WasmClient) logSuccessState(messages ...any) {
+// LogSuccessState logs the standard success message with WASM details (Safe: Acquires Lock)
+func (w *WasmClient) LogSuccessState(messages ...any) {
 
-	args := append(messages, "WASM", w.storage.Name(), w.MainInputFileRelativePath(), w.activeSizeBuilder.BinarySize())
+	args := append(messages, "WASM", w.Storage.Name(), w.MainInputFileRelativePath(), w.activeSizeBuilder.BinarySize())
 	w.Logger(args...)
 }

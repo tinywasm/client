@@ -7,8 +7,8 @@ func (w *WasmClient) SetMode(mode string) {
 	defer w.storageMu.Unlock()
 
 	// Ensure mode is valid or use default shortcuts?
-	// The underlying updateCurrentBuilder handles shortcuts matching.
-	w.updateCurrentBuilder(mode)
+	// The underlying UpdateCurrentBuilder handles shortcuts matching.
+	w.UpdateCurrentBuilder(mode)
 
 	// Also persist to DB if configured?
 	if w.Database != nil {
@@ -17,13 +17,13 @@ func (w *WasmClient) SetMode(mode string) {
 }
 
 // Compile performs a synchronous compilation using the current settings.
-// This exposes the underlying storage's Compile method.
+// This exposes the underlying Storage's Compile method.
 func (w *WasmClient) Compile() error {
 	w.storageMu.RLock()
 	defer w.storageMu.RUnlock()
 
-	if w.storage == nil {
+	if w.Storage == nil {
 		return nil
 	}
-	return w.storage.Compile()
+	return w.Storage.Compile()
 }

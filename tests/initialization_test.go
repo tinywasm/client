@@ -1,29 +1,30 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
-// TestInitialization verifies basic WasmClient initialization
+// TestInitialization verifies basic client.WasmClient initialization
 func TestInitialization(t *testing.T) {
 	// Create temporary test directory
 	testDir := t.TempDir()
 
-	// Create WasmClient instance
-	config := &Config{
+	// Create client.WasmClient instance
+	config := &client.Config{
 		SourceDir: func() string { return "web" },
 		OutputDir: func() string { return "web/public" },
 	}
 
-	tinyWasm := New(config)
+	tinyWasm := client.New(config)
 	tinyWasm.SetAppRootDir(testDir)
 	tinyWasm.SetBuildShortcuts("L", "M", "S")
 
-	if tinyWasm.currenSizeMode != "L" {
-		t.Errorf("Expected currenSizeMode to be L, got %s", tinyWasm.currenSizeMode)
+	if tinyWasm.CurrentSizeMode != "L" {
+		t.Errorf("Expected client.CurrentSizeMode to be L, got %s", tinyWasm.CurrentSizeMode)
 	}
 }
 
@@ -33,13 +34,13 @@ func TestWasmExecJsGeneration(t *testing.T) {
 	// Create temporary test directory
 	testDir := t.TempDir()
 
-	// Create WasmClient instance
-	config := &Config{
+	// Create client.WasmClient instance
+	config := &client.Config{
 		SourceDir: func() string { return "web" },
 		OutputDir: func() string { return "theme/js" },
 	}
 
-	tinyWasm := New(config)
+	tinyWasm := client.New(config)
 	tinyWasm.SetAppRootDir(testDir)
 	tinyWasm.SetEnableWasmExecJsOutput(true)
 	tinyWasm.SetWasmExecJsOutputDir("theme/js")
@@ -60,7 +61,7 @@ func TestWasmExecJsGeneration(t *testing.T) {
 		t.Fatalf("Failed to read generated wasm_exec.js: %v", err)
 	}
 	content := string(data)
-	goSignatures := wasm_execGoSignatures()
+	goSignatures := client.WasmExecGoSignatures()
 	found := false
 	for _, s := range goSignatures {
 		if strings.Contains(content, s) {
@@ -75,12 +76,12 @@ func TestWasmExecJsGeneration(t *testing.T) {
 
 // TestDefaultConfiguration tests reaching the correct path for wasm_exec.js
 func TestDefaultConfiguration(t *testing.T) {
-	config := &Config{
+	config := &client.Config{
 		SourceDir: func() string { return "web" },
 		OutputDir: func() string { return "theme/js" },
 	}
 
-	tinyWasm := New(config)
+	tinyWasm := client.New(config)
 	tinyWasm.SetAppRootDir("/test")
 	tinyWasm.SetBuildShortcuts("c", "d", "p")
 
@@ -96,20 +97,20 @@ func TestCreateDefaultFile(t *testing.T) {
 	// Create temporary test directory
 	testDir := t.TempDir()
 
-	// Create WasmClient instance
-	config := &Config{
+	// Create client.WasmClient instance
+	config := &client.Config{
 		SourceDir: func() string { return "web" },
 		OutputDir: func() string { return "theme/js" },
 	}
 
-	tinyWasm := New(config)
+	tinyWasm := client.New(config)
 	tinyWasm.SetAppRootDir(testDir)
 	tinyWasm.SetShouldGenerateDefaultFile(func() bool { return true })
 
 	// Now create the default WASM file
 	result := tinyWasm.CreateDefaultWasmFileClientIfNotExist()
 	if result == nil {
-		t.Error("Expected CreateDefaultWasmFileClientIfNotExist to return WasmClient instance")
+		t.Error("Expected CreateDefaultWasmFileClientIfNotExist to return client.WasmClient instance")
 	}
 
 	// Verify the default file was created

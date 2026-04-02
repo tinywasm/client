@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -25,14 +26,14 @@ func main() { fmt.Println("WASM") }`), 0644)
 		t.Fatal(err)
 	}
 
-	cfg := &Config{
+	cfg := &client.Config{
 		SourceDir:       func() string { return "web" },
 		OutputDir:       func() string { return "web/public" },
 		AssetsURLPrefix: "assets",
 	}
 
 	// 1. Initialize - Should be In-Memory (no .wasm file yet)
-	c := New(cfg)
+	c := client.New(cfg)
 	c.SetLog(func(msg ...any) {
 		t.Log(msg...)
 	})
@@ -40,8 +41,8 @@ func main() { fmt.Println("WASM") }`), 0644)
 	c.SetMainInputFile("client.go")
 	c.SetOutputName("test-client")
 
-	if c.storage.Name() != "In-Memory" {
-		t.Errorf("Expected In-Memory storage, got %s", c.storage.Name())
+	if c.Storage.Name() != "In-Memory" {
+		t.Errorf("Expected In-Memory client.Storage, got %s", c.Storage.Name())
 	}
 
 	// 2. Trigger Event -> Compile to Memory
@@ -85,8 +86,8 @@ func main() { fmt.Println("WASM") }`), 0644)
 	c.CreateDefaultWasmFileClientIfNotExist()
 	c.SetBuildOnDisk(true, true)
 
-	if c.storage.Name() != "External" {
-		t.Errorf("Expected External storage after switch, got %s", c.storage.Name())
+	if c.Storage.Name() != "External" {
+		t.Errorf("Expected External client.Storage after switch, got %s", c.Storage.Name())
 	}
 
 	// Verify file WAS written to disk
@@ -95,12 +96,12 @@ func main() { fmt.Println("WASM") }`), 0644)
 	}
 
 	// 5. Verify serving in External Mode
-	// Note: We need to re-register routes if the storage instance changed?
-	// WasmClient.RegisterRoutes delegates to w.storage.RegisterRoutes.
-	// But previously registered handlers on 'mux' are bound to the OLD storage instance (closure).
+	// Note: We need to re-register routes if the client.Storage instance changed?
+	// client.WasmClient.RegisterRoutes delegates to w.Storage.RegisterRoutes.
+	// But previously registered handlers on 'mux' are bound to the OLD client.Storage instance (closure).
 	// Ideally, the app re-registers or the handler delegates dynamically.
 	// In our implementation, `RegisterRoutes` calls `mux.HandleFunc`.
-	// For this test, we create a new mux to verify the NEW storage.
+	// For this test, we create a new mux to verify the NEW client.Storage.
 	mux2 := http.NewServeMux()
 	c.RegisterRoutes(mux2)
 	ts2 := httptest.NewServer(mux2)

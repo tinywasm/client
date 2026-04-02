@@ -25,27 +25,27 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 		return nil
 	}
 
-	// Only log and process write/create events (skip silent scan events)
+	// Only Log and process write/create events (skip silent scan events)
 	if event != "write" && event != "create" {
 		return nil
 	}
 
-	// Capture storage under read lock to prevent data race with SetBuildOnDisk
+	// Capture Storage under read lock to prevent data race with SetBuildOnDisk
 	w.storageMu.RLock()
-	s := w.storage
+	s := w.Storage
 	w.storageMu.RUnlock()
 
-	// Compile using current storage (In-Memory or External)
+	// Compile using current Storage (In-Memory or External)
 	if s == nil {
-		return Err("storage not initialized")
+		return Err("Storage not initialized")
 	}
 
-	// Compile using storage
+	// Compile using Storage
 	if err := s.Compile(); err != nil {
 		return Err("compiling to WebAssembly error: ", err)
 	}
 
-	w.logSuccessState()
+	w.LogSuccessState()
 
 	if w.OnWasmExecChange != nil {
 		w.OnWasmExecChange()
@@ -57,7 +57,7 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 // ShouldCompileToWasm determines if a file should trigger WASM compilation
 func (w *WasmClient) ShouldCompileToWasm(fileName, filePath string) bool {
 	// Always compile main.wasm.go
-	if fileName == w.mainInputFile {
+	if fileName == w.MainInputFile {
 		return true
 	}
 
@@ -74,14 +74,14 @@ func (w *WasmClient) ShouldCompileToWasm(fileName, filePath string) bool {
 func (w *WasmClient) MainInputFileRelativePath() string {
 	// The input lives under the source directory by convention.
 	// Return full path including AppRootDir for callers that expect absolute paths
-	return PathJoin(w.Config.SourceDir(), w.mainInputFile).String()
+	return PathJoin(w.Config.SourceDir(), w.MainInputFile).String()
 }
 
 // MainOutputFileAbsolutePath returns the absolute path to the main WASM output file (e.g. "main.wasm").
 func (w *WasmClient) MainOutputFileAbsolutePath() string {
 	// The output file is created in OutputDir which is:
 	// AppRootDir/OutputDir/{OutputName}.wasm
-	return PathJoin(w.appRootDir, w.Config.OutputDir(), w.outputName+".wasm").String()
+	return PathJoin(w.AppRootDir, w.Config.OutputDir(), w.OutputName+".wasm").String()
 }
 
 // UnobservedFiles returns files that should not be watched for changes e.g: main.wasm

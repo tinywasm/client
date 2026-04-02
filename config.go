@@ -1,6 +1,6 @@
 package client
 
-// KeyValueDataBase defines the interface for a key-value storage system
+// KeyValueDataBase defines the interface for a key-value Storage system
 // used to persist the compiler state (e.g. current mode).
 type KeyValueDataBase interface {
 	Get(key string) (string, error)
@@ -22,7 +22,7 @@ type Config struct {
 	// default: "" -> serves at "/client.wasm"
 	AssetsURLPrefix string
 
-	// TinyGoCompiler removed: tinyGoCompiler (private) in WasmClient is used instead to avoid confusion
+	// TinyGoCompiler removed: TinyGoCompilerFlag (private) in WasmClient is used instead to avoid confusion
 
 	// gobuild integration fields
 	Callback           func(error)     // Optional callback for async compilation

@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,12 +24,12 @@ func TestShouldCompileToWasm(t *testing.T) {
 
 	// modules support removed; tests operate on sourceDir directly
 	var logMessages []string
-	config := &Config{
+	config := &client.Config{
 		SourceDir: func() string { return "wasmTest" },
 		OutputDir: func() string { return "output" },
 	}
 
-	tinyWasm := New(config)
+	tinyWasm := client.New(config)
 	tinyWasm.SetLog(func(message ...any) {
 		logMessages = append(logMessages, fmt.Sprint(message...))
 	})
@@ -78,7 +79,7 @@ func TestCompilerComparison(t *testing.T) {
 		t.Fatalf("Error creating test directory: %v", err)
 	}
 
-	// Create directories needed by the WasmClient
+	// Create directories needed by the client.WasmClient
 	if err := os.MkdirAll(filepath.Join(rootDir, "wasmTest"), 0755); err != nil {
 		t.Fatalf("Error creating source dir: %v", err)
 	}
@@ -103,28 +104,28 @@ func TestCompilerComparison(t *testing.T) {
 	// Create client.go file for testing in the sourceDir
 	sourceDir := filepath.Join(rootDir, "wasmTest")
 	mainWasmPath := filepath.Join(sourceDir, "client.go")
-	wasmContent := `package main
+	WasmContent := `package main
 	
 	func main() {
 		println("Test WASM compilation")
 	}`
-	os.WriteFile(mainWasmPath, []byte(wasmContent), 0644)
+	os.WriteFile(mainWasmPath, []byte(WasmContent), 0644)
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var logMessages []string
-			config := &Config{
+			config := &client.Config{
 				SourceDir: func() string { return "wasmTest" },
 				OutputDir: func() string { return "output" },
 			}
 
-			tinyWasm := New(config)
+			tinyWasm := client.New(config)
 			tinyWasm.SetLog(func(message ...any) {
 				logMessages = append(logMessages, fmt.Sprint(message...))
 			})
 			tinyWasm.SetAppRootDir(rootDir)
 			// Tests run in the same package so we can set the private flag directly
-			tinyWasm.tinyGoCompiler = tc.tinyGoEnabled
+			tinyWasm.TinyGoCompilerFlag = tc.tinyGoEnabled
 
 			// Test compiler detection
 			if tc.tinyGoEnabled {
@@ -154,7 +155,7 @@ func TestCompilerComparison(t *testing.T) {
 			_ = tinyWasm.NewFileEvent("client.go", ".go", mainWasmPath, "write")
 
 			// Check that the correct compiler is being used
-			if tc.tinyGoEnabled && tinyWasm.tinyGoInstalled {
+			if tc.tinyGoEnabled && tinyWasm.TinyGoInstalled {
 				// For TinyGo, verify it's actually being used
 				if !tinyWasm.TinyGoCompiler() {
 					t.Errorf("Expected TinyGo compiler to be enabled, but it's not")

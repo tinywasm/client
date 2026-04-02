@@ -1,6 +1,7 @@
-package client
+package client_test
 
 import (
+	"github.com/tinywasm/client"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -18,8 +19,8 @@ func TestWasmExecFiles(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Create a WasmClient instance for testing
-	tw := New(&Config{})
+	// Create a client.WasmClient instance for testing
+	tw := client.New(&client.Config{})
 	tw.SetAppRootDir(tempDir)
 	tw.SetMainInputFile("main.go")
 
@@ -126,8 +127,8 @@ func TestWasmExecFileVersions(t *testing.T) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Create a WasmClient instance
-	tw := New(&Config{})
+	// Create a client.WasmClient instance
+	tw := client.New(&client.Config{})
 	tw.SetAppRootDir(tempDir)
 	tw.SetMainInputFile("main.go")
 
@@ -255,8 +256,8 @@ func TestEnsureWasmExecFilesExists(t *testing.T) {
 		t.Fatalf("Failed to create assets dir: %v", err)
 	}
 
-	// Create a WasmClient instance
-	tw := New(&Config{})
+	// Create a client.WasmClient instance
+	tw := client.New(&client.Config{})
 	tw.SetAppRootDir(assetsDir)
 	tw.SetMainInputFile("main.go")
 
