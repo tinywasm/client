@@ -5,6 +5,7 @@ Intelligent WebAssembly compilation manager for Go with automatic project detect
 
 ## 🚀 Features
 
+- **CLI Tool (`wasmbuild`)**: A standalone command-line interface to compile Go to WASM and generate a ready-to-use `script.js` loader.
 - **3-Mode Compiler System**:
   - `L` (Large): Standard Go compiler for fast development.
   - `M` (Medium): TinyGo with debug optimizations (`-opt=1`).
@@ -15,6 +16,17 @@ Intelligent WebAssembly compilation manager for Go with automatic project detect
 - **Flexible Output**: Support for in-memory serving or physical file output.
 
 ## 🛠 Usage
+
+### CLI tool
+
+You can use the `wasmbuild` CLI tool for a quick setup and compilation:
+
+```bash
+go install github.com/tinywasm/client/cmd/wasmbuild@latest
+wasmbuild # compiles web/client.go to web/public/client.wasm and generates web/public/script.js
+```
+
+See [cmd/wasmbuild](cmd/wasmbuild/README.md) for more details.
 
 ### Basic Initialization
 
