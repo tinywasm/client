@@ -75,5 +75,7 @@ func RunWasmBuild(args WasmBuildArgs) error {
 		return Errf("WASM compilation failed: %w", err)
 	}
 
+	w.LogSuccessState("compiled")
+
 	return nil
 }
