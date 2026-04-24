@@ -27,7 +27,7 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 		t.Fatalf("expected no existing file at %s", target)
 	}
 
-	result := tw.CreateDefaultWasmFileClientIfNotExist()
+	result := tw.CreateDefaultWasmFileClientIfNotExist(false)
 	if result == nil {
 		t.Fatalf("CreateDefaultWasmFileClientIfNotExist returned nil")
 	}
@@ -83,7 +83,7 @@ func TestCreateDefaultWasmFileClientIfNotExistDoesNotOverwrite(t *testing.T) {
 	}
 
 	// Try to generate (should skip)
-	result := tw.CreateDefaultWasmFileClientIfNotExist()
+	result := tw.CreateDefaultWasmFileClientIfNotExist(false)
 	if result == nil {
 		t.Fatalf("CreateDefaultWasmFileClientIfNotExist returned nil")
 	}

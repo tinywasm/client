@@ -19,7 +19,7 @@ func TestCreateDefaultWasmFileClientGuard(t *testing.T) {
 
 	t.Run("DoesNotGenerateIfGuardReturnsFalse", func(t *testing.T) {
 		tw.SetShouldGenerateDefaultFile(func() bool { return false })
-		tw.CreateDefaultWasmFileClientIfNotExist()
+		tw.CreateDefaultWasmFileClientIfNotExist(false)
 
 		target := filepath.Join(tmp, sourceDir, "client.go")
 		if _, err := os.Stat(target); err == nil {
@@ -29,7 +29,7 @@ func TestCreateDefaultWasmFileClientGuard(t *testing.T) {
 
 	t.Run("GeneratesIfGuardReturnsTrue", func(t *testing.T) {
 		tw.SetShouldGenerateDefaultFile(func() bool { return true })
-		tw.CreateDefaultWasmFileClientIfNotExist()
+		tw.CreateDefaultWasmFileClientIfNotExist(false)
 
 		target := filepath.Join(tmp, sourceDir, "client.go")
 		if _, err := os.Stat(target); os.IsNotExist(err) {

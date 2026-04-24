@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	. "github.com/tinywasm/fmt"
+	"github.com/tinywasm/tinygo"
 )
 
 // TinyGoCompiler returns if TinyGo compiler should be used (dynamic based on configuration)
@@ -18,16 +19,13 @@ func (w *WasmClient) RequiresTinyGo(mode string) bool {
 	return mode == w.buildMediumSizeShortcut || mode == w.buildSmallSizeShortcut
 }
 
-// installTinyGo placeholder for future TinyGo installation
-func (w *WasmClient) installTinyGo() error {
-	return Err("TinyGo", "installation", "not", "implemented")
-}
-
 // handleTinyGoMissing handles missing TinyGo installation
 func (w *WasmClient) handleTinyGoMissing() error {
-	// installTinyGo always returns a non-nil error (not implemented)
-	err := w.installTinyGo()
-	return Err("Error:", "cannot", "install TinyGo:", err.Error())
+	_, err := tinygo.EnsureInstalled()
+	if err != nil {
+		return Err("Error:", "cannot", "install TinyGo:", err.Error())
+	}
+	return nil
 }
 
 // VerifyTinyGoInstallation checks and caches TinyGo installation status

@@ -13,7 +13,7 @@ var embeddedFS embed.FS
 
 // CreateDefaultWasmFileClientIfNotExist creates a default WASM main.go file from the embedded markdown template
 // It never overwrites an existing file and returns the WasmClient instance for method chaining.
-func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
+func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist(skipIDEConfig bool) *WasmClient {
 	// Check if generation is allowed
 	if t.ShouldGenerateDefaultFile != nil && !t.ShouldGenerateDefaultFile() {
 		return t
@@ -57,7 +57,9 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient {
 
 		t.LogSuccessState("Generated WASM source file at", clientPath)
 
-		t.VisualStudioCodeWasmEnvConfig()
+		if !skipIDEConfig {
+			t.VisualStudioCodeWasmEnvConfig()
+		}
 
 		// Trigger compilation immediately so In-Memory mode has content to serve
 		t.storageMu.RLock()
