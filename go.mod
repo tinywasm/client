@@ -11,6 +11,7 @@ require (
 	github.com/tinywasm/devflow v0.4.14
 	github.com/tinywasm/form v0.2.0
 	github.com/tinywasm/mcp v0.1.1
+	github.com/tinywasm/tinygo v0.0.0
 )
 
 require (
@@ -29,3 +30,4 @@ require (
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/term v0.41.0 // indirect
 )
+

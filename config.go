@@ -27,6 +27,7 @@ type Config struct {
 	// gobuild integration fields
 	Callback           func(error)     // Optional callback for async compilation
 	CompilingArguments func() []string // Build arguments for compilation (e.g., ldflags)
+	Env                []string        // Environment variables, e.g., []string{"GOOS=js", "TINYGOROOT=/path"}
 
 	Database         KeyValueDataBase // Key-Value store for state persistence
 	OnWasmExecChange func()           // Callback for wasm_exec.js changes

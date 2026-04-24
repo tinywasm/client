@@ -3,9 +3,71 @@ package client
 import (
 	"os"
 	"path/filepath"
+	"sync"
 
 	. "github.com/tinywasm/fmt"
+	"github.com/tinywasm/tinygo"
 )
+
+// RunWasmBuildClient captures the subset of WasmClient methods used by RunWasmBuild.
+// It is exported so tests can provide lightweight fakes without pulling in gobuild.
+type RunWasmBuildClient interface {
+	SetMode(string)
+	SetBuildOnDisk(bool, bool)
+	SetLog(func(...any))
+	Compile() error
+	LogSuccessState(...any)
+}
+
+type runWasmBuildDeps struct {
+	ensureTinyGoInstalled func() (string, error)
+	tinyGoEnv             func() []string
+	newClient             func(*Config) RunWasmBuildClient
+}
+
+var (
+	wasmBuildDeps = runWasmBuildDeps{
+		ensureTinyGoInstalled: EnsureTinyGoInstalled,
+		tinyGoEnv: func() []string {
+			return tinygo.GetEnv()
+		},
+		newClient: func(cfg *Config) RunWasmBuildClient {
+			return New(cfg)
+		},
+	}
+	wasmBuildDepsMu sync.Mutex
+)
+
+// RunWasmBuildHooks lets tests override RunWasmBuild dependencies (installer, env provider, client factory).
+// Use SetRunWasmBuildHooks in tests to temporarily replace these functions.
+type RunWasmBuildHooks struct {
+	EnsureTinyGoInstalled func() (string, error)
+	TinyGoEnv             func() []string
+	NewClient             func(*Config) RunWasmBuildClient
+}
+
+// SetRunWasmBuildHooks updates RunWasmBuild dependencies for the duration of a test.
+// It returns a restore function that should be deferred.
+func SetRunWasmBuildHooks(h RunWasmBuildHooks) (restore func()) {
+	wasmBuildDepsMu.Lock()
+	prev := wasmBuildDeps
+	if h.EnsureTinyGoInstalled != nil {
+		wasmBuildDeps.ensureTinyGoInstalled = h.EnsureTinyGoInstalled
+	}
+	if h.TinyGoEnv != nil {
+		wasmBuildDeps.tinyGoEnv = h.TinyGoEnv
+	}
+	if h.NewClient != nil {
+		wasmBuildDeps.newClient = h.NewClient
+	}
+	wasmBuildDepsMu.Unlock()
+
+	return func() {
+		wasmBuildDepsMu.Lock()
+		wasmBuildDeps = prev
+		wasmBuildDepsMu.Unlock()
+	}
+}
 
 // WasmBuildArgs defines the arguments for the RunWasmBuild function.
 type WasmBuildArgs struct {
@@ -14,17 +76,11 @@ type WasmBuildArgs struct {
 
 // RunWasmBuild performs the common logic for the wasmbuild CLI.
 func RunWasmBuild(args WasmBuildArgs) error {
-	// 1. If not stdlib: call EnsureTinyGoInstalled() and add to PATH
+	// 1. If not stdlib: call EnsureTinyGoInstalled() and get env from tinygo package
 	if !args.Stdlib {
-		tinyGoPath, err := EnsureTinyGoInstalled()
+		_, err := wasmBuildDeps.ensureTinyGoInstalled()
 		if err != nil {
 			return Errf("error ensuring TinyGo installation: %w", err)
-		}
-
-		if tinyGoPath != "" {
-			// Add to PATH so exec.LookPath (used by gobuild or os/exec) can find it
-			newPath := filepath.Dir(tinyGoPath) + string(os.PathListSeparator) + os.Getenv("PATH")
-			os.Setenv("PATH", newPath)
 		}
 	}
 
@@ -60,13 +116,17 @@ func RunWasmBuild(args WasmBuildArgs) error {
 	}
 
 	// 5. Compile WASM
+	// Get environment with TINYGOROOT and updated PATH (safe for subprocess injection)
 	cfg := NewConfig()
+	if !args.Stdlib {
+		cfg.Env = wasmBuildDeps.tinyGoEnv()
+	}
 	// NewConfig() defaults should be SourceDir="web" and OutputDir="web/public",
 	// but we explicitly set them based on the required layout for safety.
 	cfg.SourceDir = func() string { return "web" }
 	cfg.OutputDir = func() string { return outputDir }
 
-	w := New(cfg)
+	w := wasmBuildDeps.newClient(cfg)
 	w.SetMode(mode)
 	w.SetBuildOnDisk(true, false)
 	w.SetLog(Println)

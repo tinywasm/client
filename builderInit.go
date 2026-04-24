@@ -32,6 +32,10 @@ func (w *WasmClient) builderWasmInit() {
 	codingConfig := baseConfig
 	codingConfig.Command = "go"
 	codingConfig.Env = []string{"GOOS=js", "GOARCH=wasm"}
+	// Append custom env from Config if provided
+	if len(w.Config.Env) > 0 {
+		codingConfig.Env = append(codingConfig.Env, w.Config.Env...)
+	}
 	codingConfig.CompilingArguments = func() []string {
 		args := []string{"-tags", "dev"}
 		if w.CompilingArguments != nil {
@@ -45,6 +49,9 @@ func (w *WasmClient) builderWasmInit() {
 	// Configure Debug builder (TinyGo debug-friendly)
 	debugConfig := baseConfig
 	debugConfig.Command = "tinygo"
+	if len(w.Config.Env) > 0 {
+		debugConfig.Env = w.Config.Env
+	}
 	debugConfig.CompilingArguments = func() []string {
 		args := []string{"-target", "wasm", "-opt=1"} // Keep debug symbols
 		if w.CompilingArguments != nil {
@@ -58,6 +65,9 @@ func (w *WasmClient) builderWasmInit() {
 	// Configure Production builder (TinyGo optimized)
 	prodConfig := baseConfig
 	prodConfig.Command = "tinygo"
+	if len(w.Config.Env) > 0 {
+		prodConfig.Env = w.Config.Env
+	}
 	prodConfig.CompilingArguments = func() []string {
 		args := []string{"-target", "wasm", "-opt=z", "-no-debug", "-panic=trap"}
 		if w.CompilingArguments != nil {

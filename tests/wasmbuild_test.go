@@ -157,3 +157,95 @@ func TestRunWasmBuild_GeneratesScriptJS_Stdlib(t *testing.T) {
 		t.Error("script.js does not contain Go signatures")
 	}
 }
+
+func TestRunWasmBuild_IncludesTinyGoEnv(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "wasmbuild_env")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	oldWd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(oldWd)
+
+	if err := os.MkdirAll(filepath.Join("web"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	clientFile := filepath.Join("web", "client.go")
+	if err := os.WriteFile(clientFile, []byte("package main\nfunc main() {}"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Setenv("PATH", "original-path")
+
+	fake := &fakeRunWasmBuildClient{}
+	var capturedEnv []string
+	restore := client.SetRunWasmBuildHooks(client.RunWasmBuildHooks{
+		EnsureTinyGoInstalled: func() (string, error) {
+			return filepath.Join(tmpDir, "tinygo", "bin", "tinygo"), nil
+		},
+		TinyGoEnv: func() []string {
+			return []string{
+				"TINYGOROOT=/custom/root",
+				"PATH=/custom/root/bin:/usr/bin",
+			}
+		},
+		NewClient: func(cfg *client.Config) client.RunWasmBuildClient {
+			capturedEnv = append([]string{}, cfg.Env...)
+			return fake
+		},
+	})
+	defer restore()
+
+	if err := client.RunWasmBuild(client.WasmBuildArgs{Stdlib: false}); err != nil {
+		t.Fatalf("RunWasmBuild returned error: %v", err)
+	}
+
+	if fake.compileCalls != 1 {
+		t.Fatalf("expected Compile to be called once, got %d", fake.compileCalls)
+	}
+
+	if len(capturedEnv) == 0 {
+		t.Fatal("expected TinyGo env to be attached to config")
+	}
+
+	foundTinyRoot := false
+	for _, entry := range capturedEnv {
+		if strings.HasPrefix(entry, "TINYGOROOT=") {
+			foundTinyRoot = true
+			if entry != "TINYGOROOT=/custom/root" {
+				t.Fatalf("unexpected TINYGOROOT value: %s", entry)
+			}
+		}
+	}
+	if !foundTinyRoot {
+		t.Fatal("TINYGOROOT not found in env slice")
+	}
+
+	if got := os.Getenv("PATH"); got != "original-path" {
+		t.Fatalf("PATH was mutated globally: got %q", got)
+	}
+}
+
+type fakeRunWasmBuildClient struct {
+	compileCalls int
+}
+
+func (f *fakeRunWasmBuildClient) SetMode(string) {}
+
+func (f *fakeRunWasmBuildClient) SetBuildOnDisk(bool, bool) {}
+
+func (f *fakeRunWasmBuildClient) SetLog(func(...any)) {}
+
+func (f *fakeRunWasmBuildClient) Compile() error {
+	f.compileCalls++
+	return nil
+}
+
+func (f *fakeRunWasmBuildClient) LogSuccessState(...any) {}
