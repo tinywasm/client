@@ -99,9 +99,18 @@ func (w *WasmClient) ValidateMode(mode string) error {
 	return Err("mode", ":", mode, "invalid", "valid", ":", validModes)
 }
 
+func (w *WasmClient) storageMode() string {
+	switch w.Storage.(type) {
+	case *MemoryStorage:
+		return "mem"
+	default:
+		return "disk"
+	}
+}
+
 // LogSuccessState logs the standard success message with WASM details (Safe: Acquires Lock)
 func (w *WasmClient) LogSuccessState(messages ...any) {
-
-	args := append(messages, "WASM", w.Storage.Name(), w.MainInputFileRelativePath(), w.activeSizeBuilder.BinarySize())
-	w.Logger(args...)
+	event := Translate(messages...).String()
+	suffix := Sprintf("[%s|%s]", w.storageMode(), w.activeSizeBuilder.BinarySize())
+	w.Logger("[CLIENT] " + event + " " + suffix)
 }
