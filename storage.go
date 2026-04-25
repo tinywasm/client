@@ -82,5 +82,5 @@ func (s *DiskStorage) RegisterRoutes(mux *http.ServeMux) {
 		w.Header().Set("Content-Type", "application/wasm")
 		http.ServeFile(w, r, absPath)
 	})
-	s.Client.LogSuccessState("http route:", routePath, "->", absPath)
+	s.Client.LogSuccessState("http route:", routePath)
 }
