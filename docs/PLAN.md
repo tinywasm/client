@@ -1,146 +1,118 @@
-# PLAN: tinywasm/client — Pending Stages
-
-## Previous Work (completed)
-> [`CHECK_PLAN.md`](CHECK_PLAN.md) — Rename `cmd/client` to `cmd/wasmbuild` + generate `script.js`. All 4 stages executed successfully.
-
+---
+title: Normalize LogSuccessState Output
+status: proposed
+date: 2026-04-25
 ---
 
-## Stage 1 — Migrate TinyGo dependency to `tinywasm/tinygo` package
+# PLAN: Normalize `LogSuccessState` Output
 
-### Goal
-Replace all internal TinyGo installation/verification logic in `tinywasm/client` with calls to the standalone `tinywasm/tinygo` package, then remove the old files.
+## Problem
 
-### Dependency
-`tinywasm/tinygo` package is **ready** (detect.go, install.go, download.go, extract.go, ensure.go all implemented and tested).
+`LogSuccessState` appends WASM context fields (storage name, source path, binary size) to caller-provided messages as raw variadic args. Since `Logger` delegates to a user-supplied `func(...any)` — typically `fmt.Println` or similar — args are concatenated without separators, producing unreadable output:
 
-### Current State
-- `client/tinygo_installer.go` — local installer logic (Linux-only, requires sudo for .deb)
-- `client/tinygo_verify_install.go` — `VerifyTinyGoInstallation()` and `GetTinyGoVersion()` as `*WasmClient` methods
-- `client/wasmbuild.go` — `runWasmBuildDeps` struct holds `ensureTinyGoInstalled` as an injected function field initialized to `EnsureTinyGoInstalled` (local package function)
-
-### `tinywasm/tinygo` API
-```go
-import "github.com/tinywasm/tinygo"
-
-tinygo.IsInstalled() bool
-tinygo.GetPath() (string, error)
-tinygo.GetVersion() (string, error)
-tinygo.EnsureInstalled(opts ...Option) (string, error)
-tinygo.Install(opts ...Option) error
+```
+http route:/client.wasmWASMIn-Memoryweb/client.go2.0 MB
 ```
 
-### Files to Modify
+Three additional issues compound this:
 
-| File | What changes |
-|------|-------------|
-| [go.mod](../go.mod) | Add `github.com/tinywasm/tinygo` dependency, run `go mod tidy` |
-| [wasmbuild.go](../wasmbuild.go) | Replace `EnsureTinyGoInstalled()` with `tinygo.EnsureInstalled()` |
-| [Change.go](../Change.go) | `verifyTinyGoInstallationStatus()` → `tinygo.IsInstalled()`, `handleTinyGoMissing()` → `tinygo.EnsureInstalled()` |
-| [client.go](../client.go) | Update `WasmProjectTinyGoJsUse()`, `UseTinyGo()` internals |
-| [builderInit.go](../builderInit.go) | TinyGo binary path via `tinygo.GetPath()` if applicable |
+1. **Inconsistent callers** — `http.go:44` passes only `routePath`, while `storage.go:85` passes `routePath + "->" + absPath`. The trailing WASM context repeats in both cases but callers format differently.
+2. **No separation between caller message and WASM context** — the appended fields run directly into the caller string.
+3. **No labeled fields** — `In-Memory`, `web/client.go`, `2.0 MB` appear without keys, making it impossible to know which is which.
 
-### Files to Delete
+## Goal
 
-| File | Reason |
+Every `LogSuccessState` call produces a consistent, human-readable line:
+
+```
+[CLIENT] <event> [<mode>|<size>]
+```
+
+- `<mode>` — `mem` (MemoryStorage) or `disk` (DiskStorage)
+- `<size>` — binary size from `activeSizeBuilder.BinarySize()`
+- Route path and source file path are omitted from the suffix — they are already present in the caller message when relevant
+
+Examples after the fix:
+
+```
+[CLIENT] http route: /client.wasm [mem|2.0 MB]
+[CLIENT] http route: /client.wasm [disk|4.1 MB]
+[CLIENT] compiled [mem|2.0 MB]
+[CLIENT] Changed To Mode dev [mem|2.0 MB]
+[CLIENT] Generated web/client.go [mem|2.0 MB]
+```
+
+### Why not show the file path in the suffix?
+
+`/client.wasm` is already in the caller message. The absolute disk path (`/home/app/web/client.wasm`) adds no value for a developer or LLM — the route is what matters, and it is already shown. Keeping only `[mode|size]` makes the line scannable at a glance.
+
+## Root Cause
+
+```go
+// Change.go:103
+func (w *WasmClient) LogSuccessState(messages ...any) {
+    args := append(messages, "WASM", w.Storage.Name(), w.MainInputFileRelativePath(), w.activeSizeBuilder.BinarySize())
+    w.Logger(args...)   // all fields passed as raw args, no separators
+}
+```
+
+`Logger` calls `w.Log(args...)` which typically uses `fmt.Sprint(args...)` — Go's default behavior joins non-string adjacent args without spaces.
+
+## Proposed Change
+
+### 1. Add `storageMode()` helper
+
+```go
+func (w *WasmClient) storageMode() string {
+    switch w.Storage.(type) {
+    case *MemoryStorage:
+        return "mem"
+    default:
+        return "disk"
+    }
+}
+```
+
+### 2. Rewrite `LogSuccessState`
+
+```go
+func (w *WasmClient) LogSuccessState(messages ...any) {
+    event := fmt.Sprint(messages...)
+    suffix := fmt.Sprintf("[%s|%s]", w.storageMode(), w.activeSizeBuilder.BinarySize())
+    w.Logger("[CLIENT]", event, suffix)
+}
+```
+
+### 3. Remove `absPath` from `storage.go:85`
+
+```go
+// before
+s.Client.LogSuccessState("http route:", routePath, "->", absPath)
+
+// after
+s.Client.LogSuccessState("http route:", routePath)
+```
+
+`absPath` was the only caller passing redundant path info — all others are already clean.
+
+## Files to Change
+
+| File | Change |
 |------|--------|
-| [tinygo_installer.go](../tinygo_installer.go) | All logic migrated to `tinygo` package |
-| [tinygo_verify_install.go](../tinygo_verify_install.go) | Logic migrated to `tinygo/detect.go` |
+| `client/Change.go` lines 103–107 | Add `storageMode()` helper + rewrite `LogSuccessState` body |
+| `client/storage.go` line 85 | Remove `"->", absPath` from `LogSuccessState` call |
 
-### Steps
-See [stages/stage1_replace_calls.md](stages/stage1_replace_calls.md) for detailed checklist.
+## Acceptance Criteria
 
----
+- [ ] `LogSuccessState("http route:", "/client.wasm")` → `[CLIENT] http route: /client.wasm [mem|2.0 MB]`
+- [ ] `LogSuccessState("compiled")` → `[CLIENT] compiled [mem|2.0 MB]`
+- [ ] `LogSuccessState("Changed To Mode", "dev")` → `[CLIENT] Changed To Modedev [mem|2.0 MB]`
+- [ ] DiskStorage produces `disk` mode label, MemoryStorage produces `mem`
+- [ ] All existing tests in `client/tests/` still pass
+- [ ] `fakeRunWasmBuildClient.LogSuccessState` mock signature unchanged (`...any`)
 
-## Stage 2 — Cleanup old TinyGo files and verify
+## Out of Scope
 
-### Dependency
-Stage 1 completed.
-
-### Steps
-See [stages/stage2_cleanup.md](stages/stage2_cleanup.md) for detailed checklist.
-
----
-
-## Stage 3 — Add `WebClientGenerator` handler (break change)
-
-### Goal
-Expose a second TUI handler from `WasmClient` that generates `web/client.go` on demand when the user clicks a button. This is an independent `HandlerExecution` — it does not affect the existing `HandlerEdit` field already provided by `WasmClient`.
-
-### Dependency
-None. Independent of Stages 1-2.
-
-### Break Changes
-
-**1. `CreateDefaultWasmFileClientIfNotExist` signature change**
-
-Add a `skipIDEConfig bool` parameter. When `true`, the method skips calling `VisualStudioCodeWasmEnvConfig()`. VSCode config must only be generated once at the project root (where `go.mod` lives). When the button is triggered from a subfolder, IDE config must not be created there.
-
-```go
-// Before
-func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist() *WasmClient
-
-// After (break change)
-func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist(skipIDEConfig bool) *WasmClient
-```
-
-Internal change: wrap `t.VisualStudioCodeWasmEnvConfig()` call with `if !skipIDEConfig`.
-
-**2. New `webClientGenerator` type**
-
-New unexported struct in a new file `web_client_generator.go`:
-
-```go
-type webClientGenerator struct {
-    client *WasmClient
-}
-```
-
-Implements `devtui.HandlerExecution`:
-- `Name() string`  → returns same value as `WasmClient.Name()` for HeadlessTUI dispatch key matching
-- `Label() string` → `"Generate web/client.go"`
-- `Execute()`      → calls `w.client.CreateDefaultWasmFileClientIfNotExist(true)` (skipIDEConfig=true). No additional logging needed: `CreateDefaultWasmFileClientIfNotExist` already calls `t.LogSuccessState(...)` and `t.Logger(...)` internally.
-
-Does **not** implement `devtui.Loggable`. Log output appears under WasmClient's TUI entry because `Execute()` delegates to `w.client` methods that use WasmClient's already-injected logger — not because of `Name()`.
-
-**3. New `WebClientGenerator()` method on `WasmClient`**
-
-```go
-func (w *WasmClient) WebClientGenerator() *webClientGenerator {
-    return &webClientGenerator{client: w}
-}
-```
-
-Returns the handler for registration. Caller (`tinywasm/app`) invokes `AddHandler` with this value.
-
-### Files to Create
-
-| File | Content |
-|------|---------|
-| [web_client_generator.go](../web_client_generator.go) | `webClientGenerator` struct + `Name`, `Label`, `Execute` methods + `WebClientGenerator()` constructor on `WasmClient` |
-
-### Files to Modify
-
-| File | What changes |
-|------|-------------|
-| [generator.go](../generator.go) | Add `skipIDEConfig bool` parameter to `CreateDefaultWasmFileClientIfNotExist`; wrap `VisualStudioCodeWasmEnvConfig()` call with `if !skipIDEConfig` |
-
-### Steps
-
-- [ ] In `generator.go`: change `CreateDefaultWasmFileClientIfNotExist()` signature to `CreateDefaultWasmFileClientIfNotExist(skipIDEConfig bool)`. Wrap the `t.VisualStudioCodeWasmEnvConfig()` call (line 60) with `if !skipIDEConfig { ... }`.
-
-- [ ] Create `web_client_generator.go`:
-  - Define `webClientGenerator` struct with a single field `client *WasmClient`.
-  - Implement `Name() string` — return `w.client.Name()`.
-  - Implement `Label() string` — return `"Generate web/client.go"`.
-  - Implement `Execute()` — call `w.client.CreateDefaultWasmFileClientIfNotExist(true)` only. Do not add extra log calls; internal logging already happens inside that method.
-  - Add `WebClientGenerator() *webClientGenerator` method on `*WasmClient`.
-
-- [ ] Fix all test call sites that pass no args to `CreateDefaultWasmFileClientIfNotExist` — add `false` (keep IDE config behavior). Affected files:
-  - `tests/initialization_test.go` (1 call)
-  - `tests/in_memory_test.go` (1 call)
-  - `tests/generator_guard_test.go` (2 calls)
-  - `tests/generator_test.go` (2 calls)
-
-- [ ] Run `gotest` in `client/tests/` — all must pass.
-
-- [ ] Bump module version in `go.mod` (minor version increment is correct for pre-v1 modules; this module is `v0.0.x`).
+- Changing `Logger` internals or the `Log func` signature
+- Adding structured logging (JSON) — this is a display normalization only
+- Touching any caller outside `Change.go`

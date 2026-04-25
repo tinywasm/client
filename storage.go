@@ -26,7 +26,7 @@ type BuildStorage interface {
 type MemoryStorage struct {
 	Client *WasmClient // Access to config and logger
 
-	Mu sync.RWMutex
+	Mu          sync.RWMutex
 	WasmContent []byte
 	LastCompile time.Time
 }
@@ -82,5 +82,5 @@ func (s *DiskStorage) RegisterRoutes(mux *http.ServeMux) {
 		w.Header().Set("Content-Type", "application/wasm")
 		http.ServeFile(w, r, absPath)
 	})
-	s.Client.LogSuccessState("Registered http route:", routePath, "->", absPath)
+	s.Client.LogSuccessState("http route:", routePath, "->", absPath)
 }
