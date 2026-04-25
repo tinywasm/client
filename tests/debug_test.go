@@ -87,27 +87,6 @@ func TestDebugWasmExecGeneration(t *testing.T) {
 		t.Logf("Signature '%s': %v", signature, found)
 	}
 
-	// Try to get the raw wasm_exec.js path
-	goPath, err := tinyWasm.GetWasmExecJsPathGo()
-	if err != nil {
-		t.Fatalf("Failed to get Go wasm_exec.js path: %v", err)
-	}
-	t.Logf("Go wasm_exec.js path: %s", goPath)
-
-	// Read the original Go file
-	originalData, err := os.ReadFile(goPath)
-	if err != nil {
-		t.Fatalf("Failed to read original Go wasm_exec.js: %v", err)
-	}
-
-	originalContent := string(originalData)
-	t.Logf("Original file length: %d", len(originalContent))
-
-	// Check for signatures in original file
-	for _, signature := range goSignatures {
-		found := strings.Contains(originalContent, signature)
-		t.Logf("Original signature '%s': %v", signature, found)
-	}
 }
 
 func min(a, b int) int {

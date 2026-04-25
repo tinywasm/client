@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/tinywasm/client"
+	"github.com/tinywasm/tinygo"
 )
 
 func TestRunWasmBuild_FailsIfInputMissing(t *testing.T) {
@@ -70,8 +71,7 @@ func TestRunWasmBuild_GeneratesScriptJS_TinyGo(t *testing.T) {
 	// But RunWasmBuild is monolithic as per PLAN.md.
 
 	// Let's check if we have tinygo
-	_, err = client.EnsureTinyGoInstalled()
-	hasTinyGo := (err == nil)
+	hasTinyGo := tinygo.IsInstalled()
 
 	if !hasTinyGo {
 		t.Log("Skipping TinyGo compilation part of RunWasmBuild test because TinyGo is not installed")
@@ -79,6 +79,14 @@ func TestRunWasmBuild_GeneratesScriptJS_TinyGo(t *testing.T) {
 	}
 
 	// If it fails at compilation but already wrote script.js, we can still verify script.js.
+	// We use a hook to mock EnsureTinyGoInstalled so it doesn't fail even if TinyGo is missing.
+	restore := client.SetRunWasmBuildHooks(client.RunWasmBuildHooks{
+		EnsureTinyGoInstalled: func() (string, error) {
+			return "tinygo", nil
+		},
+	})
+	defer restore()
+
 	_ = client.RunWasmBuild(client.WasmBuildArgs{Stdlib: false})
 
 	scriptPath := filepath.Join("web", "public", "script.js")

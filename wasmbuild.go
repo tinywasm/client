@@ -27,7 +27,9 @@ type runWasmBuildDeps struct {
 
 var (
 	wasmBuildDeps = runWasmBuildDeps{
-		ensureTinyGoInstalled: EnsureTinyGoInstalled,
+		ensureTinyGoInstalled: func() (string, error) {
+			return tinygo.EnsureInstalled()
+		},
 		tinyGoEnv: func() []string {
 			return tinygo.GetEnv()
 		},

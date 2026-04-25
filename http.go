@@ -41,5 +41,5 @@ func (s *MemoryStorage) RegisterRoutes(mux *http.ServeMux) {
 
 		w.Write(content)
 	})
-	s.Client.LogSuccessState("Registered http route:", routePath)
+	s.Client.LogSuccessState("http route:", routePath)
 }

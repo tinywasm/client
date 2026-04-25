@@ -108,7 +108,7 @@ func TestCreateDefaultFile(t *testing.T) {
 	tinyWasm.SetShouldGenerateDefaultFile(func() bool { return true })
 
 	// Now create the default WASM file
-	result := tinyWasm.CreateDefaultWasmFileClientIfNotExist()
+	result := tinyWasm.CreateDefaultWasmFileClientIfNotExist(false)
 	if result == nil {
 		t.Error("Expected CreateDefaultWasmFileClientIfNotExist to return client.WasmClient instance")
 	}

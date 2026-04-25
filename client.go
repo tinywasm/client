@@ -3,7 +3,9 @@ package client
 import (
 	"sync"
 
+	. "github.com/tinywasm/fmt"
 	"github.com/tinywasm/gobuild"
+	"github.com/tinywasm/tinygo"
 )
 
 // StoreKeySizeMode is the key used to store the current compiler mode in the Database
@@ -302,4 +304,17 @@ func (w *WasmClient) UseTinyGo() bool {
 func (w *WasmClient) ArgumentsForServer() []string {
 	w.Javascript.SetMode(w.Value())
 	return w.Javascript.ArgumentsForServer()
+}
+
+// VerifyTinyGoInstallation checks if TinyGo is properly installed
+func (w *WasmClient) VerifyTinyGoInstallation() error {
+	if tinygo.IsInstalled() {
+		return nil
+	}
+	return Err("TinyGo", "not", "found")
+}
+
+// GetTinyGoVersion returns the installed TinyGo version
+func (w *WasmClient) GetTinyGoVersion() (string, error) {
+	return tinygo.GetVersion()
 }
