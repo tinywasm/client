@@ -112,5 +112,5 @@ func (w *WasmClient) storageMode() string {
 func (w *WasmClient) LogSuccessState(messages ...any) {
 	event := Translate(messages...).String()
 	suffix := Sprintf("[%s|%s]", w.storageMode(), w.activeSizeBuilder.BinarySize())
-	w.Logger("[CLIENT] " + event + " " + suffix)
+	w.Logger(event, " ", suffix)
 }

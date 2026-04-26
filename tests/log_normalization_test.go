@@ -26,12 +26,11 @@ func TestLogSuccessState_Normalization(t *testing.T) {
 	output := captured[0]
 	t.Logf("Current output: %s", output)
 
-	// Expected normalized output: [CLIENT] <event> [<mode>|<size>]
-	// e.g. [CLIENT] http route: /client.wasm [mem|0.0 KB]
-	// Note: Logger([...any]) usually joins with spaces in fmt.Sprint
+	// Expected format: <event> [<mode>|<size>]
+	// e.g. "http route: /client.wasm  [mem|0.0 KB]"
 
-	if !strings.HasPrefix(output, "[CLIENT]") {
-		t.Errorf("Expected output to start with '[CLIENT]', got: %s", output)
+	if !strings.Contains(output, "http route:") {
+		t.Errorf("Expected output to contain event, got: %s", output)
 	}
 
 	if !strings.Contains(output, "[mem|") {

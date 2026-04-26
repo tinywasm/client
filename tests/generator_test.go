@@ -44,7 +44,7 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 	if !strings.Contains(contentStr, "package main") {
 		t.Errorf("generated file missing package main")
 	}
-	if !strings.Contains(contentStr, "github.com/tinywasm/dom") {
+	if !strings.Contains(contentStr, `"github.com/tinywasm/dom"`) {
 		t.Errorf("generated file missing tinywasm/dom import")
 	}
 	if !strings.Contains(contentStr, "Hello from tinywasm!") {
@@ -52,6 +52,9 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 	}
 	if !strings.Contains(contentStr, `Render(`) {
 		t.Errorf("generated file missing Render call")
+	}
+	if !strings.Contains(contentStr, `On("click"`) {
+		t.Errorf("generated file missing click event handler")
 	}
 	if !strings.Contains(contentStr, `select {}`) {
 		t.Errorf("generated file missing select statement")

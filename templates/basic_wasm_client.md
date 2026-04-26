@@ -52,13 +52,18 @@ import (
 // App holds application state. Embed dom.Element as a value (never pointer) to
 // minimize heap allocations in TinyGo's GC.
 type App struct {
-	dom.Element
+	Element
+	clicks int
 }
 
 func (a *App) Render() *Element {
 	return Div(
 		H1("Hello from tinywasm!"),
-		P("Edit web/client.go to build your app."),
+		Button("Click me").On("click", func(e Event) {
+			a.clicks++
+			a.Update() // re-renders only this component
+		}),
+		P("Clicks: ", a.clicks),
 	)
 }
 
