@@ -41,8 +41,14 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 	}
 
 	// Compile using Storage
-	if err := s.Compile(); err != nil {
-		return Err("compiling to WebAssembly error: ", err)
+	compileErr := s.Compile()
+
+	if w.OnCompile != nil {
+		w.OnCompile(compileErr)
+	}
+
+	if compileErr != nil {
+		return Err("compiling to WebAssembly error: ", compileErr)
 	}
 
 	w.LogSuccessState()

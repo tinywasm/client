@@ -49,6 +49,10 @@ type WasmClient struct {
 	ShouldGenerateDefaultFile func() bool
 	Log func(message ...any)
 
+	// OnCompile is invoked after each compilation triggered by NewFileEvent.
+	// err==nil indicates success; err!=nil indicates failure.
+	OnCompile func(err error)
+
 	// storageMu protects Storage and CurrentSizeMode fields from concurrent access
 	storageMu sync.RWMutex
 
