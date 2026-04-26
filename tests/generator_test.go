@@ -44,14 +44,14 @@ func TestCreateDefaultWasmFileClientIfNotExistCreatesFile(t *testing.T) {
 	if !strings.Contains(contentStr, "package main") {
 		t.Errorf("generated file missing package main")
 	}
-	if !strings.Contains(contentStr, "syscall/js") {
-		t.Errorf("generated file missing syscall/js import")
+	if !strings.Contains(contentStr, "github.com/tinywasm/dom") {
+		t.Errorf("generated file missing tinywasm/dom import")
 	}
-	if !strings.Contains(contentStr, "Hello from WebAssembly!") {
+	if !strings.Contains(contentStr, "Hello from tinywasm!") {
 		t.Errorf("generated file missing expected message")
 	}
-	if !strings.Contains(contentStr, `createElement`) {
-		t.Errorf("generated file missing createElement call")
+	if !strings.Contains(contentStr, `Render(`) {
+		t.Errorf("generated file missing Render call")
 	}
 	if !strings.Contains(contentStr, `select {}`) {
 		t.Errorf("generated file missing select statement")
