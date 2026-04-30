@@ -80,7 +80,7 @@ func main() {
 		.btn.clicked { background: #28a745; }
 	`))
 
-	Render("body", &App{})
+	Render("app", &App{})
 
 	// select{} keeps the WASM goroutine alive so JS event callbacks keep working.
 	select {}
