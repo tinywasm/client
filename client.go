@@ -180,41 +180,33 @@ func (w *WasmClient) Value() string {
 	return w.CurrentSizeMode
 }
 
-// SetBuildOnDisk switches between In-Memory and External (Disk) Storage.
-// When compileNow is true, compilation is triggered immediately after mode switch.
-// When compileNow is false, compilation (and directory creation) is deferred until first explicit Compile() call.
-func (w *WasmClient) SetBuildOnDisk(onDisk, compileNow bool) {
+// UseDiskStorage switches the client to disk-backed storage. Idempotent.
+// Does NOT trigger compilation — the caller composes Compile() when needed.
+func (w *WasmClient) UseDiskStorage() {
 	w.storageMu.Lock()
 	defer w.storageMu.Unlock()
 
-	var newModeName string
-	var newStorage BuildStorage
-
-	if onDisk {
-		if _, ok := w.Storage.(*DiskStorage); ok {
-			return
-		}
-		newModeName = "External"
-		newStorage = &DiskStorage{Client: w}
-	} else {
-		if _, ok := w.Storage.(*MemoryStorage); ok {
-			return
-		}
-		newModeName = "In-Memory"
-		newStorage = &MemoryStorage{Client: w}
+	if _, ok := w.Storage.(*DiskStorage); ok {
+		return
 	}
 
-	// Apply switch
-	w.Storage = newStorage
+	w.Storage = &DiskStorage{Client: w}
+	w.LogSuccessState("Changed", "To", "Storage", "External")
+}
 
-	if compileNow {
-		if err := w.Storage.Compile(); err != nil {
-			w.Logger("Compilation failed after mode switch:", err)
-			return
-		}
+// UseMemoryStorage switches the client to in-memory storage. Idempotent.
+// Provided for symmetry and test usage; production code does not call this
+// (memory is the default at construction).
+func (w *WasmClient) UseMemoryStorage() {
+	w.storageMu.Lock()
+	defer w.storageMu.Unlock()
+
+	if _, ok := w.Storage.(*MemoryStorage); ok {
+		return
 	}
 
-	w.LogSuccessState("Changed", "To", "Storage", newModeName)
+	w.Storage = &MemoryStorage{Client: w}
+	w.LogSuccessState("Changed", "To", "Storage", "In-Memory")
 }
 
 // loadMode updates CurrentSizeMode from the store if available and syncs the active builder
