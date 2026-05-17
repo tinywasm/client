@@ -13,40 +13,49 @@ package client_test
 
 import (
 	"testing"
+
+	"github.com/tinywasm/client"
 )
 
 // Calling UseDiskStorage twice must leave the client in disk mode without error
 // and without re-running compilation.
 func TestUseDiskStorage_Idempotent(t *testing.T) {
-	t.Skip("see app/docs/PLAN.md §3c — requires UseDiskStorage API")
+	w := client.New(nil)
+	w.UseDiskStorage()
+	w.UseDiskStorage()
 
-	// TODO(agent):
-	// w := client.New(...)
-	// w.UseDiskStorage()
-	// w.UseDiskStorage()
-	// Assert: storage is *DiskStorage and no panic / no log error.
+	if name := w.Storage.Name(); name != "External" {
+		t.Errorf("Expected External storage, got %s", name)
+	}
 }
 
 // Symmetric idempotency for memory mode.
 func TestUseMemoryStorage_Idempotent(t *testing.T) {
-	t.Skip("see app/docs/PLAN.md §3c — requires UseMemoryStorage API")
+	w := client.New(nil)
+	w.UseDiskStorage()   // Start on disk
+	w.UseMemoryStorage()
+	w.UseMemoryStorage()
 
-	// TODO(agent):
-	// w := client.New(...)
-	// w.UseMemoryStorage()
-	// w.UseMemoryStorage()
-	// Assert: storage is *MemoryStorage.
+	if name := w.Storage.Name(); name != "In-Memory" {
+		t.Errorf("Expected In-Memory storage, got %s", name)
+	}
 }
 
 // Switching storage must NOT call Compile(). Caller composes explicitly.
 // This guards against accidentally reintroducing the old `compileNow` behavior.
 func TestStorageSwitch_DoesNotAutoCompile(t *testing.T) {
-	t.Skip("see app/docs/PLAN.md §3c — requires pure setter semantics")
+	w := client.New(nil)
 
-	// TODO(agent):
-	// Instrument w.Compile() via a fake builder; count invocations.
-	// w.UseDiskStorage()
-	// w.UseMemoryStorage()
-	// w.UseDiskStorage()
-	// Assert compile count == 0.
+	compileCount := 0
+	w.SetOnCompile(func(err error) {
+		compileCount++
+	})
+
+	w.UseDiskStorage()
+	w.UseMemoryStorage()
+	w.UseDiskStorage()
+
+	if compileCount != 0 {
+		t.Errorf("Expected 0 compilations, got %d", compileCount)
+	}
 }

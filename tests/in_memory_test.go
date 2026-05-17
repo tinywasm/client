@@ -84,7 +84,10 @@ func main() { fmt.Println("WASM") }`), 0644)
 	// CreateDefaultWasmFileClientIfNotExist used to switch mode, but now we must be explicit
 	// (Note: source already exists, so it skips generation)
 	c.CreateDefaultWasmFileClientIfNotExist(false)
-	c.SetBuildOnDisk(true, true)
+	c.UseDiskStorage()
+	if err := c.Compile(); err != nil {
+		t.Fatalf("Compile failed after switching to DiskStorage: %v", err)
+	}
 
 	if c.Storage.Name() != "External" {
 		t.Errorf("Expected External client.Storage after switch, got %s", c.Storage.Name())

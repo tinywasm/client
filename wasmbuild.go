@@ -13,7 +13,7 @@ import (
 // It is exported so tests can provide lightweight fakes without pulling in gobuild.
 type RunWasmBuildClient interface {
 	SetMode(string)
-	SetBuildOnDisk(bool, bool)
+	UseDiskStorage()
 	SetLog(func(...any))
 	Compile() error
 	LogSuccessState(...any)
@@ -130,7 +130,7 @@ func RunWasmBuild(args WasmBuildArgs) error {
 
 	w := wasmBuildDeps.newClient(cfg)
 	w.SetMode(mode)
-	w.SetBuildOnDisk(true, false)
+	w.UseDiskStorage()
 	w.SetLog(Println)
 
 	if err := w.Compile(); err != nil {

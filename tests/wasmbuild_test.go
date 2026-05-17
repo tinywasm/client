@@ -247,7 +247,7 @@ type fakeRunWasmBuildClient struct {
 
 func (f *fakeRunWasmBuildClient) SetMode(string) {}
 
-func (f *fakeRunWasmBuildClient) SetBuildOnDisk(bool, bool) {}
+func (f *fakeRunWasmBuildClient) UseDiskStorage() {}
 
 func (f *fakeRunWasmBuildClient) SetLog(func(...any)) {}
 
