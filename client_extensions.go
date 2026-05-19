@@ -54,7 +54,7 @@ func (w *WasmClient) Compile() error {
 	return w.Storage.Compile()
 }
 
-// SetOnCompile registers a callback invoked after each compilation
+// SetOnCompile. registers a callback invoked after each compilation
 // triggered by a file event. err==nil indicates success.
 func (w *WasmClient) SetOnCompile(fn func(err error)) {
 	w.OnCompile = fn
