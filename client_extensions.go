@@ -16,6 +16,32 @@ func (w *WasmClient) SetMode(mode string) {
 	}
 }
 
+// UseProductionTinyGo configures the client to compile with TinyGo in production
+// (smallest possible binary). Callers (e.g. goflare) use this method instead of
+// hardcoding the internal mode letter "S" — if the letter ever changes, only
+// this method is updated, not every dependent.
+//
+// Persists the mode to disk storage so it survives across runs and is not
+// silently overridden by a stale value (e.g. a previous "L" run).
+func (w *WasmClient) UseProductionTinyGo() {
+	w.SetMode("S")
+}
+
+// UseDebugTinyGo configures the client to compile with TinyGo in debug mode.
+// Useful when iterating locally and you need TinyGo-compatible builds with
+// extra debug info; never for deploy.
+func (w *WasmClient) UseDebugTinyGo() {
+	w.SetMode("M")
+}
+
+// UseStandardGo configures the client to compile with the standard Go compiler.
+// Produces large binaries (2-10 MB) and is incompatible with edge environments
+// that enforce a 1 MiB wasm limit. Useful only when binary size does not matter
+// (e.g. local servers that load wasm in a desktop browser).
+func (w *WasmClient) UseStandardGo() {
+	w.SetMode("L")
+}
+
 // Compile performs a synchronous compilation using the current settings.
 // This exposes the underlying Storage's Compile method.
 func (w *WasmClient) Compile() error {
