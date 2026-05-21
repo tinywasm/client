@@ -260,7 +260,7 @@ func (w *WasmClient) SetShouldGenerateDefaultFile(f func() bool) {
 	w.ShouldGenerateDefaultFile = f
 }
 
-// UseTinyGo returns true if the current mode requires TinyGo's wasm_exec.js
+// UseTinyGo returns true if the current mode requires TinyGo's runtime
 func (w *WasmClient) UseTinyGo() bool {
 	_, useTinyGo := w.WasmProjectTinyGoJsUse()
 	return useTinyGo

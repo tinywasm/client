@@ -30,7 +30,7 @@ type Config struct {
 	Env                []string        // Environment variables, e.g., []string{"GOOS=js", "TINYGOROOT=/path"}
 
 	Database         KeyValueDataBase // Key-Value store for state persistence
-	OnWasmExecChange func()           // Callback for wasm_exec.js changes
+	OnWasmExecChange func()           // Callback for runtime/wasm_exec changes
 }
 
 // NewConfig creates a WasmClient Config with sensible defaults
