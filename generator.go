@@ -73,19 +73,5 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist(skipIDEConfig bool) *
 		}
 	}
 
-	// Ensure wasm_exec.js is present in output (create/overwrite as needed)
-	// Skip if DisableWasmExecJsOutput is set (e.g., for inline embedding scenarios)
-	// Ensure wasm_exec.js is present in output (create/overwrite as needed)
-	// Skip if DisableWasmExecJsOutput is set (e.g., for inline embedding scenarios)
-	// Ensure wasm_exec.js is present in output (create/overwrite as needed)
-	if t.EnableWasmExecJsOutput {
-		t.wasmProjectWriteOrReplaceWasmExecJsOutput()
-	}
-
-	// Ensure wasm_exec.js is present in output (create/overwrite as needed)
-	if t.EnableWasmExecJsOutput {
-		t.wasmProjectWriteOrReplaceWasmExecJsOutput()
-	}
-
 	return t
 }

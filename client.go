@@ -29,13 +29,7 @@ type WasmClient struct {
 	// NEW: Explicit mode tracking to fix Value() method
 	CurrentSizeMode string // Track current mode explicitly ("L", "M", "S")
 
-	mode_large_go_wasm_exec_cache      string // cache wasm_exec.js file content per mode large
-	mode_medium_tinygo_wasm_exec_cache string // cache wasm_exec.js file content per mode medium
-	mode_small_tinygo_wasm_exec_cache  string // cache wasm_exec.js file content per mode small
-
 	Storage BuildStorage // Storage for compilation and serving (In-Memory vs External)
-
-	wasmExecJsOutputDir string // output dir for wasm_exec.js file (relative) eg: "web/js", "theme/js"
 
 	// Configuration fields moved from Config
 	AppRootDir string
@@ -44,7 +38,6 @@ type WasmClient struct {
 	buildLargeSizeShortcut    string
 	buildMediumSizeShortcut   string
 	buildSmallSizeShortcut    string
-	EnableWasmExecJsOutput bool // Default: false (disabled)
 	ShouldCreateIDEConfig func() bool
 	ShouldGenerateDefaultFile func() bool
 	Log func(message ...any)
@@ -55,9 +48,6 @@ type WasmClient struct {
 
 	// storageMu protects Storage and CurrentSizeMode fields from concurrent access
 	storageMu sync.RWMutex
-
-	// Javascript provides WASM initialization JS snippets
-	Javascript *Javascript
 }
 
 // New creates a new WasmClient instance with the provided configuration
@@ -88,7 +78,6 @@ func New(c *Config) *WasmClient {
 		buildLargeSizeShortcut:  "L",
 		buildMediumSizeShortcut: "M",
 		buildSmallSizeShortcut:  "S",
-		EnableWasmExecJsOutput:  false,
 
 		// Initialize with default mode
 		CurrentSizeMode: "L", // Start with coding mode
@@ -105,9 +94,6 @@ func New(c *Config) *WasmClient {
 
 	// Default to In-Memory Storage
 	w.Storage = &MemoryStorage{Client: w}
-
-	w.Javascript = &Javascript{}
-	w.Javascript.SetWasmFilename(w.OutputName + ".wasm")
 
 	return w
 }
@@ -226,16 +212,6 @@ func (w *WasmClient) loadMode() {
 	}
 }
 
-// SetWasmExecJsOutputDir sets the output directory for wasm_exec.js.
-// This is primarily intended for tests/debug where physical file output is required.
-// Setting a non-empty path will trigger a write/update of the wasm_exec.js file to that directory.
-func (w *WasmClient) SetWasmExecJsOutputDir(path string) {
-	w.wasmExecJsOutputDir = path
-	if w.EnableWasmExecJsOutput && path != "" {
-		w.wasmProjectWriteOrReplaceWasmExecJsOutput()
-	}
-}
-
 // SetAppRootDir sets the application root directory (absolute).
 func (w *WasmClient) SetAppRootDir(path string) {
 	w.AppRootDir = path
@@ -272,11 +248,6 @@ func (w *WasmClient) SetBuildShortcuts(large, medium, small string) {
 	// But usually this is called once during init.
 }
 
-// SetEnableWasmExecJsOutput enables automatic creation of wasm_exec.js file.
-func (w *WasmClient) SetEnableWasmExecJsOutput(enable bool) {
-	w.EnableWasmExecJsOutput = enable
-}
-
 // SetShouldCreateIDEConfig sets a function that determines if IDE configuration
 // files (like .vscode) should be created.
 func (w *WasmClient) SetShouldCreateIDEConfig(f func() bool) {
@@ -298,8 +269,9 @@ func (w *WasmClient) UseTinyGo() bool {
 // ArgumentsForServer returns runtime args to pass to the server,
 // including the -wasmsize_mode flag based on current compiler mode.
 func (w *WasmClient) ArgumentsForServer() []string {
-	w.Javascript.SetMode(w.Value())
-	return w.Javascript.ArgumentsForServer()
+	return []string{
+		Sprintf("-wasmsize_mode=%s", w.Value()),
+	}
 }
 
 // VerifyTinyGoInstallation checks if TinyGo is properly installed

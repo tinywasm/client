@@ -1,118 +1,104 @@
-# tinywasm Client
+# tinywasm/client
 <img src="docs/img/badges.svg">
 
-Intelligent WebAssembly compilation manager for Go with automatic project detection and a 3-mode compiler system.
+**Build-only** WebAssembly compilation manager for TinyWASM.
 
-## 🚀 Features
+> As of v2, `client` has a single responsibility: **compile the WASM binary** and serve it at `/client.wasm`. All JavaScript composition has moved to [`tinywasm/js`](https://github.com/tinywasm/js).
 
-- **CLI Tool (`wasmbuild`)**: A standalone command-line interface to compile Go to WASM and generate a ready-to-use `script.js` loader.
-- **3-Mode Compiler System**:
-  - `L` (Large): Standard Go compiler for fast development.
-  - `M` (Medium): TinyGo with debug optimizations (`-opt=1`).
-  - `S` (Small): TinyGo with size optimizations (`-opt=z`).
-- **Interactive Integration**: Implements DevTUI `FieldHandler` for real-time mode switching.
-- **Smart Detection**: Automatically identifies WASM projects and compiler requirements.
-- **Developer Experience**: Auto-configures VS Code with appropriate `GOOS/GOARCH` settings.
-- **Flexible Output**: Support for in-memory serving or physical file output.
+## Responsibilities
 
-## 🛠 Usage
+| ✅ Owns | ❌ No longer owns |
+|---|---|
+| WASM compilation (Go stdlib / TinyGo) | `wasm_exec.js` embedding |
+| Serving `/client.wasm` via HTTP | `Javascript` struct / `GetSSRClientInitJS` |
+| 3-mode compiler selection (L/M/S) | Generating `script.js` content |
+| File watcher for `web/main.wasm.go` | `WasmExecGoSignatures` / `WasmExecTinyGoSignatures` |
+| VS Code GOOS/GOARCH config | `ClearJavaScriptCache` |
+| Project scaffolding (`CreateDefaultWasmFileClientIfNotExist`) | |
 
-### CLI tool
-
-You can use the `wasmbuild` CLI tool for a quick setup and compilation:
+## CLI Tool
 
 ```bash
 go install github.com/tinywasm/client/cmd/wasmbuild@latest
-wasmbuild # compiles web/client.go to web/public/client.wasm and generates web/public/script.js
+wasmbuild        # Go stdlib mode (L)  → writes web/public/client.wasm + script.js
+wasmbuild -tinygo # TinyGo mode (S)
 ```
 
-See [cmd/wasmbuild](cmd/wasmbuild/README.md) for more details.
+`script.js` is now generated via `tinywasm/js.PageBootstrap()` — the embedded `wasm_exec.js` lives in `js/assets/` (single source of truth).
 
-### Basic Initialization
+See [cmd/wasmbuild](cmd/wasmbuild/README.md) for details.
 
-`client` uses a combination of a `Config` struct for core paths and public setter methods for advanced configuration.
+## 🛠 Basic Usage
 
 ```go
-// 1. Create base configuration
 cfg := client.NewConfig()
-// Customize source and output directories if needed (must be functions)
 cfg.SourceDir = func() string { return "web" }
 cfg.OutputDir = func() string { return "web/public" }
 
-// 2. Initialize client
 twc := client.New(cfg)
-
-// 3. Fine-tune configuration via setters
 twc.SetAppRootDir("/path/to/project")
-twc.SetMainInputFile("app.go")      // default: "client.go"
-twc.SetOutputName("app")            // default: "client"
-twc.SetBuildShortcuts("L", "M", "S") // customize mode triggers
-
-// (Optional) Enable physical wasm_exec.js output for file watchers/debug
-twc.SetWasmExecJsOutputDir("web/theme/js")
+twc.SetMainInputFile("app.go") // default: "client.go"
+twc.SetOutputName("app")       // default: "client"
 ```
 
-### Project Initialization
-
-`client` provides helpers to quickly set up a new WASM project. This includes generating a default `client.go` and configuring `.vscode/settings.json` for proper `gopls` support (handling `GOOS=js` and `GOARCH=wasm`).
+### Mode switching
 
 ```go
-// Generate default client.go and .vscode configuration if they don't exist
-twc.CreateDefaultWasmFileClientIfNotExist()
+twc.Change("S") // "L" = Go, "M" = TinyGo debug, "S" = TinyGo prod
 ```
 
-### Mode Switching (DevTUI Integration)
-
-Switching modes is asynchronous and reports status via the configured Logger.
+### HTTP serving
 
 ```go
-// Switch to Small (Production) mode
-twc.Change("S")
+twc.RegisterRoutes(mux) // registers /client.wasm (or /prefix/client.wasm)
 ```
 
-You can also retrieve the current shortcuts mapping:
+### ArgumentsForServer
 
 ```go
-shortcuts := twc.Shortcuts()
-// returns []map[string]string, e.g., [{"L": "Large (stLib)"}, ...]
+// Returns []string{"-wasmsize_mode=L"} (for subprocess injection)
+args := twc.ArgumentsForServer()
 ```
 
-## 🏗 Core Concepts
+## Storage modes
 
-### Dual Output Architecture
+| Mode | Use case |
+|---|---|
+| In-Memory (default) | Fast dev — compiles to buffer, served directly |
+| Disk | Static integration — compiles to `OutputDir`, served via `http.ServeFile` |
 
-`client` handles two types of outputs to optimize the build pipeline:
+```go
+twc.UseDiskStorage()   // switch to disk
+twc.UseMemoryStorage() // switch back to memory
+```
 
-1.  **WASM Binary** (via `OutputDir`): The final WebAssembly file loaded by the browser.
-2.  **JavaScript Runtime**: Mode-specific `wasm_exec.js`.
-    - **WasmClient Integration**: Recommended to use `twc.GetSSRClientInitJS()` to get the content directly for embedding or serving.
-    - **Standalone Handler**: Use `client.Javascript` for a lightweight, reusable component that generates the WASM initialization JavaScript without the full `WasmClient` logic.
-    - **Disk-based**: Use `twc.SetWasmExecJsOutputDir()` if you need a physical file for external bundlers or mode-transparency for other tools.
+## Project Initialization
 
-### Serving Strategies
-
-The library automatically selects the best way to compile and serve the WASM binary:
-- **In-Memory**: Compiles directly to a buffer (fastest for development).
-- **External**: Compiles and serves from disk (useful for static integration).
-
-Logic details are available in [strategies.go](strategies.go).
-
-### VS Code Integration
-
-On initialization, `client` can auto-create `.vscode/settings.json` to ensure `gopls` correctly recognizes the WASM environment:
-```json
-{"gopls": {"env": {"GOOS": "js", "GOARCH": "wasm"}}}
+```go
+// Generates web/client.go + .vscode/settings.json if missing
+twc.CreateDefaultWasmFileClientIfNotExist(false)
 ```
 
 ## ⚙️ Configuration
 
-`client` follows a hybrid configuration approach:
-- **`Config` Struct**: Used for shared dependencies (`Store`, `Logger`) and relative directory structures (`SourceDir`, `OutputDir`). See [config.go](config.go).
-- **Public Setters**: Used for project-specific overrides (`AppRootDir`, `MainInputFile`, `OutputName`) and build behavioral changes. These setters are reactive and re-initialize internal state automatically.
+- **`Config` struct**: shared deps (Store, Logger), directory functions (`SourceDir`, `OutputDir`). See [config.go](config.go).
+- **Setters**: reactive — re-initialize internal state automatically.
 
 ## 📋 Requirements
 
 - Go 1.21+
-- [TinyGo](https://tinygo.org/) (optional, required for Medium/Small modes)
+- [TinyGo](https://tinygo.org/) (optional — needed for M/S modes only)
 
-## [Contributing](https://github.com/cdvelop/cdvelop/blob/main/CONTRIBUTING.md)
+## JavaScript composition
+
+All JS is now the responsibility of `tinywasm/js`:
+
+```go
+import "github.com/tinywasm/js"
+
+// In tinywasm/app boot:
+js.SetRuntime(js.RuntimeGo) // or RuntimeTinyGo
+scripts := []any{js.PageBootstrap()} // registers with assetmin
+```
+
+See [`tinywasm/js`](https://github.com/tinywasm/js) for the full typed API including `ServiceWorker` and `WebWorker`.

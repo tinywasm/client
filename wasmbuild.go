@@ -6,8 +6,16 @@ import (
 	"sync"
 
 	. "github.com/tinywasm/fmt"
+	"github.com/tinywasm/js"
 	"github.com/tinywasm/tinygo"
 )
+
+func runtimeFromMode(mode string) js.Runtime {
+	if mode == "L" {
+		return js.RuntimeGo
+	}
+	return js.RuntimeTinyGo
+}
 
 // RunWasmBuildClient captures the subset of WasmClient methods used by RunWasmBuild.
 // It is exported so tests can provide lightweight fakes without pulling in gobuild.
@@ -104,13 +112,8 @@ func RunWasmBuild(args WasmBuildArgs) error {
 		mode = "L"
 	}
 
-	js := Javascript{}
-	js.SetMode(mode)
-	js.SetWasmFilename("client.wasm")
-	jsContent, err := js.GetSSRClientInitJS()
-	if err != nil {
-		return Errf("failed to generate script.js: %w", err)
-	}
+	js.SetRuntime(runtimeFromMode(mode))
+	jsContent := js.PageBootstrap().Content
 
 	scriptPath := filepath.Join(outputDir, "script.js")
 	if err := os.WriteFile(scriptPath, []byte(jsContent), 0644); err != nil {

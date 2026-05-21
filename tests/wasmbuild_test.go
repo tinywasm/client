@@ -101,7 +101,8 @@ func TestRunWasmBuild_GeneratesScriptJS_TinyGo(t *testing.T) {
 
 	// Check for TinyGo signatures
 	found := false
-	for _, sig := range client.WasmExecTinyGoSignatures() {
+	tinygoSigs := []string{"runtime.sleepTicks", "runtime.ticks", "tinygo_js"}
+	for _, sig := range tinygoSigs {
 		if strings.Contains(string(content), sig) {
 			found = true
 			break
@@ -155,7 +156,8 @@ func TestRunWasmBuild_GeneratesScriptJS_Stdlib(t *testing.T) {
 
 	// Check for Go signatures
 	found := false
-	for _, sig := range client.WasmExecGoSignatures() {
+	goSigs := []string{"runtime.scheduleTimeoutEvent", "runtime.clearTimeoutEvent"}
+	for _, sig := range goSigs {
 		if strings.Contains(string(content), sig) {
 			found = true
 			break

@@ -159,14 +159,14 @@ require github.com/tinywasm/js vX.Y.Z
 
 | # | Tarea | Done |
 |---|---|---|
-| 1 | Verificar `tinywasm/js v0.2.0` publicado con `PageBootstrap`, `SetRuntime`, `Runtime` constants | [ ] |
-| 2 | Añadir `require github.com/tinywasm/js` en `client/go.mod` | [ ] |
-| 3 | Eliminar archivos `client/assets/wasm_exec_*.js` | [ ] |
-| 4 | Eliminar todos los símbolos listados en §"Símbolos a eliminar" | [ ] |
-| 5 | Actualizar las 6 llamadas internas listadas en §"Llamadas internas a actualizar" (incluye `wasmbuild.go` usando `js.PageBootstrap()`) | [ ] |
-| 6 | Migrar `ArgumentsForServer` desde `Javascript` a `WasmClient` directamente | [ ] |
-| 7 | Borrar tests obsoletos en `client/tests/` o migrarlos a `js/tests/` según §"Cambios en consumidores rotos" | [ ] |
-| 8 | Crear los 3 tests nuevos descritos en §"Tests nuevos" | [ ] |
-| 9 | `gotest ./...` verde | [ ] |
-| 10 | Actualizar `README.md` documentando que `client` es build-only | [ ] |
+| 1 | Verificar `tinywasm/js v0.2.0` publicado con `PageBootstrap`, `SetRuntime`, `Runtime` constants | [x] |
+| 2 | Añadir `require github.com/tinywasm/js` en `client/go.mod` | [x] |
+| 3 | Eliminar archivos `client/assets/wasm_exec_*.js` | [x] |
+| 4 | Eliminar todos los símbolos listados en §"Símbolos a eliminar" | [x] |
+| 5 | Actualizar las 6 llamadas internas listadas en §"Llamadas internas a actualizar" (incluye `wasmbuild.go` usando `js.PageBootstrap()`) | [x] |
+| 6 | Migrar `ArgumentsForServer` desde `Javascript` a `WasmClient` directamente | [x] |
+| 7 | Borrar tests obsoletos en `client/tests/` o migrarlos a `js/tests/` según §"Cambios en consumidores rotos" | [x] |
+| 8 | Crear los 3 tests nuevos descritos en §"Tests nuevos" | [x] |
+| 9 | `gotest ./...` verde | [x] |
+| 10 | Actualizar `README.md` documentando que `client` es build-only | [x] |
 | 11 | Publicar nueva versión con `gopush` | [ ] |
