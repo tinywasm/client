@@ -1,5 +1,7 @@
 # PLAN — `tinywasm/client` se reduce a build-only
 
+> This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
+
 ## Objetivo
 
 Recortar `tinywasm/client` a una sola responsabilidad: **compilar el binario
