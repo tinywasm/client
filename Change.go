@@ -52,7 +52,7 @@ func (w *WasmClient) Change(newValue string) {
 	}
 
 	// Only notify listener when compilation succeeded.
-	// If compilation failed, the new mode's wasm_exec.js would mismatch with the
+	// If compilation failed, the new mode's runtime would mismatch with the
 	// old mode's .wasm binary, causing the browser to freeze on reload.
 	if compilationSuccess && w.OnWasmExecChange != nil {
 		w.OnWasmExecChange()

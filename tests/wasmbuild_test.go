@@ -38,7 +38,7 @@ func TestRunWasmBuild_FailsIfInputMissing(t *testing.T) {
 	}
 }
 
-func TestRunWasmBuild_GeneratesScriptJS_TinyGo(t *testing.T) {
+func TestWasmbuild_WritesScriptJSFromJSPackage_TinyGo(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "wasmbuild_test_tinygo")
 	if err != nil {
 		t.Fatal(err)
@@ -117,7 +117,7 @@ func TestRunWasmBuild_GeneratesScriptJS_TinyGo(t *testing.T) {
 	}
 }
 
-func TestRunWasmBuild_GeneratesScriptJS_Stdlib(t *testing.T) {
+func TestWasmbuild_WritesScriptJSFromJSPackage_Stdlib(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "wasmbuild_test_stdlib")
 	if err != nil {
 		t.Fatal(err)
