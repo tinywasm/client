@@ -19,7 +19,7 @@ require (
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/tinywasm/dom v0.9.4 // indirect
-	github.com/tinywasm/fetch v0.1.23 // indirect
+	github.com/tinywasm/fetch v0.1.24 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
 	github.com/tinywasm/json v0.4.1 // indirect
 	github.com/tinywasm/orm v0.8.1 // indirect
