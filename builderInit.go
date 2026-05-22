@@ -99,6 +99,7 @@ func (w *WasmClient) UpdateCurrentBuilder(mode string) {
 
 	// 2. Update current mode tracking
 	w.CurrentSizeMode = mode
+	w.TinyGoCompilerFlag = w.RequiresTinyGo(mode)
 
 	// 3. Set activeSizeBuilder based on mode
 	switch mode {
