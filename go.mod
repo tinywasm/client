@@ -23,7 +23,7 @@ require (
 	github.com/tinywasm/fetch v0.1.24 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
 	github.com/tinywasm/json v0.5.2 // indirect
-	github.com/tinywasm/orm v0.8.2 // indirect
+	github.com/tinywasm/orm v0.8.3 // indirect
 	github.com/tinywasm/time v0.4.0 // indirect
 	github.com/tinywasm/unixid v0.2.23 // indirect
 	github.com/tinywasm/wizard v0.0.23 // indirect
