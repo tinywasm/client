@@ -19,12 +19,21 @@ func (w *WasmClient) RequiresTinyGo(mode string) bool {
 	return mode == w.buildMediumSizeShortcut || mode == w.buildSmallSizeShortcut
 }
 
-// handleTinyGoMissing handles missing TinyGo installation
+// handleTinyGoMissing installs TinyGo if absent and adds its bin dir to PATH
+// so subsequent exec.Command("tinygo") calls find it without requiring the
+// caller to have /usr/local/tinygo/bin in their login PATH.
 func (w *WasmClient) handleTinyGoMissing() error {
-	_, err := tinygo.EnsureInstalled()
+	installedPath, err := tinygo.EnsureInstalled()
 	if err != nil {
 		return Err("Error:", "cannot", "install TinyGo:", err.Error())
 	}
+	binDir := filepath.Dir(installedPath)
+	if current := os.Getenv("PATH"); current != "" {
+		os.Setenv("PATH", current+string(os.PathListSeparator)+binDir)
+	} else {
+		os.Setenv("PATH", binDir)
+	}
+	fmt.Println("TinyGo installed:", installedPath)
 	return nil
 }
 
