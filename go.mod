@@ -12,7 +12,7 @@ require (
 	github.com/tinywasm/form v0.2.5
 	github.com/tinywasm/js v0.0.2
 	github.com/tinywasm/mcp v0.1.1
-	github.com/tinywasm/tinygo v0.0.10
+	github.com/tinywasm/tinygo v0.0.11
 )
 
 require (
