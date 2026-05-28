@@ -28,8 +28,12 @@ func (w *WasmClient) Change(newValue string) {
 	if w.RequiresTinyGo(newValue) {
 		w.verifyTinyGoInstallationStatus()
 		if !w.TinyGoInstalled {
-			w.Logger(w.handleTinyGoMissing().Error())
-			return
+			if err := w.handleTinyGoMissing(); err != nil {
+				w.Logger(err.Error())
+				return
+			}
+			// TinyGo installed successfully — update status so builders use it
+			w.TinyGoInstalled = true
 		}
 	}
 
