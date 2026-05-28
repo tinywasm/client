@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	. "github.com/tinywasm/fmt"
@@ -37,9 +38,32 @@ func (w *WasmClient) handleTinyGoMissing() error {
 	return nil
 }
 
+// ensureTinyGoInPath adds the tinygo bin dir to PATH if tinygo is installed
+// but not reachable via PATH. This handles the case where EnsureInstalled()
+// placed tinygo at /usr/local/tinygo/bin/tinygo (found via stat) but that
+// directory is absent from PATH, causing exec.Command("tinygo") to fail.
+func ensureTinyGoInPath() {
+	p, err := tinygo.GetPath()
+	if err != nil {
+		return
+	}
+	if _, lookErr := exec.LookPath("tinygo"); lookErr == nil {
+		return // already reachable via PATH
+	}
+	binDir := filepath.Dir(p)
+	if current := os.Getenv("PATH"); current != "" {
+		os.Setenv("PATH", current+string(os.PathListSeparator)+binDir)
+	} else {
+		os.Setenv("PATH", binDir)
+	}
+}
+
 // VerifyTinyGoInstallation checks and caches TinyGo installation status
 func (w *WasmClient) verifyTinyGoInstallationStatus() {
 	w.TinyGoInstalled = w.VerifyTinyGoInstallation() == nil
+	if w.TinyGoInstalled {
+		ensureTinyGoInPath()
+	}
 }
 
 // VerifyTinyGoProjectCompatibility checks if the project is compatible with TinyGo compilation
