@@ -8,7 +8,7 @@ require github.com/tinywasm/fmt v0.23.10
 
 require (
 	github.com/tinywasm/context v0.0.18
-	github.com/tinywasm/devflow v0.4.28
+	github.com/tinywasm/devflow v0.4.29
 	github.com/tinywasm/form v0.2.6
 	github.com/tinywasm/js v0.0.4
 	github.com/tinywasm/mcp v0.1.1
