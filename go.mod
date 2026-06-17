@@ -9,7 +9,7 @@ require github.com/tinywasm/fmt v0.24.0
 require (
 	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/devflow v0.4.32
-	github.com/tinywasm/form v0.2.6
+	github.com/tinywasm/form v0.2.7
 	github.com/tinywasm/js v0.0.4
 	github.com/tinywasm/mcp v0.1.9
 	github.com/tinywasm/tinygo v0.0.11
@@ -19,10 +19,8 @@ require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
-	github.com/tinywasm/dom v0.10.1 // indirect
 	github.com/tinywasm/fetch v0.1.24 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
-	github.com/tinywasm/html v0.0.3 // indirect
 	github.com/tinywasm/json v0.5.2 // indirect
 	github.com/tinywasm/time v0.5.0 // indirect
 	github.com/tinywasm/unixid v0.2.23 // indirect
