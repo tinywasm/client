@@ -4,14 +4,13 @@ go 1.25.2
 
 require github.com/tinywasm/gobuild v0.0.25
 
-require github.com/tinywasm/fmt v0.24.0
+require github.com/tinywasm/fmt v0.24.4
 
 require (
 	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/devflow v0.4.33
-	github.com/tinywasm/form v0.2.8
 	github.com/tinywasm/js v0.0.4
-	github.com/tinywasm/mcp v0.1.9
+	github.com/tinywasm/mcp v0.1.10
 	github.com/tinywasm/tinygo v0.0.11
 )
 
@@ -21,7 +20,7 @@ require (
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/tinywasm/fetch v0.1.24 // indirect
 	github.com/tinywasm/gorun v0.0.23 // indirect
-	github.com/tinywasm/json v0.5.2 // indirect
+	github.com/tinywasm/json v0.5.4 // indirect
 	github.com/tinywasm/time v0.5.0 // indirect
 	github.com/tinywasm/unixid v0.2.23 // indirect
 	github.com/tinywasm/wizard v0.0.23 // indirect

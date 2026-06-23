@@ -2,13 +2,14 @@ package client
 
 import (
 	. "github.com/tinywasm/fmt"
+	"github.com/tinywasm/fmt/lang"
 )
 
 func (w *WasmClient) Shortcuts() []map[string]string {
 	return []map[string]string{
-		{w.buildLargeSizeShortcut: Translate("mode", "Large", "stLib").String()},
-		{w.buildMediumSizeShortcut: Translate("mode", "Medium", "tinygo").String()},
-		{w.buildSmallSizeShortcut: Translate("mode", "Small", "tinygo").String()},
+		{w.buildLargeSizeShortcut: lang.Translate("mode", "Large", "stLib").String()},
+		{w.buildMediumSizeShortcut: lang.Translate("mode", "Medium", "tinygo").String()},
+		{w.buildSmallSizeShortcut: lang.Translate("mode", "Small", "tinygo").String()},
 	}
 }
 
@@ -48,7 +49,7 @@ func (w *WasmClient) Change(newValue string) {
 	// Auto-recompile
 	compilationSuccess := true
 	if err := w.RecompileMainWasm(); err != nil {
-		errorMsg := Translate("Error:", "auto", "compilation", "failed:", err).String()
+		errorMsg := lang.Translate("Error:", "auto", "compilation", "failed:", err).String()
 		//errorMsg = "Error: auto compilation failed: " + err.Error()
 		w.Logger(errorMsg)
 		compilationSuccess = false
@@ -109,7 +110,7 @@ func (w *WasmClient) storageMode() string {
 
 // LogSuccessState logs the standard success message with WASM details (Safe: Acquires Lock)
 func (w *WasmClient) LogSuccessState(messages ...any) {
-	event := Translate(messages...).String()
+	event := lang.Translate(messages...).String()
 	suffix := Sprintf("[%s|%s]", w.storageMode(), w.activeSizeBuilder.BinarySize())
 	w.Logger(event, " ", suffix)
 }
