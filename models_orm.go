@@ -4,6 +4,7 @@ package client
 
 import (
 	"github.com/tinywasm/fmt"
+	"github.com/tinywasm/form/input"
 )
 
 func (m *SetModeArgs) ModelName() string {
@@ -11,7 +12,7 @@ func (m *SetModeArgs) ModelName() string {
 }
 
 var _schemaSetModeArgs = []fmt.Field{
-		{Name: "mode", Type: fmt.FieldText, NotNull: true},
+		{Name: "mode", Type: fmt.FieldText, NotNull: true, Widget: input.Text()},
 	}
 
 func (m *SetModeArgs) Schema() []fmt.Field { return _schemaSetModeArgs }
@@ -24,9 +25,8 @@ func (m *SetModeArgs) EncodeFields(w fmt.FieldWriter) {
 	w.String("mode", m.Mode)
 }
 
-func (m *SetModeArgs) DecodeFields(r fmt.FieldReader) error {
+func (m *SetModeArgs) DecodeFields(r fmt.FieldReader) {
 	if v, ok := r.String("mode"); ok { m.Mode = v }
-	return nil
 }
 
 type SetModeArgsList []*SetModeArgs
@@ -38,7 +38,7 @@ func (s *SetModeArgsList) At(i int) fmt.Fielder { return (*s)[i] }
 func (s *SetModeArgsList) Append() fmt.Fielder  { v := &SetModeArgs{}; *s = append(*s, v); return v }
 func (s *SetModeArgsList) IsNil() bool          { return s == nil }
 func (s *SetModeArgsList) EncodeFields(_ fmt.FieldWriter) {}
-func (s *SetModeArgsList) DecodeFields(_ fmt.FieldReader) error { return nil }
+func (s *SetModeArgsList) DecodeFields(_ fmt.FieldReader) {}
 
 func (m *SetModeArgs) Validate(action byte) error {
 	return fmt.ValidateFields(action, m)

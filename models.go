@@ -1,7 +1,6 @@
 package client
 
 // SetModeArgs defines arguments for the wasm_set_mode tool.
-// ormc:formonly
 type SetModeArgs struct {
 	Mode string `input:"required,enum=L;M;S"`
 }
