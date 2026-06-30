@@ -37,7 +37,20 @@ Never import Go stdlib in WASM files. Use the tinywasm equivalents:
 // Compiled to web/public/client.wasm and served on port 6060.
 //
 // DOM access: use github.com/tinywasm/dom — https://pkg.go.dev/github.com/tinywasm/dom
+// Element constructors: use github.com/tinywasm/html — https://pkg.go.dev/github.com/tinywasm/html
 // Do NOT use syscall/js directly; tinywasm/dom wraps it with a builder API.
+//
+// UI ecosystem packages:
+//   github.com/tinywasm/css   — typed CSS DSL and design tokens
+//   github.com/tinywasm/svg   — SVG icon sprite API (typed, zero-typo icons)
+//   github.com/tinywasm/image — image HTML builders + WebP optimization pipeline
+//   github.com/tinywasm/js    — typed layer for Service Workers and Web Workers
+//   github.com/tinywasm/form  — form generation from Go structs (zero reflection, uses fmt.Fielder)
+//
+// To run/compile this project install the TinyWasm CLI and launch it:
+//   Linux/macOS: curl -fsSL https://raw.githubusercontent.com/tinywasm/installer/main/scripts/install.sh | bash
+//   Windows:     irm https://raw.githubusercontent.com/tinywasm/installer/main/scripts/install.ps1 | iex
+//   tinywasm   # scaffolds project, dev server :6060, TUI, Chrome auto-reload, MCP :3030
 //
 // Compilation modes (L/M/S) are managed by tinywasm — https://pkg.go.dev/github.com/tinywasm/app
 // For M and S modes (TinyGo): avoid all Go stdlib — use tinywasm/* replacements (see table above).
@@ -45,29 +58,34 @@ Never import Go stdlib in WASM files. Use the tinywasm equivalents:
 package main
 
 import (
-	. "github.com/tinywasm/dom" // https://pkg.go.dev/github.com/tinywasm/dom
+	. "github.com/tinywasm/dom"  // https://pkg.go.dev/github.com/tinywasm/dom
+	. "github.com/tinywasm/fmt"  // https://pkg.go.dev/github.com/tinywasm/fmt
+	. "github.com/tinywasm/html" // https://pkg.go.dev/github.com/tinywasm/html
 )
 
-// App holds application state. Embed dom.Element as a value (never pointer) to
+// App holds application state. Embed Element as a value (never pointer) to
 // minimize heap allocations in TinyGo's GC.
 type App struct {
 	Element
 	clicks int
+	count  *SignalString
+}
+
+func (a *App) Init(_ Ctx) {
+	a.count = NewString("0")
 }
 
 func (a *App) Render() *Element {
-	btnClass := "btn"
-	if a.clicks > 0 {
-		btnClass = "btn clicked"
-	}
-
-	return Div(
-		H1("Hello from tinywasm!"),
-		Button("Click me").Class(btnClass).On("click", func(e Event) {
+	return Div().Child(
+		H1().Text("Hello from tinywasm!"),
+		Button().Text("Click me").Class("btn").On("click", func(e Event) {
 			a.clicks++
-			a.Update() // re-renders only this component
+			a.count.Set(Sprint(a.clicks)) // signal update patches only the text node
 		}),
-		P("Clicks: ", a.clicks),
+		P().Child(
+			NewElement("span").Text("Clicks: "),
+			NewElement("span").BindText(a.count),
+		),
 	)
 }
 
@@ -75,9 +93,8 @@ func main() {
 	// Inline CSS is fine for prototyping, but in a real component move styles to
 	// ssr.go (//go:build !wasm) embedded with //go:embed — keeps them out of the
 	// WASM binary. See: https://pkg.go.dev/github.com/tinywasm/components
-	Append("head", Style(`
+	Append("head", Style().Text(`
 		.btn { padding: .4rem 1rem; cursor: pointer; border: none; border-radius: 4px; background: #007bff; color: white; }
-		.btn.clicked { background: #28a745; }
 	`))
 
 	Render("app", &App{})
