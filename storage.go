@@ -1,13 +1,13 @@
 package client
 
 import (
-	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
 	. "github.com/tinywasm/fmt"
+	"github.com/tinywasm/router"
 )
 
 // BuildStorage defines the behavior for compiling and serving the WASM client.
@@ -17,8 +17,8 @@ type BuildStorage interface {
 	// For Disk: compiles to disk.
 	Compile() error
 
-	// RegisterRoutes registers the WASM file handler on the mux.
-	RegisterRoutes(mux *http.ServeMux)
+	// RegisterRoutes registers the WASM file handler on the router.
+	RegisterRoutes(r router.Router)
 
 	// Name returns the Storage name for logging/debugging
 	Name() string
@@ -80,16 +80,21 @@ func (s *DiskStorage) Compile() error {
 	return s.Client.activeSizeBuilder.CompileProgram()
 }
 
-func (s *DiskStorage) RegisterRoutes(mux *http.ServeMux) {
+func (s *DiskStorage) RegisterRoutes(r router.Router) {
 	routePath := s.Client.wasmRoutePath()
 	result := filepath.Join(s.Client.Config.OutputDir(), s.Client.OutputName+".wasm")
-	// Note: Config.OutputDir is relative to AppRootDir usually, but ServeFile needs OS path.
-	// We need absolute path.
 	absPath := filepath.Join(s.Client.AppRootDir, result)
 
-	mux.HandleFunc(routePath, func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/wasm")
-		http.ServeFile(w, r, absPath)
+	r.Get(routePath, func(ctx router.Context) {
+		content, err := os.ReadFile(absPath)
+		if err != nil {
+			ctx.WriteStatus(500)
+			ctx.Write([]byte("Failed to read WASM file"))
+			return
+		}
+
+		ctx.SetHeader("Content-Type", "application/wasm")
+		ctx.Write(content)
 	})
 	s.Client.LogSuccessState("http route:", routePath)
 }

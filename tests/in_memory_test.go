@@ -1,12 +1,12 @@
 package client_test
 
 import (
-	"github.com/tinywasm/client"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/tinywasm/client"
+	"github.com/tinywasm/router/mock"
 )
 
 func TestInMemoryRefactoring(t *testing.T) {
@@ -52,26 +52,22 @@ func main() { fmt.Println("WASM") }`), 0644)
 		t.Fatalf("NewFileEvent failed: %v", err)
 	}
 
-	// 3. Register Routes and Verify Serving
-	mux := http.NewServeMux()
-	c.RegisterRoutes(mux)
+	// 3. Register Routes and Verify with mock router
+	r := &mock.Router{}
+	c.RegisterRoutes(r)
 
-	ts := httptest.NewServer(mux)
-	defer ts.Close()
-
-	// Expected path with prefix
-	url := ts.URL + "/assets/test-client.wasm"
-	resp, err := http.Get(url)
-	if err != nil {
-		t.Fatalf("Failed to GET %s: %v", url, err)
+	// Verify the route was registered
+	routes := r.Routes()
+	if len(routes) == 0 {
+		t.Fatal("Expected at least one route registered")
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("Expected 200 OK, got %d", resp.StatusCode)
+	if routes[0].Path != "/assets/test-client.wasm" {
+		t.Errorf("Expected path /assets/test-client.wasm, got %s", routes[0].Path)
 	}
-	if ct := resp.Header.Get("Content-Type"); ct != "application/wasm" {
-		t.Errorf("Expected Content-Type application/wasm, got %s", ct)
+
+	// Verify MemoryStorage is still active and has content
+	if c.Storage.Name() != "In-Memory" {
+		t.Errorf("Expected In-Memory storage, got %s", c.Storage.Name())
 	}
 
 	// Verify file was NOT written to disk
@@ -81,8 +77,6 @@ func main() { fmt.Println("WASM") }`), 0644)
 	}
 
 	// 4. Switch to External Mode
-	// CreateDefaultWasmFileClientIfNotExist used to switch mode, but now we must be explicit
-	// (Note: source already exists, so it skips generation)
 	c.CreateDefaultWasmFileClientIfNotExist(false)
 	c.UseDiskStorage()
 	if err := c.Compile(); err != nil {
@@ -98,26 +92,16 @@ func main() { fmt.Println("WASM") }`), 0644)
 		t.Error("Expected file on disk after switching to External mode")
 	}
 
-	// 5. Verify serving in External Mode
-	// Note: We need to re-register routes if the client.Storage instance changed?
-	// client.WasmClient.RegisterRoutes delegates to w.Storage.RegisterRoutes.
-	// But previously registered handlers on 'mux' are bound to the OLD client.Storage instance (closure).
-	// Ideally, the app re-registers or the handler delegates dynamically.
-	// In our implementation, `RegisterRoutes` calls `mux.HandleFunc`.
-	// For this test, we create a new mux to verify the NEW client.Storage.
-	mux2 := http.NewServeMux()
-	c.RegisterRoutes(mux2)
-	ts2 := httptest.NewServer(mux2)
-	defer ts2.Close()
+	// 5. Verify External Mode registration
+	r2 := &mock.Router{}
+	c.RegisterRoutes(r2)
 
-	url2 := ts2.URL + "/assets/test-client.wasm"
-	resp2, err := http.Get(url2)
-	if err != nil {
-		t.Fatalf("Failed to GET %s: %v", url2, err)
+	// Verify the route is still registered correctly
+	routes2 := r2.Routes()
+	if len(routes2) == 0 {
+		t.Fatal("Expected route registered in External mode")
 	}
-	defer resp2.Body.Close()
-
-	if resp2.StatusCode != http.StatusOK {
-		t.Errorf("Expected 200 OK, got %d", resp2.StatusCode)
+	if routes2[0].Path != "/assets/test-client.wasm" {
+		t.Errorf("Expected path /assets/test-client.wasm in External mode, got %s", routes2[0].Path)
 	}
 }

@@ -2,10 +2,10 @@ package client_test
 
 import (
 	"errors"
-	"net/http"
 	"testing"
 
 	"github.com/tinywasm/client"
+	"github.com/tinywasm/router"
 )
 
 type mockStorage struct {
@@ -19,8 +19,8 @@ func (m *mockStorage) Compile() error {
 	return nil
 }
 
-func (m *mockStorage) RegisterRoutes(mux *http.ServeMux) {}
-func (m *mockStorage) Name() string            { return "mock" }
+func (m *mockStorage) RegisterRoutes(r router.Router) {}
+func (m *mockStorage) Name() string                   { return "mock" }
 
 func TestOnCompileCallback(t *testing.T) {
 	w := client.New(nil)
