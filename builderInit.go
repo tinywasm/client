@@ -94,7 +94,9 @@ func (w *WasmClient) builderWasmInit() {
 func (w *WasmClient) UpdateCurrentBuilder(mode string) {
 	// 1. Cancel any ongoing compilation
 	if w.activeSizeBuilder != nil {
-		w.activeSizeBuilder.Cancel()
+		if c, ok := w.activeSizeBuilder.(interface{ Cancel() error }); ok {
+			c.Cancel()
+		}
 	}
 
 	// 2. Update current mode tracking

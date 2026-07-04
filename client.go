@@ -16,10 +16,10 @@ type WasmClient struct {
 	*Config
 
 	// RENAME & ADD: 4 builders for complete mode coverage
-	builderSizeLarge  *gobuild.GoBuild // Go standard - fast compilation
-	builderSizeMedium *gobuild.GoBuild // TinyGo debug - easier debugging
-	builderSizeSmall  *gobuild.GoBuild // TinyGo production - smallest size
-	activeSizeBuilder *gobuild.GoBuild // Current active builder
+	builderSizeLarge  gobuild.Compiler // Go standard - fast compilation
+	builderSizeMedium gobuild.Compiler // TinyGo debug - easier debugging
+	builderSizeSmall  gobuild.Compiler // TinyGo production - smallest size
+	activeSizeBuilder gobuild.Compiler // Current active builder
 
 	// EXISTING: Keep for installation detection (no compilerMode needed - activeSizeBuilder handles state)
 	// EXISTING: Keep for installation detection (no compilerMode needed - activeSizeBuilder handles state)
