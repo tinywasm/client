@@ -25,6 +25,10 @@ func (w *WasmClient) Change(newValue string) {
 		return
 	}
 
+	w.storageMu.RLock()
+	modeChanged := newValue != w.CurrentSizeMode
+	w.storageMu.RUnlock()
+
 	// Lazily verify TinyGo installation status ONLY when a TinyGo mode is requested
 	if w.RequiresTinyGo(newValue) {
 		w.verifyTinyGoInstallationStatus()
@@ -56,10 +60,10 @@ func (w *WasmClient) Change(newValue string) {
 		// Don't return early - still need to update assets and notify listeners
 	}
 
-	// Only notify listener when compilation succeeded.
+	// Only notify listener when compilation succeeded and mode actually changed.
 	// If compilation failed, the new mode's runtime would mismatch with the
 	// old mode's .wasm binary, causing the browser to freeze on reload.
-	if compilationSuccess && w.OnWasmExecChange != nil {
+	if compilationSuccess && modeChanged && w.OnWasmExecChange != nil {
 		w.OnWasmExecChange()
 	}
 
@@ -70,12 +74,22 @@ func (w *WasmClient) Change(newValue string) {
 
 // RecompileMainWasm recompiles the main WASM file using the current Storage mode.
 func (w *WasmClient) RecompileMainWasm() error {
-	if w.Storage == nil {
+	w.storageMu.RLock()
+	s := w.Storage
+	w.storageMu.RUnlock()
+
+	if s == nil {
 		return Err("Storage not initialized")
 	}
 
 	// Use Storage.Compile() to respect In-Memory vs Disk mode
-	return w.Storage.Compile()
+	err := s.Compile()
+
+	if w.OnCompile != nil {
+		w.OnCompile(err)
+	}
+
+	return err
 }
 
 // ValidateMode validates if the provided mode is supported
@@ -111,6 +125,10 @@ func (w *WasmClient) storageMode() string {
 // LogSuccessState logs the standard success message with WASM details (Safe: Acquires Lock)
 func (w *WasmClient) LogSuccessState(messages ...any) {
 	event := lang.Translate(messages...).String()
-	suffix := Sprintf("[%s|%s]", w.storageMode(), w.activeSizeBuilder.BinarySize())
+	binarySize := "unknown"
+	if sizer, ok := w.activeSizeBuilder.(interface{ BinarySize() string }); ok {
+		binarySize = sizer.BinarySize()
+	}
+	suffix := Sprintf("[%s|%s]", w.storageMode(), binarySize)
 	w.Logger(event, " ", suffix)
 }

@@ -30,32 +30,14 @@ func (w *WasmClient) NewFileEvent(fileName, extension, filePath, event string) e
 		return nil
 	}
 
-	// Capture Storage under read lock to prevent data race with SetBuildOnDisk
-	w.storageMu.RLock()
-	s := w.Storage
-	w.storageMu.RUnlock()
-
-	// Compile using current Storage (In-Memory or External)
-	if s == nil {
-		return Err("Storage not initialized")
-	}
-
 	// Compile using Storage
-	compileErr := s.Compile()
-
-	if w.OnCompile != nil {
-		w.OnCompile(compileErr)
-	}
+	compileErr := w.RecompileMainWasm()
 
 	if compileErr != nil {
 		return Err("compiling to WebAssembly error: ", compileErr)
 	}
 
 	w.LogSuccessState()
-
-	if w.OnWasmExecChange != nil {
-		w.OnWasmExecChange()
-	}
 
 	return nil
 }

@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	. "github.com/tinywasm/fmt"
 )
 
 // BuildStorage defines the behavior for compiling and serving the WASM client.
@@ -38,7 +40,14 @@ func (s *MemoryStorage) Name() string {
 func (s *MemoryStorage) Compile() error {
 	// Delegate to active builder's CompileToMemory
 	// Note: activeSizeBuilder is in WasmClient
-	content, err := s.Client.activeSizeBuilder.CompileToMemory()
+	c, ok := s.Client.activeSizeBuilder.(interface {
+		CompileToMemory() ([]byte, error)
+	})
+	if !ok {
+		return Err("active builder does not support CompileToMemory")
+	}
+
+	content, err := c.CompileToMemory()
 	if err != nil {
 		return err
 	}

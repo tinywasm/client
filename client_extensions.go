@@ -1,5 +1,26 @@
 package client
 
+import (
+	"github.com/tinywasm/gobuild"
+)
+
+// SetActiveBuilder sets the activeSizeBuilder.
+// Useful for tests to inject a mock builder.
+func (w *WasmClient) SetActiveBuilder(c gobuild.Compiler) {
+	w.storageMu.Lock()
+	defer w.storageMu.Unlock()
+	w.activeSizeBuilder = c
+}
+
+// SetBuilders allows injecting mock builders for all modes.
+func (w *WasmClient) SetBuilders(large, medium, small gobuild.Compiler) {
+	w.storageMu.Lock()
+	defer w.storageMu.Unlock()
+	w.builderSizeLarge = large
+	w.builderSizeMedium = medium
+	w.builderSizeSmall = small
+}
+
 // SetMode explicitly sets the compilation mode (e.g., "S", "M", "L").
 // This is useful for CLI tools or programmatic control.
 func (w *WasmClient) SetMode(mode string) {
