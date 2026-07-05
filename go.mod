@@ -11,7 +11,7 @@ require (
 	github.com/tinywasm/devflow v0.4.35
 	github.com/tinywasm/form v0.2.11
 	github.com/tinywasm/js v0.0.4
-	github.com/tinywasm/mcp v0.1.14
+	github.com/tinywasm/mcp v0.1.15
 	github.com/tinywasm/router v0.1.2
 	github.com/tinywasm/tinygo v0.0.11
 )
