@@ -10,7 +10,7 @@ require (
 	github.com/tinywasm/gobuild v0.0.26
 	github.com/tinywasm/js v0.0.4
 	github.com/tinywasm/mcp v0.1.16
-	github.com/tinywasm/model v0.0.4
+	github.com/tinywasm/model v0.0.5
 	github.com/tinywasm/router v0.1.3
 	github.com/tinywasm/tinygo v0.0.11
 )
