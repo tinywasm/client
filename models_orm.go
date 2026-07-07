@@ -3,8 +3,8 @@
 package client
 
 import (
-	"github.com/tinywasm/form/input"
 	"github.com/tinywasm/model"
+	"github.com/tinywasm/form/input"
 )
 
 func (m *SetModeArgs) ModelName() string {
