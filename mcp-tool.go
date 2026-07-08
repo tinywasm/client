@@ -15,9 +15,9 @@ func (w *WasmClient) GetMCPTools() []mcp.Tool {
 				"M=MEDIUM (TinyGo debug, ~500KB, most features), " +
 				"S=SMALL (TinyGo compact, ~200KB, minimal). " +
 				"Use single letter shortcuts: L, M, or S.",
-			InputSchema: new(SetModeArgs).InputSchema(),
-			Resource:    "wasm",
-			Action:      'u',
+			Args:     new(SetModeArgs),
+			Resource: "wasm",
+			Action:   'u',
 			Execute: func(ctx *context.Context, req mcp.Request) (*mcp.Result, error) {
 				var args SetModeArgs
 				if err := req.Bind(&args); err != nil {

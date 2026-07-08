@@ -1,8 +1,10 @@
-# PLAN — Migrate `WasmClient` compiler-mode field to `HandlerSelection`
+# PLAN — Migrate `WasmClient` compiler-mode field to `HandlerSelection` + `SetModeArgs` to typed `model.Definition`
 
 > This plan is dispatched via the CodeJob workflow. See skill: `agents-workflow`.
-> Part of the multi-repo effort tracked in `tinywasm/docs/SELECTION_HANDLER_MASTER_PLAN.md`.
+> Part of a multi-repo effort tracked by the maintainer outside this repo — you do NOT
+> need (and will not have) that tracking document; everything required is inline here.
 > **Depends on the `devtui` GATE phase** (`HandlerSelection` must exist and be published first).
+> Section 9 (model migration) has no gate and must be done regardless.
 
 You are an external agent with **zero prior context**. Everything you need is here.
 
@@ -154,7 +156,8 @@ Add/extend a test in the `client` package (see existing `*_test.go` for style):
 3. Existing mode tests (`client_mode_test.go`, `changefunc_control_test.go` if present) must
    still pass — the `Change` logic is unchanged.
 
-Run `gotest ./...` (or `go test ./...`). All green.
+Run `gotest ./...` (never bare `go test`; install:
+`go install github.com/tinywasm/devflow/cmd/gotest@latest`). All green.
 
 > There is no DevTUI-rendering test here (client must not import devtui). The rendering and
 > keyboard behavior are covered by `selection_handler_test.go` in the `devtui` repo.
@@ -170,15 +173,85 @@ Run `gotest ./...` (or `go test ./...`). All green.
 - **No standard library**: this package uses `github.com/tinywasm/fmt` and
   `github.com/tinywasm/fmt/lang`; do not add stdlib `fmt`/`strings`/`errors`.
 - **Backward compatible**: `Change`, `Value`, `Label`, `Name`, `Shortcuts` signatures unchanged.
+- **Models are typed Definitions**: no struct tags (`input:"..."`) as source of truth, no
+  hand-written `Schema()`/`Validate()`/schema strings — `model.Definition` + ormc only
+  (Section 9).
 
 ---
 
-## 8. Execution stages
+## 9. Model migration — `SetModeArgs` becomes a typed `model.Definition`
+
+**Mandatory ecosystem pattern** (reference, web:
+<https://github.com/tinywasm/model/blob/main/README.md> and
+<https://github.com/tinywasm/orm/blob/main/docs/ARQUITECTURE.md> — the rule is restated
+fully here, reading them is optional): the source of truth for a model is a **typed
+`model.Definition` literal** (var name MUST end in `Model` — that is how `ormc` discovers
+it). `ormc` generates the concrete struct plus `Schema()`, `Pointers()`, `Validate()`,
+`EncodeFields()`/`DecodeFields()`. Hand-written structs with `input:"..."` string tags are
+the OLD, removed pattern.
+
+`models.go` today is that old pattern (hand-written struct + `input:"required,enum=L;M;S"`
+tag). Note the enum constraint is already **silently lost** in the generated schema
+(`models_orm.go` has only `NotNull`) — the typed Definition restores it.
+
+### 9.1 Replace `models.go` content
+
+```go
+package client
+
+import "github.com/tinywasm/model"
+
+// SetModeArgsModel defines the arguments of the wasm_set_mode MCP tool.
+// ormc generates the SetModeArgs struct + Schema/Pointers/Validate/codec from
+// this literal; the MCP inputSchema is derived from the generated Schema().
+// mode is exactly one of L/M/S — expressed as: length exactly 1, allowed
+// characters only 'L','M','S' (Permitted has no enum concept; this is the
+// faithful typed equivalent for single-letter modes).
+var SetModeArgsModel = model.Definition{
+	Name: "set_mode_args",
+	Fields: model.Fields{
+		{
+			Name:    "mode",
+			Type:    model.FieldText,
+			NotNull: true,
+			Permitted: model.Permitted{
+				Extra:   []rune{'L', 'M', 'S'},
+				Minimum: 1,
+				Maximum: 1,
+			},
+		},
+	},
+}
+```
+
+- **Delete the hand-written `SetModeArgs` struct** — ormc generates it (names would
+  collide otherwise).
+- No `Widget` (this is a tool-args model, not a form) and no `DB` (not a table).
+- Regenerate: `go install github.com/tinywasm/orm/cmd/ormc@latest && ormc` (from the
+  module root). Never edit `models_orm.go` by hand.
+- `mcp-tool.go` needs **no change**: `Args: new(SetModeArgs)` keeps compiling against the
+  generated struct (field `Mode string` round-trips).
+
+### 9.2 Tests for the restored validation
+
+In the existing test style (`gotest ./...`, stdlib-free package rules apply):
+
+1. `model.ValidateFields('u', &SetModeArgs{Mode: "L"})` → nil; `Mode: "X"` and `Mode: "LM"`
+   → error (the enum lives again, typed).
+2. The `wasm_set_mode` tool binds args via `req.Bind`: a request with `{"mode":"X"}` returns
+   an error, `{"mode":"M"}` reaches `w.Change` (extend the existing mcp tool test if present;
+   otherwise add a focused one).
+
+---
+
+## 10. Execution stages
 
 | Stage | File | Deliverable |
 |---|---|---|
 | 1 | `Change.go` | Add `Options()` delegating to `Shortcuts()` (Section 4.1). |
 | 2 | `Change.go` | Update the `Change` doc comment (Section 4.2). |
-| 3 | `*_test.go` | Tests for `Options()` shape + Value/Options consistency (Section 6); `go test ./...` green. |
+| 3 | `*_test.go` | Tests for `Options()` shape + Value/Options consistency (Section 6). |
+| 4 | `models.go` (Definition), `models_orm.go` (regenerated by ormc) | `SetModeArgsModel` typed Definition; hand-written struct deleted (Section 9). |
+| 5 | `*_test.go` | Mode-validation tests via generated `Validate` + `req.Bind` (Section 9.2); `gotest ./...` green. |
 
 Do NOT run `gopush` or `codejob` — those are local developer tools managed outside this task.
