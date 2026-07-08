@@ -4,18 +4,15 @@ package client
 
 import (
 	"github.com/tinywasm/model"
-	"github.com/tinywasm/form/input"
 )
 
-func (m *SetModeArgs) ModelName() string {
-	return "set_mode_args"
+type SetModeArgs struct {
+	Mode string
 }
 
-var _schemaSetModeArgs = []model.Field{
-		{Name: "mode", Type: model.FieldText, NotNull: true, Widget: input.Text()},
-	}
+func (m *SetModeArgs) ModelName() string { return "set_mode_args" }
 
-func (m *SetModeArgs) Schema() []model.Field { return _schemaSetModeArgs }
+func (m *SetModeArgs) Schema() []model.Field { return SetModeArgsModel.Fields }
 
 func (m *SetModeArgs) Pointers() []any { return []any{&m.Mode} }
 
