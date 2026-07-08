@@ -13,8 +13,17 @@ func (w *WasmClient) Shortcuts() []map[string]string {
 	}
 }
 
+// Options returns the compiler-mode choices as ordered {value: label} pairs so
+// DevTUI renders them as a radio / segmented control (HandlerSelection). The
+// data is identical to Shortcuts(): each mode's key is the value passed to
+// Change() and its translated caption is the button label.
+func (w *WasmClient) Options() []map[string]string {
+	return w.Shortcuts()
+}
+
 // Change updates the compiler mode for WasmClient.
-// Implements the HandlerEdit interface: Change(newValue string)
+// Implements HandlerSelection.Change: called with the selected option's value
+// ("L"/"M"/"S") when the user confirms a mode (radio) or presses a global shortcut.
 func (w *WasmClient) Change(newValue string) {
 	// Normalize input: trim spaces and convert to uppercase
 	newValue = Convert(newValue).ToUpper().String()

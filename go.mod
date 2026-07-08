@@ -6,7 +6,6 @@ require (
 	github.com/tinywasm/context v0.0.18
 	github.com/tinywasm/devflow v0.4.39
 	github.com/tinywasm/fmt v0.25.1
-	github.com/tinywasm/form v0.2.12
 	github.com/tinywasm/gobuild v0.0.26
 	github.com/tinywasm/js v0.0.4
 	github.com/tinywasm/mcp v0.1.19
