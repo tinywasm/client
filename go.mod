@@ -4,12 +4,12 @@ go 1.25.2
 
 require (
 	github.com/tinywasm/context v0.0.18
-	github.com/tinywasm/devflow v0.4.39
+	github.com/tinywasm/devflow v0.4.40
 	github.com/tinywasm/fmt v0.25.1
 	github.com/tinywasm/gobuild v0.0.26
 	github.com/tinywasm/js v0.0.4
-	github.com/tinywasm/mcp v0.1.19
-	github.com/tinywasm/model v0.0.6
+	github.com/tinywasm/mcp v0.1.20
+	github.com/tinywasm/model v0.0.8
 	github.com/tinywasm/router v0.1.4
 	github.com/tinywasm/tinygo v0.0.11
 )
