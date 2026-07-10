@@ -6,10 +6,19 @@ import (
 	"path/filepath"
 
 	"github.com/tinywasm/devflow"
+	. "github.com/tinywasm/fmt"
 )
 
 //go:embed templates/*
 var embeddedFS embed.FS
+
+// templateModules: modules imported by templates/basic_wasm_client.md.
+// Keep in sync with the template's imports.
+var templateModules = []string{
+	"github.com/tinywasm/dom",
+	"github.com/tinywasm/fmt",
+	"github.com/tinywasm/html",
+}
 
 // CreateDefaultWasmFileClientIfNotExist creates a default WASM main.go file from the embedded markdown template
 // It never overwrites an existing file and returns the WasmClient instance for method chaining.
@@ -61,6 +70,15 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist(skipIDEConfig bool) *
 			t.VisualStudioCodeWasmEnvConfig()
 		}
 
+		// Ensure dependencies are present before compiling
+		if err := t.ensureTemplateDependencies(); err != nil {
+			t.Logger("Error ensuring template dependencies:", err)
+			t.storageMu.Lock()
+			t.lastBuildError = err
+			t.storageMu.Unlock()
+			return t
+		}
+
 		// Trigger compilation immediately so In-Memory mode has content to serve
 		t.storageMu.RLock()
 		store := t.Storage
@@ -69,9 +87,29 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist(skipIDEConfig bool) *
 		if store != nil {
 			if err := store.Compile(); err != nil {
 				t.Logger("Error compiling generated client:", err)
+				t.storageMu.Lock()
+				t.lastBuildError = err
+				t.storageMu.Unlock()
+			} else {
+				t.storageMu.Lock()
+				t.lastBuildError = nil
+				t.storageMu.Unlock()
 			}
 		}
 	}
 
 	return t
+}
+
+func (t *WasmClient) ensureTemplateDependencies() error {
+	for _, mod := range templateModules {
+		// Try to run go get <mod>@latest in the project root
+		// We use devflow.RunCommandInDir which is available in the ecosystem
+		t.Logger("Ensuring dependency:", mod)
+		_, err := devflow.RunCommandInDir(t.AppRootDir, "go", "get", mod+"@latest")
+		if err != nil {
+			return Errf("failed to add dependency %s: %w. Please run: go get %s@latest", mod, err, mod)
+		}
+	}
+	return nil
 }

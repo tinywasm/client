@@ -75,7 +75,8 @@ twc.UseMemoryStorage() // switch back to memory
 ## Project Initialization
 
 ```go
-// Generates web/client.go + .vscode/settings.json if missing
+// Generates web/client.go + .vscode/settings.json if missing.
+// Automatically adds required modules (dom, html, fmt) to go.mod.
 twc.CreateDefaultWasmFileClientIfNotExist(false)
 ```
 
