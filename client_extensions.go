@@ -80,3 +80,10 @@ func (w *WasmClient) Compile() error {
 func (w *WasmClient) SetOnCompile(fn func(err error)) {
 	w.OnCompile = fn
 }
+
+// LastBuildError returns the error from the most recent compilation attempt.
+func (w *WasmClient) LastBuildError() error {
+	w.storageMu.RLock()
+	defer w.storageMu.RUnlock()
+	return w.lastBuildError
+}

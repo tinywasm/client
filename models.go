@@ -13,7 +13,7 @@ var SetModeArgsModel = model.Definition{
 	Fields: model.Fields{
 		{
 			Name:    "mode",
-			Type:    model.FieldText,
+			Type:    model.Text(),
 			NotNull: true,
 			Permitted: model.Permitted{
 				Extra:   []rune{'L', 'M', 'S'},

@@ -46,7 +46,10 @@ type WasmClient struct {
 	// err==nil indicates success; err!=nil indicates failure.
 	OnCompile func(err error)
 
-	// storageMu protects Storage and CurrentSizeMode fields from concurrent access
+	// lastBuildError stores the error from the most recent compilation attempt.
+	lastBuildError error
+
+	// storageMu protects Storage, CurrentSizeMode and lastBuildError fields from concurrent access
 	storageMu sync.RWMutex
 }
 
