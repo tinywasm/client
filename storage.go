@@ -85,7 +85,7 @@ func (s *DiskStorage) RegisterRoutes(r router.Router) {
 	result := filepath.Join(s.Client.Config.OutputDir(), s.Client.OutputName+".wasm")
 	absPath := filepath.Join(s.Client.AppRootDir, result)
 
-	r.Get(routePath, func(ctx router.Context) {
+	r.PublicAsset(routePath, func(ctx router.Context) {
 		content, err := os.ReadFile(absPath)
 		if err != nil {
 			ctx.WriteStatus(500)
