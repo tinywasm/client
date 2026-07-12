@@ -18,7 +18,7 @@ func (w *WasmClient) RegisterRoutes(r router.Router) {
 func (s *MemoryStorage) RegisterRoutes(r router.Router) {
 	routePath := s.Client.wasmRoutePath()
 
-	r.Get(routePath, func(ctx router.Context) {
+	r.PublicAsset(routePath, func(ctx router.Context) {
 		s.Mu.RLock()
 		content := s.WasmContent
 		s.Mu.RUnlock()
