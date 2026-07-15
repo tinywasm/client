@@ -5,8 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tinywasm/devflow"
+	"github.com/tinywasm/command"
 	. "github.com/tinywasm/fmt"
+	"github.com/tinywasm/markdown"
 )
 
 //go:embed templates/*
@@ -55,7 +56,7 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist(skipIDEConfig bool) *
 			}
 		}
 
-		m := devflow.NewMarkDown(t.AppRootDir, srcDir, writer).
+		m := markdown.New(t.AppRootDir, srcDir, writer).
 			InputByte(raw)
 
 		// Extract to the main file
@@ -103,10 +104,8 @@ func (t *WasmClient) CreateDefaultWasmFileClientIfNotExist(skipIDEConfig bool) *
 
 func (t *WasmClient) ensureTemplateDependencies() error {
 	for _, mod := range templateModules {
-		// Try to run go get <mod>@latest in the project root
-		// We use devflow.RunCommandInDir which is available in the ecosystem
 		t.Logger("Ensuring dependency:", mod)
-		_, err := devflow.RunCommandInDir(t.AppRootDir, "go", "get", mod+"@latest")
+		_, err := command.RunInDir(t.AppRootDir, "go", "get", mod+"@latest")
 		if err != nil {
 			return Errf("failed to add dependency %s: %w. Please run: go get %s@latest", mod, err, mod)
 		}
