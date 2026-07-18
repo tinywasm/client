@@ -10,7 +10,7 @@ require (
 	github.com/tinywasm/js v0.0.4
 	github.com/tinywasm/markdown v0.0.2
 	github.com/tinywasm/mcp v0.1.20
-	github.com/tinywasm/model v0.0.16
+	github.com/tinywasm/model v0.1.0
 	github.com/tinywasm/router v0.1.8
 	github.com/tinywasm/tinygo v0.0.11
 )
