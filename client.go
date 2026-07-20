@@ -24,7 +24,7 @@ type WasmClient struct {
 	// EXISTING: Keep for installation detection (no compilerMode needed - activeSizeBuilder handles state)
 	// EXISTING: Keep for installation detection (no compilerMode needed - activeSizeBuilder handles state)
 	TinyGoCompilerFlag bool // Enable TinyGo compiler (default: false for faster development)
-	TinyGoInstalled bool // Cached TinyGo installation status
+	TinyGoInstalled    bool // Cached TinyGo installation status
 
 	// NEW: Explicit mode tracking to fix Value() method
 	CurrentSizeMode string // Track current mode explicitly ("L", "M", "S")
@@ -32,15 +32,15 @@ type WasmClient struct {
 	Storage BuildStorage // Storage for compilation and serving (In-Memory vs External)
 
 	// Configuration fields moved from Config
-	AppRootDir string
-	MainInputFile string
-	OutputName string
+	AppRootDir                string
+	MainInputFile             string
+	OutputName                string
 	buildLargeSizeShortcut    string
 	buildMediumSizeShortcut   string
 	buildSmallSizeShortcut    string
-	ShouldCreateIDEConfig func() bool
+	ShouldCreateIDEConfig     func() bool
 	ShouldGenerateDefaultFile func() bool
-	Log func(message ...any)
+	Log                       func(message ...any)
 
 	// OnCompile is invoked after each compilation triggered by NewFileEvent.
 	// err==nil indicates success; err!=nil indicates failure.
@@ -71,8 +71,8 @@ func New(c *Config) *WasmClient {
 		Config: c,
 
 		// Initialize dynamic fields
-		TinyGoCompilerFlag:  false, // Default to fast Go compilation; enable later via WasmClient methods if desired
-		TinyGoInstalled: false, // Verified on first use
+		TinyGoCompilerFlag: false, // Default to fast Go compilation; enable later via WasmClient methods if desired
+		TinyGoInstalled:    false, // Verified on first use
 
 		// Initialize with proper defaults (not from Config anymore)
 		AppRootDir:              ".",
@@ -145,28 +145,6 @@ func (w *WasmClient) WasmProjectTinyGoJsUse(mode ...string) (isWasmProject bool,
 	useTinyGo = w.RequiresTinyGo(CurrentSizeMode)
 
 	return true, useTinyGo
-}
-
-// === DevTUI FieldHandler Interface Implementation ===
-
-// Label returns the field label for DevTUI display
-func (w *WasmClient) Label() string {
-	return "Compiler Mode"
-}
-
-// Value returns the current compiler mode shortcut (c, d, or p)
-func (w *WasmClient) Value() string {
-	// Sync with store if available
-	// w.loadMode() // REMOVED: Causes race condition/reversion if DB is stale. Mode is managed in memory via Change().
-
-	w.storageMu.RLock()
-	defer w.storageMu.RUnlock()
-
-	// Use explicit mode tracking instead of pointer comparison
-	if w.CurrentSizeMode == "" {
-		return w.buildLargeSizeShortcut // Default to coding mode
-	}
-	return w.CurrentSizeMode
 }
 
 // UseDiskStorage switches the client to disk-backed storage. Idempotent.

@@ -13,6 +13,7 @@ require (
 	github.com/tinywasm/model v0.1.0
 	github.com/tinywasm/router v0.1.8
 	github.com/tinywasm/tinygo v0.0.11
+	github.com/tinywasm/tui v0.1.1
 )
 
 require (
