@@ -2,6 +2,8 @@
 PLAN: "refactor!: disolver client — la compilación ya vive en gobuild"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 8257303978851486050
 ---
 
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.
