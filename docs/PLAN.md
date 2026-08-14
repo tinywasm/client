@@ -9,7 +9,7 @@ SESSION: 8257303978851486050
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.
 >
 > Forma parte de un cambio con ruptura coordinado desde
-> https://github.com/tinywasm/app/blob/main/docs/PLAN.md
+> https://github.com/tinywasm/core/blob/main/docs/PLAN.md
 
 # Plan — disolver `tinywasm/client`
 
