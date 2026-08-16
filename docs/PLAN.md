@@ -2,8 +2,9 @@
 PLAN: "refactor!: disolver client — la compilación ya vive en gobuild"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 8257303978851486050
+PR: https://github.com/tinywasm/client/pull/25
 ---
 
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.
@@ -49,7 +50,7 @@ justifica por una razón propia, no por agrupar llamadas a otros.
 
 | Archivo | Líneas | Qué es realmente |
 |---|---|---|
-| `client.go`, `builderInit.go`, `wasmbuild.go`, `client_extensions.go` | 647 | selección de modo y orquestación sobre `gobuild` |
+| `client.go`, `builderInit.go`, `wasm_build.go`, `client_extensions.go` | 647 | selección de modo y orquestación sobre `gobuild` |
 | `Change.go` | 182 | control de TUI (`Label`, `Options`, `Change`, `Shortcuts`) |
 | `tiny_verify_proyect.go` | 159 | verificar que el proyecto es compatible con TinyGo |
 | `generator.go`, `web_client_generator.go` | 139 | scaffolding del cliente |
@@ -81,7 +82,7 @@ Ya aplicado en el movimiento: cláusula de paquete a `app` / `app_test` / `sitec
 ### Etapa 1 — borrar el código movido
 
 ```
-client.go  builderInit.go  wasmbuild.go  client_extensions.go
+client.go  builderInit.go  wasm_build.go  client_extensions.go
 Change.go  vscode_config.go  mcp-tool.go  http.go  file_event.go
 storage.go  generator.go  web_client_generator.go  javascripts.go
 models.go  models_orm.go  config.go  tiny_verify_proyect.go
@@ -96,7 +97,7 @@ ls ../app/from_client/tests/*.go  # 22 tests
 ls ../sitec/select_tinygo_verify.go
 ```
 
-### Etapa 2 — borrar `cmd/wasmbuild` y su lógica
+### Etapa 2 — borrar `cmd/wasm_build` y su lógica
 
 **Decisión tomada: se borra.** No queremos redundancia de herramientas; para eso
 la compilación por línea de comando se traslada a `sitec build`.
@@ -104,13 +105,13 @@ la compilación por línea de comando se traslada a `sitec build`.
 Se borra el CLI **y la función que solo existía para servirlo**:
 
 ```
-cmd/wasmbuild/          (main.go + README.md)
-wasmbuild.go            (RunWasmBuild, RunWasmBuildHooks, RunWasmBuildClient,
+cmd/wasm_build/          (main.go + README.md)
+wasm_build.go            (RunWasmBuild, RunWasmBuildHooks, RunWasmBuildClient,
                          WasmBuildArgs, SetRunWasmBuildHooks)
 javascripts.go          (ParseWasmSizeModeFlag — flag del CLI)
 ```
 
-Verificado: `RunWasmBuild` solo lo llaman `cmd/wasmbuild/main.go` y sus tests.
+Verificado: `RunWasmBuild` solo lo llaman `cmd/wasm_build/main.go` y sus tests.
 Nada del arnés lo usa.
 
 #### Precondición — `sitec build` debe cubrir los cinco pasos
@@ -136,12 +137,12 @@ aceptación de `sitec build`, incluido `TestRunWasmBuild_IncludesTinyGoEnv`.
 
 #### Referencias a limpiar
 
-`wasmbuild` aparece en `README.md`, `cmd/wasmbuild/README.md` y
+`wasm_build` aparece en `README.md`, `cmd/wasm_build/README.md` y
 `docs/stages/stage1_replace_calls.md` / `stage2_cleanup.md`. Ninguna fuera de
 este repo: no hay instalador, CI ni otro módulo que lo invoque, así que el
 borrado no rompe consumidores.
 
-**Aceptación:** `grep -rn "wasmbuild" .` devuelve vacío en todo el repo.
+**Aceptación:** `grep -rn "wasm_build" .` devuelve vacío en todo el repo.
 
 ### Etapa 3 — `README.md` y archivar
 
@@ -172,5 +173,5 @@ se resuelve con `go mod tidy`.
 | # | Alcance | Aceptación |
 |---|---|---|
 | 1 | Borrar el código ya movido | `ls *.go` solo deja lo de la etapa 2 |
-| 2 | Borrar `cmd/wasmbuild`, `wasmbuild.go` y `javascripts.go` | `grep -rn "wasmbuild" .` vacío; `sitec build` cubre los 5 pasos |
+| 2 | Borrar `cmd/wasm_build`, `wasm_build.go` y `javascripts.go` | `grep -rn "wasm_build" .` vacío; `sitec build` cubre los 5 pasos |
 | 3 | README de disolución y archivar | ningún `go.mod` referencia `tinywasm/client` |
